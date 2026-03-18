@@ -1,0 +1,3521 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checklist de Qualidade - Cielo</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Roboto+Mono:wght@400;600&display=swap');
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #003d5c 0%, #00517a 50%, #006494 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+    
+    .header {
+      background: linear-gradient(135deg, #00A4E0 0%, #00D664 100%);
+      padding: 30px;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .header h1 {
+      font-size: 28px;
+      font-weight: 800;
+    }
+    
+    .score-panel {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 15px 25px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    
+    .score-panel .score {
+      font-size: 48px;
+      font-weight: 800;
+      font-family: 'Roboto Mono', monospace;
+    }
+    
+    .score-panel .label {
+      font-size: 12px;
+      opacity: 0.9;
+      margin-top: 5px;
+    }
+    
+    .info-bar {
+      background: #f8f9fa;
+      padding: 20px 30px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      border-bottom: 3px solid #00A4E0;
+    }
+    
+    .info-item {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .info-item label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #666;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+    
+    .info-item input, .info-item select {
+      padding: 10px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+    
+    .info-item input:focus, .info-item select:focus {
+      outline: none;
+      border-color: #00A4E0;
+    }
+    
+    .content {
+      padding: 30px;
+    }
+    
+    .block {
+      margin-bottom: 30px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    
+    .block-header {
+      background: linear-gradient(135deg, #00A4E0 0%, #0090c9 100%);
+      color: white;
+      padding: 15px 20px;
+      font-weight: 700;
+      font-size: 16px;
+    }
+    
+    .item {
+      padding: 15px 20px;
+      border-bottom: 1px solid #f0f0f0;
+      transition: all 0.2s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+    
+    .item:hover {
+      background: #f8f9fa;
+    }
+    
+    .item:last-child {
+      border-bottom: none;
+    }
+    
+    .item.marcado {
+      background: #fff5f5;
+      border-left: 4px solid #FF6B6B;
+    }
+    
+    .item-content {
+      flex: 1;
+    }
+    
+    .item-label {
+      display: inline-block;
+      background: #e8f4f8;
+      color: #00A4E0;
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+    
+    .item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+    
+    .item-title {
+      flex: 1;
+      font-weight: 600;
+      color: #333;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    
+    .item-badge {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-left: 15px;
+    }
+    
+    .item-weight {
+      background: #00D664;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      font-family: 'Roboto Mono', monospace;
+    }
+    
+    .item-type {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    
+    .item-type.nc {
+      background: #FF9F1C;
+      color: white;
+    }
+    
+    .item-type.ncg {
+      background: #FF6B6B;
+      color: white;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    
+    .item-description {
+      color: #666;
+      font-size: 13px;
+      line-height: 1.6;
+      padding-left: 10px;
+      border-left: 3px solid #00A4E0;
+      margin-bottom: 10px;
+    }
+    
+    .item-observation {
+      margin-top: 10px;
+    }
+    
+    .item-observation label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: #666;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+    
+    .item-observation textarea {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: 'Inter', sans-serif;
+      resize: vertical;
+      min-height: 60px;
+      transition: border-color 0.3s;
+    }
+    
+    .item-observation textarea:focus {
+      outline: none;
+      border-color: #00A4E0;
+    }
+    
+    .item-observation textarea:disabled {
+      background: #f5f5f5;
+      cursor: not-allowed;
+    }
+    
+    .observation-preview {
+      margin-top: 10px;
+      padding: 12px;
+      background: #f0f8ff;
+      border-left: 4px solid #00D664;
+      border-radius: 8px;
+      display: none;
+    }
+    
+    .observation-preview.show {
+      display: block;
+      animation: slideDown 0.3s;
+    }
+    
+    .observation-preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    
+    .observation-preview-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #00A4E0;
+      text-transform: uppercase;
+    }
+    
+    .observation-preview-edit {
+      background: none;
+      border: none;
+      color: #00A4E0;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      text-decoration: underline;
+      padding: 0;
+    }
+    
+    .observation-preview-edit:hover {
+      color: #0090c9;
+    }
+    
+    .observation-preview-text {
+      color: #555;
+      font-size: 13px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    
+    .btn-observation {
+      background: white;
+      border: 2px solid #00A4E0;
+      color: #00A4E0;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 20px;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 40px;
+      height: 40px;
+    }
+    
+    .btn-observation:hover {
+      background: #00A4E0;
+      color: white;
+      transform: scale(1.1);
+    }
+    
+    .btn-observation.has-content {
+      background: #00D664;
+      border-color: #00D664;
+      color: white;
+    }
+    
+    .btn-observation.has-content:hover {
+      background: #00b854;
+      border-color: #00b854;
+    }
+    
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .modal-overlay.show {
+      display: flex;
+      animation: fadeIn 0.3s;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .modal-content {
+      background: white;
+      border-radius: 15px;
+      padding: 30px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      animation: slideUp 0.3s;
+    }
+    
+    @keyframes slideUp {
+      from { transform: translateY(50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+    
+    .modal-header h3 {
+      color: #00A4E0;
+      font-size: 18px;
+      margin: 0;
+    }
+    
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 28px;
+      color: #999;
+      cursor: pointer;
+      padding: 0;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: all 0.3s;
+    }
+    
+    .modal-close:hover {
+      background: #f0f0f0;
+      color: #333;
+    }
+    
+    .modal-body {
+      margin-bottom: 20px;
+    }
+    
+    .modal-item-info {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      border-left: 4px solid #00A4E0;
+    }
+    
+    .modal-item-info strong {
+      display: block;
+      color: #00A4E0;
+      font-size: 12px;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+    
+    .modal-textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      resize: vertical;
+      min-height: 150px;
+      transition: border-color 0.3s;
+    }
+    
+    .modal-textarea:focus {
+      outline: none;
+      border-color: #00A4E0;
+    }
+    
+    .modal-footer {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+    
+    .modal-btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 14px;
+    }
+    
+    .modal-btn-cancel {
+      background: #e0e0e0;
+      color: #666;
+    }
+    
+    .modal-btn-cancel:hover {
+      background: #d0d0d0;
+    }
+    
+    .modal-btn-save {
+      background: linear-gradient(135deg, #00A4E0 0%, #00D664 100%);
+      color: white;
+    }
+    
+    .modal-btn-save:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 164, 224, 0.3);
+    }
+    
+    .confirm-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .confirm-overlay.show {
+      display: flex;
+      animation: fadeIn 0.3s;
+    }
+    
+    .confirm-box {
+      background: white;
+      border-radius: 15px;
+      padding: 30px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      animation: slideUp 0.3s;
+      text-align: center;
+    }
+    
+    .confirm-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+    
+    .confirm-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: #FF6B6B;
+      margin-bottom: 15px;
+    }
+    
+    .confirm-message {
+      font-size: 15px;
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 25px;
+    }
+    
+    .confirm-buttons {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+    }
+    
+    .confirm-btn {
+      padding: 14px 30px;
+      border: none;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 15px;
+      min-width: 120px;
+    }
+    
+    .confirm-btn-cancel {
+      background: #e0e0e0;
+      color: #666;
+    }
+    
+    .confirm-btn-cancel:hover {
+      background: #d0d0d0;
+      transform: translateY(-2px);
+    }
+    
+    .confirm-btn-ok {
+      background: #FF6B6B;
+      color: white;
+    }
+    
+    .confirm-btn-ok:hover {
+      background: #ff5252;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+    }
+    
+    .btn-descontar {
+      padding: 12px 24px;
+      border: 2px solid #ddd;
+      background: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 14px;
+      transition: all 0.3s;
+      white-space: nowrap;
+      min-width: 120px;
+    }
+    
+    .btn-descontar:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .btn-descontar.active {
+      border-color: #FF6B6B;
+      background: #FF6B6B;
+      color: white;
+      box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+    }
+    
+    .copyright-footer {
+      position: sticky;
+      bottom: 0;
+      background: linear-gradient(135deg, #2C3E50 0%, #34495e 100%);
+      color: white;
+      padding: 15px 30px;
+      text-align: center;
+      box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.2);
+      font-size: 13px;
+      opacity: 0.9;
+    }
+    
+    .copyright-footer p {
+      margin: 0;
+      letter-spacing: 0.5px;
+    }
+    
+    .alert-ncg {
+      background: #fff3cd;
+      border: 2px solid #FF6B6B;
+      border-radius: 10px;
+      padding: 15px;
+      margin: 20px 30px;
+      display: none;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .alert-ncg.show {
+      display: flex;
+      animation: slideDown 0.5s;
+    }
+    
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .alert-icon {
+      font-size: 32px;
+    }
+    
+    .alert-text {
+      flex: 1;
+    }
+    
+    .alert-text strong {
+      display: block;
+      color: #FF6B6B;
+      font-size: 16px;
+      margin-bottom: 5px;
+    }
+    
+    .export-btn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: linear-gradient(135deg, #00A4E0 0%, #00D664 100%);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 50px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 5px 20px rgba(0, 164, 224, 0.4);
+      transition: all 0.3s;
+      font-size: 14px;
+    }
+    
+    .export-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0, 164, 224, 0.5);
+    }
+
+    .reset-btn {
+      position: fixed;
+      bottom: 90px;
+      right: 30px;
+      background: #666;
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 50px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s;
+      font-size: 13px;
+    }
+
+    .reset-btn:hover {
+      background: #555;
+      transform: translateY(-2px);
+    }
+    
+    .score-notification {
+      position: fixed;
+      bottom: 150px;
+      right: 30px;
+      background: linear-gradient(135deg, #00A4E0 0%, #00D664 100%);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 12px;
+      box-shadow: 0 5px 20px rgba(0, 164, 224, 0.4);
+      z-index: 1500;
+      text-align: center;
+      transition: all 0.3s ease;
+      min-width: 100px;
+      opacity: 0;
+      transform: translateY(20px);
+      pointer-events: none;
+    }
+    
+    .score-notification.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .score-notification.pulse {
+      animation: scorePulse 0.5s ease;
+    }
+    
+    @keyframes scorePulse {
+      0%, 100% { transform: scale(1) translateY(0); }
+      50% { transform: scale(1.1) translateY(0); box-shadow: 0 8px 30px rgba(0, 164, 224, 0.6); }
+    }
+    
+    .score-notification-title {
+      font-size: 10px;
+      opacity: 0.9;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+    
+    .score-notification-value {
+      font-size: 32px;
+      font-weight: 800;
+      font-family: 'Roboto Mono', monospace;
+      line-height: 1;
+      margin-bottom: 2px;
+    }
+    
+    .score-notification-label {
+      font-size: 11px;
+      opacity: 0.9;
+    }
+    
+    .score-notification-ncg {
+      background: linear-gradient(135deg, #FF6B6B 0%, #ff5252 100%);
+      box-shadow: 0 5px 20px rgba(255, 107, 107, 0.4);
+    }
+    
+    .score-notification-ncg.pulse {
+      animation: scorePulseRed 0.5s ease;
+    }
+    
+    @keyframes scorePulseRed {
+      0%, 100% { transform: scale(1) translateY(0); }
+      50% { transform: scale(1.1) translateY(0); box-shadow: 0 8px 30px rgba(255, 107, 107, 0.6); }
+    }
+    
+    @media print {
+      body { background: white; }
+      .export-btn, .reset-btn, .score-notification { display: none; }
+      .btn-descontar { display: none; }
+      .copyright-footer { position: relative; }
+    }
+
+    .tab-button {
+      flex: 1;
+      padding: 18px 24px;
+      background: transparent;
+      color: #495057;
+      border: none;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      border-right: 1px solid rgba(0,0,0,0.1);
+      position: relative;
+    }
+
+    .tab-button:last-child {
+      border-right: none;
+    }
+
+    .tab-button:hover {
+      background: rgba(0, 164, 224, 0.1);
+    }
+
+    .tab-active {
+      background: linear-gradient(135deg, #00A4E0 0%, #00D664 100%) !important;
+      color: white !important;
+      box-shadow: inset 0 -3px 0 rgba(255,255,255,0.3);
+    }
+
+    .badge-count {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: #dc3545;
+      color: white;
+      border-radius: 12px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    #btnExportarControle:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 30px rgba(155, 89, 182, 0.6);
+    }
+  </style>
+</head>
+<body>
+  <!-- Sistema de Navegação por Abas -->
+  <div style="max-width: 1200px; margin: 20px auto; background: white; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); overflow: hidden;">
+    <div id="tabsNavigation" style="display: flex; border-bottom: 3px solid #00A4E0; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+      <button id="tabFormularios" onclick="trocarAba('formularios')" class="tab-button tab-active">
+        📋 Formulários de Avaliação
+      </button>
+      <button id="tabControle" onclick="trocarAba('controle')" class="tab-button">
+        📊 Controle de Avaliações <span id="badgeControle" class="badge-count" style="display: none;">0</span>
+      </button>
+      <button id="tabAnalise" onclick="trocarAba('analise')" class="tab-button">
+        📈 Análise e Relatórios
+      </button>
+    </div>
+  </div>
+
+  <!-- Visão 1: Formulários (Original) -->
+  <div id="viewFormularios" style="display: block;">
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div>
+        <h1>📋 Checklist de Qualidade</h1>
+        <p style="opacity: 0.9; margin-top: 5px;">Análise de Conformidade - Cielo</p>
+      </div>
+      <div class="score-panel">
+        <div class="score" id="totalScore">100</div>
+        <div class="label">Pontuação Final</div>
+      </div>
+    </div>
+
+    <!-- Info Bar -->
+    <div class="info-bar">
+      <div class="info-item">
+        <label>Analista</label>
+        <input list="listaAnalistasForm" id="analistaNome" placeholder="Digite ou selecione o analista">
+        <datalist id="listaAnalistasForm">
+          <option value="FE - FRANK PEREIRA DA SILVA">
+          <option value="FE - GISELE APARECIDA DE ALMEIDA">
+          <option value="FE - ANA PAULA DOS SANTOS">
+          <option value="FE - ROBERT GUSTAVO SANTOS SILVA">
+          <option value="FE - PEDRO ALVES CABRAL NETO">
+          <option value="FE - JULIA OLIVEIRA ONORIO">
+          <option value="FE - KALLYANA KAMILA ALVES">
+          <option value="FE - NATHALI CRISTINE DOS SANTOS">
+          <option value="FE - SILVIA MEIRE DE SOUZA">
+          <option value="FE - DÉBORA MELÃO MACEDO">
+          <option value="FE - FRANCINE VITORIA COSTA">
+          <option value="FE - LARISSA CAMARA">
+          <option value="FE - SINARA DA SILVA NUNES">
+        </datalist>
+      </div>
+      <div class="info-item">
+        <label>Supervisor</label>
+        <select id="supervisor">
+          <option value="">Selecione</option>
+          <option value="MARLEILDE NETO SILVA">MARLEILDE NETO SILVA</option>
+        </select>
+      </div>
+      <div class="info-item">
+        <label>Tipo</label>
+        <select id="tipo">
+          <option value="">Selecione</option>
+          <option value="Monitor">Monitor</option>
+          <option value="Supervisor">Supervisor</option>
+        </select>
+      </div>
+      <div class="info-item">
+        <label>Formulário</label>
+        <select id="formulario" onchange="mostrarSubFormulario()">
+          <option value="">Selecione</option>
+          <option value="Agenda Financeira - Eventos">Agenda Financeira - Eventos</option>
+          <option value="Agenda Financeira">Agenda Financeira</option>
+          <option value="Vendas">Vendas</option>
+          <option value="Atendimento">Atendimento</option>
+          <option value="Cobrança">Cobrança</option>
+        </select>
+      </div>
+    </div>
+    
+    <!-- Campos Condicionais - Segunda Linha -->
+    <div class="info-bar" id="camposCondicionais" style="display: none;">
+      <div class="info-item" id="subFormularioContainer" style="display: none;">
+        <label>Tipo de Evento</label>
+        <select id="subFormulario">
+          <option value="">Selecione</option>
+          <option value="7922">7922</option>
+          <option value="9066">9066</option>
+        </select>
+      </div>
+      <div class="info-item" id="caixaContainer" style="display: none;">
+        <label>Caixa</label>
+        <select id="caixa" onchange="mostrarSubCaixa()">
+          <option value="">Selecione</option>
+          <option value="Gestão Aluguel Estornos">Gestão Aluguel Estornos</option>
+          <option value="Gestão Aluguel Incentivos">Gestão Aluguel Incentivos</option>
+          <option value="Saldo de Auditoria">Saldo de Auditoria</option>
+          <option value="Consultoria">Consultoria</option>
+          <option value="Prévia MDR">Prévia MDR</option>
+          <option value="Regularizações Financeiras">Regularizações Financeiras</option>
+          <option value="Cancelamento">Cancelamento</option>
+          <option value="BackOffice Mídias Sociais">BackOffice Mídias Sociais</option>
+          <option value="Processos Ouvidoria BO">Processos Ouvidoria BO</option>
+        </select>
+      </div>
+      <div class="info-item" id="subCaixaContainer" style="display: none;">
+        <label>Sub-Caixa</label>
+        <select id="subCaixa" onchange="verificarSubCaixa5125()">
+          <option value="">Selecione</option>
+        </select>
+      </div>
+      <div class="info-item" id="estabelecimentoContainer" style="display: none;">
+        <label>Estabelecimento</label>
+        <input type="text" id="estabelecimento" placeholder="Digite o estabelecimento">
+      </div>
+      <div class="info-item" id="referenciaEventoContainer" style="display: none;">
+        <label>Referência Evento</label>
+        <input type="text" id="referenciaEvento" placeholder="Digite a referência do evento">
+      </div>
+      <div class="info-item" id="tratadoViaContainer" style="display: none;">
+        <label>Tratado via</label>
+        <select id="tratadoVia" onchange="mostrarCampoProtocoloOuEmail()">
+          <option value="">Selecione</option>
+          <option value="CRM">CRM</option>
+          <option value="E-mail">E-mail</option>
+        </select>
+      </div>
+      <div class="info-item" id="protocoloContainer" style="display: none;">
+        <label>Protocolo</label>
+        <input type="text" id="protocolo" placeholder="Digite o protocolo">
+      </div>
+      <div class="info-item" id="assuntoEmailContainer" style="display: none;">
+        <label>Assunto do E-mail</label>
+        <input type="text" id="assuntoEmail" placeholder="Cole o assunto do e-mail">
+      </div>
+      <div class="info-item">
+        <label>Data da Interação</label>
+        <input type="date" id="dataInteracao">
+      </div>
+      <div class="info-item">
+        <label>Horário da Interação</label>
+        <input type="time" id="horarioInteracao">
+      </div>
+    </div>
+    
+    <!-- Data e Horário de Avaliação - Terceira Linha -->
+    <div class="info-bar" id="dataAvaliacaoBar" style="display: none;">
+      <div class="info-item">
+        <label>Data da Avaliação</label>
+        <input type="date" id="dataAvaliacao" readonly style="background: #f5f5f5;">
+      </div>
+      <div class="info-item">
+        <label>Horário da Avaliação</label>
+        <input type="time" id="horarioAvaliacao" readonly style="background: #f5f5f5;">
+      </div>
+    </div>
+    
+    <!-- Resumo da Interação -->
+    <div class="info-bar" id="resumoContainer" style="display: none; border-top: 2px solid #00A4E0;">
+      <div class="info-item">
+        <label>Assunto</label>
+        <input type="text" id="assunto" placeholder="Digite o assunto">
+      </div>
+      <div class="info-item">
+        <label>Ticket</label>
+        <input type="text" id="ticket" placeholder="Digite o número do ticket">
+      </div>
+      <div class="info-item" style="grid-column: 1 / -1;">
+        <label>Resumo do Desvio</label>
+        <textarea id="resumoDesvio" 
+                  placeholder="Resuma brevemente o desvio identificado..." 
+                  style="min-height: 60px; resize: vertical; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; font-family: 'Inter', sans-serif;"></textarea>
+      </div>
+      <div class="info-item" style="grid-column: 1 / -1;">
+        <label>Resumo da Interação</label>
+        <textarea id="resumoInteracao" 
+                  placeholder="Digite aqui um resumo da interação..." 
+                  style="min-height: 80px; resize: vertical; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; font-family: 'Inter', sans-serif;"></textarea>
+      </div>
+    </div>
+
+    <!-- NCG Alert -->
+    <div class="alert-ncg" id="alertNCG">
+      <div class="alert-icon">⛔</div>
+      <div class="alert-text">
+        <strong>NCG Detectado!</strong>
+        <span>Não Conformidade Grave identificada. A pontuação foi zerada.</span>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content" id="checklistContent"></div>
+
+    <!-- Feedback/Observação - Final do Checklist -->
+    <div class="info-bar" id="feedbackContainer" style="display: none; border-top: 3px solid #FF9F1C; margin-top: 30px;">
+      <div class="info-item" style="grid-column: 1 / -1;">
+        <label style="font-size: 16px; font-weight: 700; color: #FF9F1C;">💬 Feedback / Observação</label>
+        <textarea id="feedback" 
+                  placeholder="Digite aqui observações, feedbacks ou comentários sobre a avaliação..." 
+                  style="min-height: 120px; resize: vertical; padding: 12px; border: 2px solid #FF9F1C; border-radius: 8px; font-size: 14px; font-family: 'Inter', sans-serif;"></textarea>
+      </div>
+    </div>
+
+    <!-- Copyright Footer -->
+    <div class="copyright-footer">
+      <p>© 2025 Yasmin de Melo Campos - Analista de Qualidade Jr</p>
+    </div>
+  </div>
+  </div>
+  <!-- Fim Visão Formulários -->
+
+  <!-- Visão 2: Controle de Avaliações -->
+  <div id="viewControle" style="display: none;">
+    <div class="container">
+      <div class="header">
+        <div>
+          <h1>📊 Controle de Avaliações</h1>
+          <p style="opacity: 0.9; margin-top: 5px;">Acompanhamento e Gestão de Qualidade</p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button onclick="exportarTodoControle()" class="export-btn">📥 Exportar CSV</button>
+        </div>
+      </div>
+
+      <!-- Filtros -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 25px; padding: 25px; background: white; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+        <div>
+          <label style="display: block; margin-bottom: 8px; font-weight: 700; color: #495057; font-size: 14px;">📌 Analista:</label>
+          <input list="listaAnalistas" id="filtroAnalista" onchange="filtrarControle()" oninput="filtrarControle()" placeholder="Digite ou selecione..." style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+          <datalist id="listaAnalistas">
+            <option value="FE - FRANK PEREIRA DA SILVA">
+            <option value="FE - GISELE APARECIDA DE ALMEIDA">
+            <option value="FE - ANA PAULA DOS SANTOS">
+            <option value="FE - ROBERT GUSTAVO SANTOS SILVA">
+            <option value="FE - PEDRO ALVES CABRAL NETO">
+            <option value="FE - JULIA OLIVEIRA ONORIO">
+            <option value="FE - KALLYANA KAMILA ALVES">
+            <option value="FE - NATHALI CRISTINE DOS SANTOS">
+            <option value="FE - SILVIA MEIRE DE SOUZA">
+            <option value="FE - DÉBORA MELÃO MACEDO">
+            <option value="FE - FRANCINE VITORIA COSTA">
+            <option value="FE - LARISSA CAMARA">
+            <option value="FE - SINARA DA SILVA NUNES">
+          </datalist>
+        </div>
+        <div>
+          <label style="display: block; margin-bottom: 8px; font-weight: 700; color: #495057; font-size: 14px;">📂 Caixa:</label>
+          <select id="filtroCaixa" onchange="filtrarControle()" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+            <option value="">Todas as Caixas</option>
+            <optgroup label="Agenda Financeira">
+              <option value="Gestão Aluguel Estornos">Gestão Aluguel Estornos</option>
+              <option value="Gestão Aluguel Incentivos">Gestão Aluguel Incentivos</option>
+              <option value="Saldo de Auditoria">Saldo de Auditoria</option>
+              <option value="Consultoria">Consultoria</option>
+              <option value="Prévia MDR">Prévia MDR</option>
+              <option value="Regularizações Financeiras">Regularizações Financeiras</option>
+            </optgroup>
+            <optgroup label="Cancelamento">
+              <option value="Desfazimento">Desfazimento</option>
+              <option value="Atendimento BackOffice">Atendimento BackOffice</option>
+              <option value="5125">5125</option>
+              <option value="STD - Corporate">STD - Corporate</option>
+              <option value="STD - Aéreo">STD - Aéreo</option>
+            </optgroup>
+            <optgroup label="Outros">
+              <option value="BackOffice Mídias Sociais">BackOffice Mídias Sociais</option>
+              <option value="Processos Ouvidoria BO">Processos Ouvidoria BO</option>
+              <option value="7922">7922 (Evento)</option>
+              <option value="9066">9066 (Evento)</option>
+            </optgroup>
+          </select>
+        </div>
+        <div>
+          <label style="display: block; margin-bottom: 8px; font-weight: 700; color: #495057; font-size: 14px;">📅 Semana:</label>
+          <input type="week" id="filtroSemana" onchange="filtrarControle(); atualizarVisualizacaoSemana()" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+          <div id="visualizacaoSemana" style="margin-top: 8px; font-size: 13px; color: #6c757d; font-weight: 600; text-align: center; padding: 6px; background: #f8f9fa; border-radius: 6px; display: none;"></div>
+        </div>
+        <div style="display: flex; align-items: flex-end; gap: 10px;">
+          <button onclick="limparFiltros()" style="flex: 1; padding: 12px; background: #6c757d; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; transition: all 0.3s;">🔄 Limpar Filtros</button>
+          <button onclick="limparControle()" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; transition: all 0.3s;">🗑️ Limpar Tudo</button>
+        </div>
+      </div>
+
+      <!-- Tabelas por Categoria -->
+      <div id="tabelasControle"></div>
+
+      <!-- Copyright Footer -->
+      <div class="copyright-footer">
+        <p>© 2025 Yasmin de Melo Campos - Analista de Qualidade Jr</p>
+      </div>
+    </div>
+  </div>
+  <!-- Fim Visão Controle -->
+
+  <!-- Visão 3: Análise e Relatórios -->
+  <div id="viewAnalise" style="display: none;">
+    <div class="container">
+      <div class="header">
+        <div>
+          <h1>📈 Análise e Relatórios</h1>
+          <p style="opacity: 0.9; margin-top: 5px;">Dashboards e Indicadores de Performance</p>
+        </div>
+      </div>
+
+      <div style="padding: 60px 20px; text-align: center; background: white; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); margin-bottom: 30px;">
+        <div style="font-size: 80px; margin-bottom: 20px;">📊</div>
+        <h2 style="color: #495057; margin-bottom: 15px; font-size: 28px;">Em Desenvolvimento</h2>
+        <p style="color: #6c757d; font-size: 16px; max-width: 600px; margin: 0 auto;">
+          Esta seção estará disponível em breve com gráficos, dashboards interativos e relatórios detalhados de performance.
+        </p>
+        <div style="margin-top: 30px; padding: 20px; background: #e7f3ff; border-left: 4px solid #00A4E0; border-radius: 8px; max-width: 700px; margin-left: auto; margin-right: auto;">
+          <p style="margin: 0; color: #495057; font-weight: 600;">💡 Funcionalidades Planejadas:</p>
+          <ul style="text-align: left; margin-top: 15px; color: #6c757d; line-height: 1.8;">
+            <li>Gráficos de evolução de notas por analista</li>
+            <li>Ranking de performance</li>
+            <li>Indicadores de conformidade por categoria</li>
+            <li>Análise de tendências e padrões</li>
+            <li>Exportação de relatórios customizados</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Copyright Footer -->
+      <div class="copyright-footer">
+        <p>© 2025 Yasmin de Melo Campos - Analista de Qualidade Jr</p>
+      </div>
+    </div>
+  </div>
+  <!-- Fim Visão Análise -->
+
+  <!-- Modal de Observação -->
+  <div class="modal-overlay" id="modalObservacao">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>📝 Adicionar Observação</h3>
+        <button class="modal-close" onclick="fecharObservacao()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-item-info">
+          <strong id="modalItemLabel">Item</strong>
+          <span id="modalSubitemLabel">Sub-item</span>
+        </div>
+        <textarea 
+          id="modalTextarea" 
+          class="modal-textarea" 
+          placeholder="Digite aqui suas observações sobre este item...&#10;&#10;Exemplo:&#10;- Evento #12345 encaminhado incorretamente para 9066&#10;- Cliente informou ter recebido cobrança duplicada&#10;- Falta número lógico na solicitação"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn modal-btn-cancel" onclick="fecharObservacao()">Cancelar</button>
+        <button class="modal-btn modal-btn-save" onclick="salvarObservacaoModal()">💾 Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Confirmação Resetar -->
+  <div class="confirm-overlay" id="confirmResetar">
+    <div class="confirm-box">
+      <div class="confirm-icon">⚠️</div>
+      <div class="confirm-title">TEM CERTEZA QUE DESEJA RESETAR?</div>
+      <div class="confirm-message">
+        Todos os itens marcados e observações serão apagados permanentemente.<br><br>
+        <strong>Esta ação não pode ser desfeita!</strong>
+      </div>
+      <div class="confirm-buttons">
+        <button class="confirm-btn confirm-btn-cancel" onclick="cancelarResetar()">❌ Cancelar</button>
+        <button class="confirm-btn confirm-btn-ok" onclick="confirmarResetar()">✅ Sim, Resetar Tudo</button>
+      </div>
+    </div>
+  </div>
+
+  <button class="reset-btn" onclick="resetarChecklist()">🔄 Resetar</button>
+  <button class="export-btn" onclick="exportarResultado()">📊 Exportar Resultado</button>
+
+  <!-- Botão Flutuante Exportar para Controle (apenas em Formulários) -->
+  <button id="btnExportarControle" onclick="exportarParaControle()" style="position: fixed; bottom: 30px; right: 30px; padding: 16px 24px; background: linear-gradient(135deg, #9B59B6 0%, #8E44AD 100%); color: white; border: none; border-radius: 50px; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 20px rgba(155, 89, 182, 0.4); z-index: 999; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;">
+    📋 Exportar para Controle
+  </button>
+
+  <!-- Notificação Flutuante de Pontuação -->
+  <div class="score-notification" id="scoreNotification">
+    <div class="score-notification-title">Pontuação Atual</div>
+    <div class="score-notification-value" id="scoreNotificationValue">100</div>
+    <div class="score-notification-label">pontos</div>
+  </div>
+
+  <script>
+    // Checklist Padrão (Agenda Financeira - Eventos e outros)
+    const checklistPadrao = [
+      {
+        bloco: "Análise",
+        peso: 8,
+        tipo: "NC",
+        items: [
+          {
+            item: "Localização de Ajustes",
+            subitem: "Validação realizada no SEC / BFE / Dash / Site Cielo / Base paliativa.",
+            descricao: "Verificou previamente se já existe algum ajuste registrado para aquele EC relacionado ao processo."
+          },
+          {
+            item: "Validação",
+            subitem: "Validou duplicidade de evento.",
+            descricao: "Já tratado anteriormente → devolver para 2100 informando referência XXXX, Duplicidade aberta pela central → fechar e devolver para 2100 citando a referência do original."
+          }
+        ]
+      },
+      {
+        bloco: "Execução - Prazos e Comunicação",
+        peso: 10,
+        tipo: "NC",
+        items: [
+          {
+            item: "Motivo",
+            subitem: "O campo motivo foi preenchido com a fraseologia padrão?",
+            descricao: "Checar se o motivo foi escrito exatamente como o padrão definido pelo processo — e não com variações ou textos improvisados."
+          }
+        ]
+      },
+      {
+        bloco: "Execução - Ortografia",
+        peso: 10,
+        tipo: "NC",
+        items: [
+          {
+            item: "Ortografia",
+            subitem: "O campo motivo foi preenchido sem erros de ortografia?",
+            descricao: "Garante profissionalismo, padronização e evita devoluções por texto mal escrito."
+          }
+        ]
+      },
+      {
+        bloco: "Execução - Encaminhamento",
+        peso: 10,
+        tipo: "NC",
+        items: [
+          {
+            item: "Encaminhamento",
+            subitem: "Encaminhamento correto.",
+            descricao: "Verificar se encaminhou para a dependência correta."
+          }
+        ]
+      },
+      {
+        bloco: "Execução - Fraseologia",
+        peso: 10,
+        tipo: "NC",
+        items: [
+          {
+            item: "Fraseologia",
+            subitem: "Fraseologia correta de encerramento.",
+            descricao: "No texto de solução do evento (7922/9066) vai somente a referência do evento."
+          }
+        ]
+      },
+      {
+        bloco: "Execução - Referência",
+        peso: 15,
+        tipo: "NC",
+        items: [
+          {
+            item: "Referência",
+            subitem: "Referência correta nos casos de duplicidade.",
+            descricao: "Nos casos de duplicidade, verificar se informou somente a referência do evento original na solução do caso (ex.: 'estamos tratando pela referência XXXX'). Não deve incluir número lógico, código de ajuste ou outros dados relacionados a lançamento financeiro."
+          }
+        ]
+      },
+      {
+        bloco: "Encerramento - Fluxo de Processo",
+        peso: 15,
+        tipo: "NC",
+        items: [
+          {
+            item: "Devolução",
+            subitem: "Devolução correta.",
+            descricao: "Devolver para 2100 apenas quando a Central tinha acesso às evidências (site/BFE) e abriu indevidamente."
+          },
+          {
+            item: "Rejeição",
+            subitem: "Rejeição adequada.",
+            descricao: "Rejeitar quando não há cobrança nos últimos 4 anos ou não existe débito."
+          }
+        ]
+      },
+      {
+        bloco: "Encerramento - Informações Obrigatórias - Clareza",
+        peso: 12,
+        tipo: "NC",
+        items: [
+          {
+            item: "Clareza",
+            subitem: "Informação clara e dentro da alçada sobre o que foi encontrado.",
+            descricao: "Verificar se explicou de forma objetiva o que encontrou na análise — se havia débito, já existia estorno ou se não existia cobrança — limitando-se às informações de sua alçada."
+          }
+        ]
+      },
+      {
+        bloco: "Encerramento - Informações Obrigatórias - Correção",
+        peso: 10,
+        tipo: "NC",
+        items: [
+          {
+            item: "Correção",
+            subitem: "Correção de resposta quando necessário.",
+            descricao: "Erro de valor/prazo informado ao cliente: abrir evento 2067 (informativo) retificando a solução registrada."
+          }
+        ]
+      },
+      {
+        bloco: "Financeiro - Consulta AJ16",
+        peso: 100,
+        tipo: "NCG",
+        items: [
+          {
+            item: "Consulta AJ16",
+            subitem: "Foi realizada a consulta na tela AJ16 ou outros sistemas? (todos os anos disponíveis)",
+            descricao: "Consultou a AJ16 e o histórico completo dos sistemas para confirmar se o cliente tem cobrança ou estorno (D297/C297) antes de seguir."
+          }
+        ]
+      },
+      {
+        bloco: "Financeiro - RO e Cardtype",
+        peso: 100,
+        tipo: "NCG",
+        items: [
+          {
+            item: "RO e Cardtype",
+            subitem: "Foram mantidos o número do RO e o Cardtype conforme o padrão?",
+            descricao: "Manteve exatamente o mesmo número de RO e o mesmo código do cartão que já estavam registrados no sistema."
+          }
+        ]
+      },
+      {
+        bloco: "Financeiro - Ajuste Necessário",
+        peso: 100,
+        tipo: "NCG",
+        items: [
+          {
+            item: "Ajuste Necessário",
+            subitem: "Lançou ajuste necessário quando havia cobrança?",
+            descricao: "Deixou de lançar um ajuste que era necessário — mesmo havendo cobrança ou situação que exigia o estorno."
+          }
+        ]
+      },
+      {
+        bloco: "Financeiro - Período",
+        peso: 100,
+        tipo: "NCG",
+        items: [
+          {
+            item: "Período",
+            subitem: "Período correto no lançamento.",
+            descricao: "Verificar se o período está correto — datas dentro do solicitado, não invertidas ou inválidas."
+          }
+        ]
+      },
+      {
+        bloco: "Financeiro - Código de Ajuste",
+        peso: 100,
+        tipo: "NCG",
+        items: [
+          {
+            item: "Código de Ajuste",
+            subitem: "Código de ajuste aplicado corretamente.",
+            descricao: "Usou o código de ajuste correto (D ou C 297/ D ou C 984) que corresponde ao procedimento."
+          }
+        ]
+      },
+      {
+        bloco: "Financeiro - Valor",
+        peso: 100,
+        tipo: "NCG",
+        items: [
+          {
+            item: "Valor",
+            subitem: "Valor correto aplicado nos ajustes.",
+            descricao: "Verificar se o valor está correto e não afeta o resultado financeiro da tratativa."
+          }
+        ]
+      },
+      {
+        bloco: "Financeiro - EC",
+        peso: 100,
+        tipo: "NCG",
+        items: [
+          {
+            item: "EC",
+            subitem: "EC correto no lançamento.",
+            descricao: "Estabelecimento comercial correto no lançamento."
+          }
+        ]
+      },
+      {
+        bloco: "Financeiro - Lógico",
+        peso: 100,
+        tipo: "NCG",
+        items: [
+          {
+            item: "Lógico",
+            subitem: "Número lógico correto no lançamento.",
+            descricao: "Número lógico correto e pertencente ao EC."
+          }
+        ]
+      },
+      {
+        bloco: "Finalização - Fluxo de Processo",
+        peso: 100,
+        tipo: "NCG",
+        items: [
+          {
+            item: "Informações Completas",
+            subitem: "Seguiu com a tratativa com informações do evento incompleta?",
+            descricao: "Em 7922: Validar se o número lógico informado ainda pertence ao EC e considerar o contexto, dado que muitas vezes o evento chega sem número lógico. A tratativa só deve avançar quando todas as informações necessárias estiverem completas, claras e verificadas nas ferramentas disponíveis. Quando o analista prossegue com o atendimento mesmo faltando dados essenciais — lógico, referências, informações do cliente ou detalhes da cobrança — aumenta o risco de erro e pode gerar ajuste incorreto ou retrabalho."
+          }
+        ]
+      }
+    ];
+
+    // Checklist Cancelamento
+    const checklistCancelamento = [
+      {
+        bloco: "Análise - Histórico",
+        peso: 10,
+        tipo: "NC",
+        items: [
+          {
+            item: "Histórico 360",
+            subitem: "Histórico do cliente ou processo verificado antes da tratativa (análise 360)?",
+            descricao: "Verificar histórico completo do cliente antes de iniciar a tratativa."
+          }
+        ]
+      },
+      {
+        bloco: "Análise - Validação",
+        peso: 8,
+        tipo: "NC",
+        items: [
+          {
+            item: "Validação de Dados",
+            subitem: "Validou os dados da solicitação: EC, número lógico, valor, motivo, documentos anexos?",
+            descricao: "Conferir todos os dados da solicitação antes de prosseguir."
+          }
+        ]
+      },
+      {
+        bloco: "Execução - Interpretação",
+        peso: 6,
+        tipo: "NC",
+        items: [
+          {
+            item: "Interpretação",
+            subitem: "Interpretou corretamente a solicitação de cancelamento via e-mail, CRM ou integração automática?",
+            descricao: "Garantir que a solicitação foi interpretada corretamente."
+          }
+        ]
+      },
+      {
+        bloco: "Execução - Evidências",
+        peso: 7,
+        tipo: "NC",
+        items: [
+          {
+            item: "Evidências",
+            subitem: "Em caso de ausência de evidências, foi solicitada complementação ao demandante antes do andamento da tratativa?",
+            descricao: "Solicitar evidências faltantes antes de prosseguir."
+          }
+        ]
+      },
+      {
+        bloco: "Execução - STD",
+        peso: 12,
+        tipo: "NC",
+        items: [
+          {
+            item: "STD",
+            subitem: "Tratativa via STD realizada corretamente?",
+            descricao: "Verificar se o processo via STD foi executado conforme procedimento."
+          }
+        ]
+      },
+      {
+        bloco: "Execução - Planilha",
+        peso: 5,
+        tipo: "NC",
+        items: [
+          {
+            item: "Erros de Planilha",
+            subitem: "Identificou corretamente erros de planilha (ex.: duplicidade, formatação) e orientou na solicitação?",
+            descricao: "Identificar e corrigir erros na planilha antes de processar."
+          }
+        ]
+      },
+      {
+        bloco: "Processos - Motivo SEC",
+        peso: 3,
+        tipo: "NC",
+        items: [
+          {
+            item: "Motivo SEC",
+            subitem: "Utilização de campos de observação (Motivo SEC) para contextualizar a ação? (Lançamento de motivo padrão script.)",
+            descricao: "Preencher motivo SEC conforme script padrão."
+          }
+        ]
+      },
+      {
+        bloco: "Processos - Eventos Pendentes",
+        peso: 3,
+        tipo: "NC",
+        items: [
+          {
+            item: "Eventos Pendentes",
+            subitem: "O analista localizou e analisou os eventos pendentes corretamente?",
+            descricao: "Verificar e analisar todos os eventos pendentes."
+          }
+        ]
+      },
+      {
+        bloco: "Processos - Sistemas",
+        peso: 6,
+        tipo: "NC",
+        items: [
+          {
+            item: "Sistemas",
+            subitem: "Utilizou os sistemas corretos para cada etapa da tratativa?",
+            descricao: "Garantir uso dos sistemas adequados em cada fase."
+          }
+        ]
+      },
+      {
+        bloco: "Processos - Validação Planilha",
+        peso: 4,
+        tipo: "NC",
+        items: [
+          {
+            item: "Validação",
+            subitem: "Validação da planilha padrão foram revisados conforme o preenchimento exigido?",
+            descricao: "Revisar preenchimento da planilha conforme padrão."
+          }
+        ]
+      },
+      {
+        bloco: "Comunicação - Áreas Envolvidas",
+        peso: 3,
+        tipo: "NC",
+        items: [
+          {
+            item: "Comunicação",
+            subitem: "Comunicação clara com áreas envolvidas quando o caso necessita?",
+            descricao: "Comunicar claramente com outras áreas quando necessário."
+          }
+        ]
+      },
+      {
+        bloco: "Comunicação - Ortografia",
+        peso: 3,
+        tipo: "NC",
+        items: [
+          {
+            item: "Ortografia",
+            subitem: "O texto está livre de erros gramaticais, gerundismo ou de digitação? (Aplicavél acima de 2 erros e que mude o sentido da frase.)",
+            descricao: "Garantir texto sem erros que comprometam o entendimento."
+          }
+        ]
+      },
+      {
+        bloco: "Comunicação - Registro",
+        peso: 6,
+        tipo: "NC",
+        items: [
+          {
+            item: "Registro",
+            subitem: "A tratativa foi devidamente registrada em sistema?",
+            descricao: "Registrar todas as ações no sistema apropriado."
+          }
+        ]
+      },
+      {
+        bloco: "Comunicação - Retratação",
+        peso: 5,
+        tipo: "NC",
+        items: [
+          {
+            item: "Retratação",
+            subitem: "Houve retratação na resposta ao identificar um erro, sendo realizada a correção sem exposição do equívoco e dentro do SLA?",
+            descricao: "Corrigir erros identificados sem expor o equívoco ao cliente."
+          }
+        ]
+      },
+      {
+        bloco: "Comunicação - Completude",
+        peso: 3,
+        tipo: "NC",
+        items: [
+          {
+            item: "Completude",
+            subitem: "Verificou a completude das informações no e-mail e planilha na solicitação para seguir a tratativa?",
+            descricao: "Verificar se todas as informações necessárias estão presentes."
+          }
+        ]
+      },
+      {
+        bloco: "Encerramento - Personalização",
+        peso: 3,
+        tipo: "NC",
+        items: [
+          {
+            item: "Personalização",
+            subitem: "As respostas foram personalizadas, demonstrando entendimento do contexto da demanda?",
+            descricao: "Personalizar respostas conforme contexto do cliente."
+          }
+        ]
+      },
+      {
+        bloco: "Encerramento - Documentos",
+        peso: 5,
+        tipo: "NC",
+        items: [
+          {
+            item: "Documentos",
+            subitem: "Todos os documentos e evidências foram anexados no Ticket/E-mail/Evento?",
+            descricao: "Anexar todos os documentos e evidências necessários."
+          }
+        ]
+      },
+      {
+        bloco: "Encerramento - SLA",
+        peso: 8,
+        tipo: "NC",
+        items: [
+          {
+            item: "SLA",
+            subitem: "SLA atendido? Caso não, houve justificativa?",
+            descricao: "Cumprir SLA ou justificar quando não atingido."
+          }
+        ]
+      },
+      {
+        bloco: "Financeiro - Comprovação de Pagamento",
+        peso: 100,
+        tipo: "NCG",
+        items: [
+          {
+            item: "Comprovação",
+            subitem: "Aprovação de cancelamento sem comprovação de pagamento.",
+            descricao: "Nunca aprovar cancelamento sem comprovante de pagamento."
+          }
+        ]
+      },
+      {
+        bloco: "Financeiro - Duplicidade",
+        peso: 100,
+        tipo: "NCG",
+        items: [
+          {
+            item: "Duplicidade",
+            subitem: "Realizou o cancelamento em duplicidade.",
+            descricao: "Verificar duplicidade antes de processar cancelamento."
+          }
+        ]
+      },
+      {
+        bloco: "Financeiro - Valor Incorreto",
+        peso: 100,
+        tipo: "NCG",
+        items: [
+          {
+            item: "Valor",
+            subitem: "Realizou o cancelamento do valor incorreto?",
+            descricao: "Conferir valor antes de processar cancelamento."
+          }
+        ]
+      },
+      {
+        bloco: "Financeiro - Lançamento Sistema",
+        peso: 100,
+        tipo: "NCG",
+        items: [
+          {
+            item: "Lançamento",
+            subitem: "Foi lançado o ajuste ou estorno no sistema?",
+            descricao: "Garantir que o lançamento foi efetuado no sistema."
+          }
+        ]
+      },
+      {
+        bloco: "Financeiro - Código Incorreto",
+        peso: 100,
+        tipo: "NCG",
+        items: [
+          {
+            item: "Código",
+            subitem: "Código aplicado incorreto de estorno ou ajuste.",
+            descricao: "Utilizar código correto para estorno ou ajuste."
+          }
+        ]
+      },
+      {
+        bloco: "LGPD - Exposição de Dados",
+        peso: 100,
+        tipo: "NCG",
+        items: [
+          {
+            item: "Exposição",
+            subitem: "Não houve exposição de dados pessoais em telas, prints ou documentos não protegidos na tratativa?",
+            descricao: "Proteger dados pessoais em todas as comunicações."
+          }
+        ]
+      },
+      {
+        bloco: "LGPD - Envio Incorreto",
+        peso: 100,
+        tipo: "NCG",
+        items: [
+          {
+            item: "Envio",
+            subitem: "Planilha encaminhada erroneamente para cliente não correspondente da solicitação.",
+            descricao: "Conferir destinatário antes de enviar documentos."
+          }
+        ]
+      },
+      {
+        bloco: "Processos NCG - Sem Retorno",
+        peso: 100,
+        tipo: "NCG",
+        items: [
+          {
+            item: "Retorno",
+            subitem: "Cliente ficou sem retorno?",
+            descricao: "Garantir retorno ao cliente em todos os casos."
+          }
+        ]
+      },
+      {
+        bloco: "Processos NCG - Intervenção",
+        peso: 100,
+        tipo: "NCG",
+        items: [
+          {
+            item: "Intervenção",
+            subitem: "Foi necessário intervenção de alçadas maiores ou reabertura de chamado (aplica-se acima de 2 tickets filhos)?",
+            descricao: "Evitar necessidade de intervenção superior ou reaberturas."
+          }
+        ]
+      },
+      {
+        bloco: "Processos NCG - Prioridade",
+        peso: 100,
+        tipo: "NCG",
+        items: [
+          {
+            item: "Prioridade",
+            subitem: "Não foi solicitada prioridade em casos de canais sensíveis conforme a necessidade?",
+            descricao: "Solicitar prioridade quando necessário para canais sensíveis."
+          }
+        ]
+      },
+      {
+        bloco: "Processos NCG - Autonomia",
+        peso: 100,
+        tipo: "NCG",
+        items: [
+          {
+            item: "Autonomia",
+            subitem: "Ação tomada de forma autônoma em situação que exigia escalonamento à supervisão ou ao time Cielo.",
+            descricao: "Escalonar quando necessário, não agir autonomamente."
+          }
+        ]
+      },
+      {
+        bloco: "Processos NCG - Sistema Adequado",
+        peso: 100,
+        tipo: "NCG",
+        items: [
+          {
+            item: "Sistema",
+            subitem: "Realizou a tratativa no sistema adequado (STD, STAR ou manual), conforme o tipo de rejeição ou situação?",
+            descricao: "Utilizar sistema correto conforme tipo de tratativa."
+          }
+        ]
+      },
+      {
+        bloco: "Processos NCG - Registro STAR",
+        peso: 100,
+        tipo: "NCG",
+        items: [
+          {
+            item: "STAR",
+            subitem: "Registrou as Ações no STAR (quando aplicável)",
+            descricao: "Registrar ações no STAR quando aplicável."
+          }
+        ]
+      },
+      {
+        bloco: "Processos NCG - STD Email",
+        peso: 100,
+        tipo: "NCG",
+        items: [
+          {
+            item: "STD Email",
+            subitem: "STD rejeição: Seguiu com a tratativa em casos de permissão de cancelamentos de vendas por e-mail.",
+            descricao: "Não seguir com tratativa em casos de rejeição STD por email."
+          }
+        ]
+      },
+      {
+        bloco: "Processos NCG - Informações Incompletas",
+        peso: 100,
+        tipo: "NCG",
+        items: [
+          {
+            item: "Incompleto",
+            subitem: "Seguiu com a tratativa com informações incompletas no e-mail e planilha.",
+            descricao: "Não prosseguir com informações incompletas."
+          }
+        ]
+      }
+    ];
+
+    // Checklist Gestão Aluguel (Estornos e Incentivos)
+    const checklistGestaoAluguel = [
+      {
+        bloco: "Análise - Triagem",
+        peso: 7,
+        tipo: "NC",
+        items: [{
+          item: "Triagem",
+          subitem: "A demanda foi triada corretamente?",
+          descricao: "Verificar se a demanda foi corretamente classificada e encaminhada."
+        }]
+      },
+      {
+        bloco: "Análise - Histórico 360",
+        peso: 10,
+        tipo: "NC",
+        items: [{
+          item: "Histórico",
+          subitem: "Histórico do cliente ou processo verificado antes da tratativa (análise 360)?",
+          descricao: "Consultar histórico completo antes de iniciar tratativa."
+        }]
+      },
+      {
+        bloco: "Análise - De Acordo",
+        peso: 5,
+        tipo: "NC",
+        items: [{
+          item: "De Acordo",
+          subitem: "O \"de acordo\" consta conforme a alçada definida, porém a solicitação foi realizada de forma não necessária, indicando possível falha na análise prévia?",
+          descricao: "Verificar se o de acordo foi dado corretamente conforme alçada."
+        }]
+      },
+      {
+        bloco: "Execução - Interpretação",
+        peso: 6,
+        tipo: "NC",
+        items: [{
+          item: "Interpretação",
+          subitem: "Realizou a interpretação correta da solicitação?",
+          descricao: "Garantir entendimento correto da solicitação do cliente."
+        }]
+      },
+      {
+        bloco: "Execução - Escalonamento",
+        peso: 3,
+        tipo: "NC",
+        items: [{
+          item: "Escalonamento",
+          subitem: "A tratativa foi corretamente escalonada ou direcionada conforme o fluxo estabelecido?",
+          descricao: "Verificar se o escalonamento seguiu o fluxo correto."
+        }]
+      },
+      {
+        bloco: "Execução - Validação Cruzada",
+        peso: 4,
+        tipo: "NC",
+        items: [{
+          item: "Validação",
+          subitem: "Foi realizada validação cruzada entre os sistemas (ex: SEC, AT01, AJ16, Star e etc.) para garantir consistência das informações e prevenir falhas de execução?",
+          descricao: "Validar informações em múltiplos sistemas para garantir consistência."
+        }]
+      },
+      {
+        bloco: "Processos - Tela Correta",
+        peso: 4,
+        tipo: "NC",
+        items: [{
+          item: "Tela SEC",
+          subitem: "As informações utilizadas foram extraídas da tela correta no SEC ou relatório, de acordo com a finalidade da validação?",
+          descricao: "Utilizar a tela correta do sistema para extrair informações."
+        }]
+      },
+      {
+        bloco: "Processos - Campos Obrigatórios",
+        peso: 4,
+        tipo: "NC",
+        items: [{
+          item: "Campos",
+          subitem: "Campos obrigatórios da planilha padrão foram preenchidos conforme orientação?",
+          descricao: "Preencher todos os campos obrigatórios da planilha."
+        }]
+      },
+      {
+        bloco: "Processos - Conferência",
+        peso: 3,
+        tipo: "NC",
+        items: [{
+          item: "Conferência",
+          subitem: "Foi realizada a conferência entre sistemas e planilhas para garantir a consistência das informações?",
+          descricao: "Conferir dados entre sistemas e planilhas."
+        }]
+      },
+      {
+        bloco: "Processos - Motivo SEC",
+        peso: 6,
+        tipo: "NC",
+        items: [{
+          item: "Motivo",
+          subitem: "Utilização de campos de observação (Motivo SEC) para contextualizar a ação? (Lançamento de motivo padrão script.)",
+          descricao: "Preencher motivo SEC conforme script padrão."
+        }]
+      },
+      {
+        bloco: "Comunicação - Ortografia",
+        peso: 6,
+        tipo: "NC",
+        items: [{
+          item: "Ortografia",
+          subitem: "O texto está livre de erros gramaticais ou de digitação? (Aplicavél acima de 2 erros e que mude o sentido da frase.)",
+          descricao: "Garantir texto sem erros que comprometam entendimento."
+        }]
+      },
+      {
+        bloco: "Comunicação - Personalização",
+        peso: 5,
+        tipo: "NC",
+        items: [{
+          item: "Personalização",
+          subitem: "As respostas foram personalizadas, demonstrando entendimento do contexto da demanda?",
+          descricao: "Personalizar respostas conforme contexto do cliente."
+        }]
+      },
+      {
+        bloco: "Comunicação - Retratação",
+        peso: 5,
+        tipo: "NC",
+        items: [{
+          item: "Retratação",
+          subitem: "Houve retratação na resposta ao identificar um erro, sendo realizada a correção sem exposição do equívoco?",
+          descricao: "Corrigir erros sem expor ao cliente."
+        }]
+      },
+      {
+        bloco: "Encerramento - Eficiência",
+        peso: 5,
+        tipo: "NC",
+        items: [{
+          item: "Eficiência",
+          subitem: "A análise e a resposta foram eficientes, contribuindo para a resolução do caso?",
+          descricao: "Garantir eficiência na resolução do caso."
+        }]
+      },
+      {
+        bloco: "Encerramento - SLA",
+        peso: 10,
+        tipo: "NC",
+        items: [{
+          item: "SLA",
+          subitem: "SLA atendido? Caso não, houve justificativa?",
+          descricao: "Cumprir SLA ou justificar quando não atingido."
+        }]
+      },
+      {
+        bloco: "Encerramento - Planilha Não Enviada",
+        peso: 6,
+        tipo: "NC",
+        items: [{
+          item: "Envio",
+          subitem: "Planilha não enviada.",
+          descricao: "Garantir envio da planilha quando necessário."
+        }]
+      },
+      {
+        bloco: "Encerramento - Perfumaria",
+        peso: 4,
+        tipo: "NC",
+        items: [{
+          item: "Perfumaria",
+          subitem: "Realizou os ajustes visuais (perfumaria) na planilha antes de enviá-la, para tornar as informações mais claras?",
+          descricao: "Ajustar formatação da planilha antes de enviar."
+        }]
+      },
+      {
+        bloco: "Encerramento - Prioridade SLA",
+        peso: 7,
+        tipo: "NC",
+        items: [{
+          item: "Prioridade",
+          subitem: "Mesmo com o SLA perdido, foi atribuída a devida prioridade ao caso?",
+          descricao: "Priorizar caso mesmo com SLA perdido."
+        }]
+      },
+      {
+        bloco: "Financeiro - Cálculo",
+        peso: 100,
+        tipo: "NCG",
+        items: [{
+          item: "Cálculo",
+          subitem: "Erro no cálculo de taxas, estorno ou ajuste que resultou em qualquer tipo de impacto financeiro.",
+          descricao: "Evitar erros de cálculo com impacto financeiro."
+        }]
+      },
+      {
+        bloco: "Financeiro - Período",
+        peso: 100,
+        tipo: "NCG",
+        items: [{
+          item: "Período",
+          subitem: "Erro no período da solicitação de estorno ou ajuste.",
+          descricao: "Utilizar período correto na solicitação."
+        }]
+      },
+      {
+        bloco: "Financeiro - Código",
+        peso: 100,
+        tipo: "NCG",
+        items: [{
+          item: "Código",
+          subitem: "Código aplicado incorreto de cancelamento.",
+          descricao: "Aplicar código correto de cancelamento."
+        }]
+      },
+      {
+        bloco: "Financeiro - Fórmula",
+        peso: 100,
+        tipo: "NCG",
+        items: [{
+          item: "Fórmula",
+          subitem: "Outros erros referente a Erros de Fórmula ou Lógica ou Erros Diretos de Cálculo? Se sim, qual?",
+          descricao: "Evitar erros de fórmula ou lógica."
+        }]
+      },
+      {
+        bloco: "Financeiro - Alçada",
+        peso: 100,
+        tipo: "NCG",
+        items: [{
+          item: "Alçada",
+          subitem: "Procedimento executado sem validação do gestor correto conforme alçada. Apenas autorizações de nível hierárquico superior são permitidas; o contrário configura não conformidade.",
+          descricao: "Validar com gestor correto conforme alçada."
+        }]
+      },
+      {
+        bloco: "Financeiro - Bloqueio",
+        peso: 100,
+        tipo: "NCG",
+        items: [{
+          item: "Bloqueio",
+          subitem: "A tratativa resultou em impacto direto na Agenda Financeira do cliente (bloqueio)?",
+          descricao: "Evitar impacto na agenda financeira do cliente."
+        }]
+      },
+      {
+        bloco: "Financeiro - Lançamento",
+        peso: 100,
+        tipo: "NCG",
+        items: [{
+          item: "Lançamento",
+          subitem: "Foi lançado o ajuste ou estorno no sistema?",
+          descricao: "Garantir lançamento no sistema."
+        }]
+      },
+      {
+        bloco: "LGPD - Exposição",
+        peso: 100,
+        tipo: "NCG",
+        items: [{
+          item: "Exposição",
+          subitem: "Não houve exposição de dados pessoais em telas, prints ou documentos não protegidos na tratativa?",
+          descricao: "Proteger dados pessoais."
+        }]
+      },
+      {
+        bloco: "LGPD - Envio Incorreto",
+        peso: 100,
+        tipo: "NCG",
+        items: [{
+          item: "Envio",
+          subitem: "Planilha encaminhada erroneamente para cliente não correspondente da solicitação.",
+          descricao: "Conferir destinatário antes de enviar."
+        }]
+      },
+      {
+        bloco: "LGPD - Fórmulas Visíveis",
+        peso: 100,
+        tipo: "NCG",
+        items: [{
+          item: "Fórmulas",
+          subitem: "Documento enviado com fórmulas visíveis ou editáveis, expondo lógica interna. (sem formato CSV)",
+          descricao: "Remover fórmulas visíveis antes de enviar."
+        }]
+      },
+      {
+        bloco: "Processos NCG - Sem Retorno",
+        peso: 100,
+        tipo: "NCG",
+        items: [{
+          item: "Retorno",
+          subitem: "Cliente ficou sem retorno?",
+          descricao: "Garantir retorno ao cliente."
+        }]
+      },
+      {
+        bloco: "Processos NCG - Intervenção",
+        peso: 100,
+        tipo: "NCG",
+        items: [{
+          item: "Intervenção",
+          subitem: "Foi necessário intervenção de alçadas maiores ou reabertura de chamado (aplica-se acima de 2 tickets filhos)?",
+          descricao: "Evitar intervenção ou reaberturas."
+        }]
+      },
+      {
+        bloco: "Processos NCG - Prioridade",
+        peso: 100,
+        tipo: "NCG",
+        items: [{
+          item: "Prioridade",
+          subitem: "Não foi solicitada prioridade em casos de canais sensíveis conforme a necessidade?",
+          descricao: "Solicitar prioridade quando necessário."
+        }]
+      },
+      {
+        bloco: "Processos NCG - Autonomia",
+        peso: 100,
+        tipo: "NCG",
+        items: [{
+          item: "Autonomia",
+          subitem: "Ação tomada de forma autônoma em situação que exigia escalonamento à supervisão ou ao time Cielo.",
+          descricao: "Escalonar quando necessário."
+        }]
+      },
+      {
+        bloco: "Processos NCG - Dependência",
+        peso: 100,
+        tipo: "NCG",
+        items: [{
+          item: "Dependência",
+          subitem: "A dependência foi transferida corretamente?",
+          descricao: "Transferir para dependência correta."
+        }]
+      }
+    ];
+
+    // Checklist Regularizações Financeiras e Saldo de Auditoria
+    const checklistRegularizacoes = [
+      {
+        bloco: "Análise - Histórico",
+        peso: 10,
+        tipo: "NC",
+        items: [{
+          item: "Histórico",
+          subitem: "Histórico do cliente ou processo verificado antes da tratativa (análise 360)?",
+          descricao: "Verificar histórico antes de iniciar tratativa."
+        }]
+      },
+      {
+        bloco: "Análise - Alçada",
+        peso: 6,
+        tipo: "NC",
+        items: [{
+          item: "Alçada",
+          subitem: "O \"de acordo\" consta conforme a alçada definida, porém a solicitação foi realizada de forma não necessária, indicando possível falha na análise prévia?",
+          descricao: "Verificar necessidade da solicitação."
+        }]
+      },
+      {
+        bloco: "Execução - Interpretação",
+        peso: 8,
+        tipo: "NC",
+        items: [{
+          item: "Interpretação",
+          subitem: "Realizou a interpretação correta da solicitação?",
+          descricao: "Interpretar corretamente a solicitação."
+        }]
+      },
+      {
+        bloco: "Execução - E-mails Cópia",
+        peso: 6,
+        tipo: "NC",
+        items: [{
+          item: "Cópia",
+          subitem: "Ao enviar o anexo, todos os e-mails foram incluídos em cópia, conforme solicitado?",
+          descricao: "Incluir todos destinatários necessários em cópia."
+        }]
+      },
+      {
+        bloco: "Execução - Registro Jira",
+        peso: 5,
+        tipo: "NC",
+        items: [{
+          item: "Jira",
+          subitem: "O analista registrou corretamente a solicitação no chamado Jira e anexou documentos para facilitar a compreensão?",
+          descricao: "Registrar e anexar documentos no Jira."
+        }]
+      },
+      {
+        bloco: "Execução - RPA Manual",
+        peso: 5,
+        tipo: "NC",
+        items: [{
+          item: "RPA",
+          subitem: "A substituição da RPA por cálculo manual foi realizada corretamente, conforme os parâmetros definidos?",
+          descricao: "Realizar cálculo manual conforme parâmetros."
+        }]
+      },
+      {
+        bloco: "Processos - Planilha",
+        peso: 4,
+        tipo: "NC",
+        items: [{
+          item: "Planilha",
+          subitem: "Campos obrigatórios da planilha padrão foram preenchidos conforme orientação?",
+          descricao: "Preencher campos obrigatórios."
+        }]
+      },
+      {
+        bloco: "Processos - Conferência",
+        peso: 4,
+        tipo: "NC",
+        items: [{
+          item: "Conferência",
+          subitem: "Foi realizada a conferência entre sistemas e planilhas para garantir a consistência das informações?",
+          descricao: "Conferir consistência de informações."
+        }]
+      },
+      {
+        bloco: "Processos - Motivo SEC",
+        peso: 3,
+        tipo: "NC",
+        items: [{
+          item: "Motivo",
+          subitem: "Utilização de campos de observação (Motivo SEC) para contextualizar a ação? (Lançamento de motivo padrão script.)",
+          descricao: "Preencher Motivo SEC conforme script."
+        }]
+      },
+      {
+        bloco: "Comunicação - Áreas",
+        peso: 10,
+        tipo: "NC",
+        items: [{
+          item: "Áreas",
+          subitem: "Comunicação clara com áreas envolvidas quando o caso necessita?",
+          descricao: "Comunicar claramente com outras áreas."
+        }]
+      },
+      {
+        bloco: "Comunicação - Retratação",
+        peso: 7,
+        tipo: "NC",
+        items: [{
+          item: "Retratação",
+          subitem: "Houve retratação na resposta ao identificar um erro, sendo realizada a correção sem exposição do equívoco?",
+          descricao: "Corrigir erros sem expor equívoco."
+        }]
+      },
+      {
+        bloco: "Comunicação - REQ",
+        peso: 4,
+        tipo: "NC",
+        items: [{
+          item: "REQ",
+          subitem: "Publicou a REQ para rastreabilidade?",
+          descricao: "Publicar REQ para rastreamento."
+        }]
+      },
+      {
+        bloco: "Encerramento - Personalização",
+        peso: 3,
+        tipo: "NC",
+        items: [{
+          item: "Personalização",
+          subitem: "As respostas foram personalizadas, demonstrando entendimento do contexto da demanda?",
+          descricao: "Personalizar respostas."
+        }]
+      },
+      {
+        bloco: "Encerramento - Documentos",
+        peso: 5,
+        tipo: "NC",
+        items: [{
+          item: "Documentos",
+          subitem: "Todos os documentos e evidências foram anexados no Ticket/E-mail?",
+          descricao: "Anexar todos documentos necessários."
+        }]
+      },
+      {
+        bloco: "Encerramento - SLA",
+        peso: 6,
+        tipo: "NC",
+        items: [{
+          item: "SLA",
+          subitem: "SLA atendido? Caso não, houve justificativa?",
+          descricao: "Cumprir SLA ou justificar."
+        }]
+      },
+      {
+        bloco: "Encerramento - Perfumaria",
+        peso: 4,
+        tipo: "NC",
+        items: [{
+          item: "Perfumaria",
+          subitem: "Realizou os ajustes visuais (perfumaria) na planilha antes de enviá-la, para tornar as informações mais claras?",
+          descricao: "Formatar planilha adequadamente."
+        }]
+      },
+      {
+        bloco: "Encerramento - Prioridade",
+        peso: 10,
+        tipo: "NC",
+        items: [{
+          item: "Prioridade",
+          subitem: "Mesmo com o SLA perdido, foi atribuída a devida prioridade ao caso?",
+          descricao: "Priorizar mesmo com SLA perdido."
+        }]
+      },
+      {
+        bloco: "Financeiro - Cálculo",
+        peso: 100,
+        tipo: "NCG",
+        items: [{
+          item: "Cálculo",
+          subitem: "Erro no cálculo de taxas, estorno ou ajuste que resultou em qualquer tipo de impacto financeiro.",
+          descricao: "Evitar erros de cálculo."
+        }]
+      },
+      {
+        bloco: "Financeiro - Período",
+        peso: 100,
+        tipo: "NCG",
+        items: [{
+          item: "Período",
+          subitem: "Erro no período da solicitação de estorno ou ajuste.",
+          descricao: "Usar período correto."
+        }]
+      },
+      {
+        bloco: "Financeiro - Código",
+        peso: 100,
+        tipo: "NCG",
+        items: [{
+          item: "Código",
+          subitem: "Código aplicado incorreto de estorno ou ajuste.",
+          descricao: "Aplicar código correto."
+        }]
+      },
+      {
+        bloco: "Financeiro - Fórmula",
+        peso: 100,
+        tipo: "NCG",
+        items: [{
+          item: "Fórmula",
+          subitem: "Outros erros referente a Erros de Fórmula ou Lógica ou Erros Diretos de Cálculo? Se sim, qual?",
+          descricao: "Evitar erros de fórmula."
+        }]
+      },
+      {
+        bloco: "Financeiro - Validação Gestor",
+        peso: 100,
+        tipo: "NCG",
+        items: [{
+          item: "Validação",
+          subitem: "Procedimento executado sem validação do gestor correto conforme alçada. Apenas autorizações de nível hierárquico superior são permitidas; o contrário configura não conformidade.",
+          descricao: "Validar com gestor correto."
+        }]
+      },
+      {
+        bloco: "Financeiro - Lançamento",
+        peso: 100,
+        tipo: "NCG",
+        items: [{
+          item: "Lançamento",
+          subitem: "Foi lançado o ajuste ou estorno no sistema?",
+          descricao: "Lançar no sistema."
+        }]
+      },
+      {
+        bloco: "LGPD - Exposição",
+        peso: 100,
+        tipo: "NCG",
+        items: [{
+          item: "Exposição",
+          subitem: "Não houve exposição de dados pessoais em telas, prints ou documentos não protegidos na tratativa?",
+          descricao: "Proteger dados pessoais."
+        }]
+      },
+      {
+        bloco: "LGPD - Envio Incorreto",
+        peso: 100,
+        tipo: "NCG",
+        items: [{
+          item: "Envio",
+          subitem: "Planilha de ajuste encaminhada erroneamente para cliente não correspondente da solicitação.",
+          descricao: "Conferir destinatário."
+        }]
+      },
+      {
+        bloco: "LGPD - Fórmulas",
+        peso: 100,
+        tipo: "NCG",
+        items: [{
+          item: "Fórmulas",
+          subitem: "Documento enviado com fórmulas visíveis ou editáveis, expondo lógica interna. (sem o formato CSV)",
+          descricao: "Remover fórmulas visíveis."
+        }]
+      },
+      {
+        bloco: "Comunicação NCG - Sem Retorno",
+        peso: 100,
+        tipo: "NCG",
+        items: [{
+          item: "Retorno",
+          subitem: "Cliente ficou sem retorno?",
+          descricao: "Garantir retorno ao cliente."
+        }]
+      },
+      {
+        bloco: "Comunicação NCG - Intervenção",
+        peso: 100,
+        tipo: "NCG",
+        items: [{
+          item: "Intervenção",
+          subitem: "Foi necessário intervenção de alçadas maiores ou reabertura de chamado (aplica-se acima de 2 tickets filhos)?",
+          descricao: "Evitar intervenção superior."
+        }]
+      },
+      {
+        bloco: "Comunicação NCG - Prioridade",
+        peso: 100,
+        tipo: "NCG",
+        items: [{
+          item: "Prioridade",
+          subitem: "Não foi solicitada prioridade em casos de canais sensíveis conforme a necessidade?",
+          descricao: "Solicitar prioridade quando necessário."
+        }]
+      },
+      {
+        bloco: "Comunicação NCG - Autonomia",
+        peso: 100,
+        tipo: "NCG",
+        items: [{
+          item: "Autonomia",
+          subitem: "Ação tomada de forma autônoma em situação que exigia escalonamento à supervisão ou ao time Cielo.",
+          descricao: "Escalonar quando necessário."
+        }]
+      }
+    ];
+
+    // Variável para armazenar checklist atual
+    let checklistData = checklistPadrao;
+
+    let state = {
+      score: 100,
+      nc: 0,
+      ncg: 0,
+      total: 0,
+      items: {},
+      observations: {},
+      ncgDetected: false
+    };
+
+    function salvarObservacao(itemId, value) {
+      state.observations[itemId] = value;
+    }
+
+    let currentObservationItemId = null;
+
+    function verificarSubCaixa5125() {
+      const subCaixa = document.getElementById('subCaixa').value;
+      const estabelecimentoContainer = document.getElementById('estabelecimentoContainer');
+      const referenciaEventoContainer = document.getElementById('referenciaEventoContainer');
+      const tratadoViaContainer = document.getElementById('tratadoViaContainer');
+      const protocoloContainer = document.getElementById('protocoloContainer');
+      const assuntoEmailContainer = document.getElementById('assuntoEmailContainer');
+      
+      if (subCaixa === '5125' || subCaixa === 'Cancelamento - 5125') {
+        estabelecimentoContainer.style.display = 'flex';
+        referenciaEventoContainer.style.display = 'flex';
+        tratadoViaContainer.style.display = 'none';
+        protocoloContainer.style.display = 'none';
+        assuntoEmailContainer.style.display = 'none';
+        document.getElementById('tratadoVia').value = '';
+        document.getElementById('protocolo').value = '';
+        document.getElementById('assuntoEmail').value = '';
+      } else {
+        estabelecimentoContainer.style.display = 'none';
+        referenciaEventoContainer.style.display = 'none';
+        tratadoViaContainer.style.display = 'flex';
+        document.getElementById('estabelecimento').value = '';
+        document.getElementById('referenciaEvento').value = '';
+      }
+    }
+    
+    function mostrarCampoProtocoloOuEmail() {
+      const tratadoVia = document.getElementById('tratadoVia').value;
+      const protocoloContainer = document.getElementById('protocoloContainer');
+      const assuntoEmailContainer = document.getElementById('assuntoEmailContainer');
+      
+      if (tratadoVia === 'CRM') {
+        protocoloContainer.style.display = 'flex';
+        assuntoEmailContainer.style.display = 'none';
+        document.getElementById('assuntoEmail').value = '';
+      } else if (tratadoVia === 'E-mail') {
+        protocoloContainer.style.display = 'none';
+        assuntoEmailContainer.style.display = 'flex';
+        document.getElementById('protocolo').value = '';
+      } else {
+        protocoloContainer.style.display = 'none';
+        assuntoEmailContainer.style.display = 'none';
+        document.getElementById('protocolo').value = '';
+        document.getElementById('assuntoEmail').value = '';
+      }
+    }
+    
+    function mostrarSubCaixa() {
+      const caixa = document.getElementById('caixa').value;
+      const subCaixaContainer = document.getElementById('subCaixaContainer');
+      const subCaixaSelect = document.getElementById('subCaixa');
+      
+      // Limpa as opções atuais
+      subCaixaSelect.innerHTML = '<option value="">Selecione</option>';
+      
+      // Troca o checklist conforme caixa
+      if (caixa === 'Cancelamento') {
+        checklistData = checklistCancelamento;
+        resetarChecklistState();
+      } else if (caixa === 'Gestão Aluguel Estornos' || caixa === 'Gestão Aluguel Incentivos') {
+        checklistData = checklistGestaoAluguel;
+        resetarChecklistState();
+      } else if (caixa === 'Regularizações Financeiras' || caixa === 'Saldo de Auditoria') {
+        checklistData = checklistRegularizacoes;
+        resetarChecklistState();
+      } else if (caixa !== '') {
+        checklistData = checklistPadrao;
+        resetarChecklistState();
+      }
+      
+      if (caixa === 'Cancelamento') {
+        // Sub-caixas de Cancelamento
+        const opcoes = [
+          'Desfazimento',
+          'Atendimento BackOffice',
+          '5125',
+          'STD - Corporate',
+          'STD - Aéreo'
+        ];
+        opcoes.forEach(opcao => {
+          const option = document.createElement('option');
+          option.value = opcao;
+          option.textContent = opcao;
+          subCaixaSelect.appendChild(option);
+        });
+        subCaixaContainer.style.display = 'flex';
+      } else if (caixa === 'Processos Ouvidoria BO' || caixa === 'BackOffice Mídias Sociais') {
+        // Todas as caixas + sub-caixas de Cancelamento
+        const opcoes = [
+          'Gestão Aluguel Estornos',
+          'Gestão Aluguel Incentivos',
+          'Saldo de Auditoria',
+          'Consultoria',
+          'Prévia MDR',
+          'Regularizações Financeiras',
+          'Cancelamento - Desfazimento',
+          'Cancelamento - Atendimento BackOffice',
+          'Cancelamento - 5125',
+          'Cancelamento - STD - Corporate',
+          'Cancelamento - STD - Aéreo'
+        ];
+        opcoes.forEach(opcao => {
+          const option = document.createElement('option');
+          option.value = opcao;
+          option.textContent = opcao;
+          subCaixaSelect.appendChild(option);
+        });
+        subCaixaContainer.style.display = 'flex';
+      } else {
+        subCaixaContainer.style.display = 'none';
+        subCaixaSelect.value = '';
+      }
+    }
+    
+    function resetarChecklistState() {
+      // Limpa o estado do checklist ao trocar
+      state.score = 100;
+      state.nc = 0;
+      state.ncg = 0;
+      state.total = 0;
+      state.items = {};
+      state.observations = {};
+      state.ncgDetected = false;
+      
+      // Esconde alerta NCG
+      document.getElementById('alertNCG').classList.remove('show');
+      
+      // Atualiza UI
+      updateUI();
+      
+      // Atualiza botão flutuante
+      const scoreNotificationEl = document.getElementById('scoreNotification');
+      const scoreValueEl = document.getElementById('scoreNotificationValue');
+      scoreValueEl.textContent = '100';
+      scoreNotificationEl.classList.remove('score-notification-ncg');
+    }
+    
+    function mostrarSubFormulario() {
+      const formulario = document.getElementById('formulario').value;
+      const camposCondicionais = document.getElementById('camposCondicionais');
+      const dataAvaliacaoBar = document.getElementById('dataAvaliacaoBar');
+      const subContainer = document.getElementById('subFormularioContainer');
+      const caixaContainer = document.getElementById('caixaContainer');
+      const subCaixaContainer = document.getElementById('subCaixaContainer');
+      const estabelecimentoContainer = document.getElementById('estabelecimentoContainer');
+      const referenciaEventoContainer = document.getElementById('referenciaEventoContainer');
+      const tratadoViaContainer = document.getElementById('tratadoViaContainer');
+      const resumoContainer = document.getElementById('resumoContainer');
+      const feedbackContainer = document.getElementById('feedbackContainer');
+      
+      if (formulario === 'Agenda Financeira - Eventos') {
+        // Eventos: Tipo Evento + Estabelecimento + Referência + Data/Horário
+        camposCondicionais.style.display = 'grid';
+        dataAvaliacaoBar.style.display = 'grid';
+        subContainer.style.display = 'flex';
+        caixaContainer.style.display = 'none';
+        subCaixaContainer.style.display = 'none';
+        estabelecimentoContainer.style.display = 'flex';
+        referenciaEventoContainer.style.display = 'flex';
+        tratadoViaContainer.style.display = 'none';
+        resumoContainer.style.display = 'grid';
+        feedbackContainer.style.display = 'grid';
+        document.getElementById('caixa').value = '';
+        document.getElementById('subCaixa').value = '';
+        document.getElementById('tratadoVia').value = '';
+      } else if (formulario === 'Agenda Financeira') {
+        // Agenda Financeira: Caixa + Tratado Via + Data/Horário
+        camposCondicionais.style.display = 'grid';
+        dataAvaliacaoBar.style.display = 'grid';
+        subContainer.style.display = 'none';
+        caixaContainer.style.display = 'flex';
+        estabelecimentoContainer.style.display = 'none';
+        referenciaEventoContainer.style.display = 'none';
+        tratadoViaContainer.style.display = 'flex';
+        resumoContainer.style.display = 'grid';
+        feedbackContainer.style.display = 'grid';
+        document.getElementById('subFormulario').value = '';
+        document.getElementById('estabelecimento').value = '';
+        document.getElementById('referenciaEvento').value = '';
+      } else if (formulario !== '') {
+        // Outros formulários
+        camposCondicionais.style.display = 'grid';
+        dataAvaliacaoBar.style.display = 'grid';
+        subContainer.style.display = 'none';
+        caixaContainer.style.display = 'none';
+        subCaixaContainer.style.display = 'none';
+        estabelecimentoContainer.style.display = 'none';
+        referenciaEventoContainer.style.display = 'none';
+        tratadoViaContainer.style.display = 'flex';
+        resumoContainer.style.display = 'grid';
+        feedbackContainer.style.display = 'grid';
+        document.getElementById('subFormulario').value = '';
+        document.getElementById('caixa').value = '';
+        document.getElementById('subCaixa').value = '';
+        document.getElementById('estabelecimento').value = '';
+        document.getElementById('referenciaEvento').value = '';
+      } else {
+        // Nenhum formulário selecionado
+        camposCondicionais.style.display = 'none';
+        dataAvaliacaoBar.style.display = 'none';
+        resumoContainer.style.display = 'none';
+        feedbackContainer.style.display = 'none';
+        document.getElementById('subFormulario').value = '';
+        document.getElementById('caixa').value = '';
+        document.getElementById('subCaixa').value = '';
+        document.getElementById('estabelecimento').value = '';
+        document.getElementById('referenciaEvento').value = '';
+        document.getElementById('tratadoVia').value = '';
+        document.getElementById('dataInteracao').value = '';
+        document.getElementById('horarioInteracao').value = '';
+        document.getElementById('resumoInteracao').value = '';
+        document.getElementById('feedback').value = '';
+      }
+    }
+
+    function abrirObservacao(itemId, item, subitem) {
+      currentObservationItemId = itemId;
+      
+      document.getElementById('modalItemLabel').textContent = item;
+      document.getElementById('modalSubitemLabel').textContent = subitem;
+      document.getElementById('modalTextarea').value = state.observations[itemId] || '';
+      
+      document.getElementById('modalObservacao').classList.add('show');
+      
+      // Focus no textarea
+      setTimeout(() => {
+        document.getElementById('modalTextarea').focus();
+      }, 100);
+    }
+
+    function fecharObservacao() {
+      document.getElementById('modalObservacao').classList.remove('show');
+      currentObservationItemId = null;
+    }
+
+    function salvarObservacaoModal() {
+      const texto = document.getElementById('modalTextarea').value;
+      
+      if (currentObservationItemId) {
+        state.observations[currentObservationItemId] = texto;
+        updateUI();
+      }
+      
+      fecharObservacao();
+    }
+
+    // Fechar modal ao clicar fora
+    document.addEventListener('click', function(event) {
+      const modal = document.getElementById('modalObservacao');
+      if (event.target === modal) {
+        fecharObservacao();
+      }
+    });
+
+    // Fechar modal com ESC
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        fecharObservacao();
+      }
+    });
+
+    function renderChecklist() {
+      const container = document.getElementById('checklistContent');
+      container.innerHTML = '';
+
+      checklistData.forEach((block, blockIdx) => {
+        const blockEl = document.createElement('div');
+        blockEl.className = 'block';
+        
+        // Mostra o peso e tipo do bloco no header
+        blockEl.innerHTML = `
+          <div class="block-header">
+            ${block.bloco}
+            <span style="opacity: 0.8; font-size: 14px; margin-left: 15px;">
+              (-${block.peso} pts ${block.tipo})
+            </span>
+          </div>`;
+
+        block.items.forEach((item, itemIdx) => {
+          const itemId = `${blockIdx}-${itemIdx}`;
+          const isMarcado = state.items[itemId];
+          
+          const itemEl = document.createElement('div');
+          itemEl.className = `item ${isMarcado ? 'marcado' : ''}`;
+          
+          itemEl.innerHTML = `
+            <div class="item-content">
+              <div class="item-label">📌 ${item.item}</div>
+              <div class="item-header">
+                <div class="item-title">${item.subitem}</div>
+                <div class="item-badge">
+                  <div class="item-type ${block.tipo.toLowerCase()}">${block.tipo}</div>
+                </div>
+              </div>
+              <div class="item-description">${item.descricao}</div>
+              <div class="observation-preview ${state.observations && state.observations[itemId] ? 'show' : ''}" id="preview-${itemId}">
+                <div class="observation-preview-header">
+                  <span class="observation-preview-label">💬 Observação:</span>
+                  <button class="observation-preview-edit" onclick="abrirObservacao('${itemId}', '${item.item}', '${item.subitem.replace(/'/g, "\\'")}')">
+                    ✏️ Editar
+                  </button>
+                </div>
+                <div class="observation-preview-text" id="text-${itemId}">
+                  ${state.observations && state.observations[itemId] ? state.observations[itemId].replace(/</g, '&lt;').replace(/>/g, '&gt;') : ''}
+                </div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <button class="btn-observation ${state.observations && state.observations[itemId] ? 'has-content' : ''}" 
+                      onclick="abrirObservacao('${itemId}', '${item.item}', '${item.subitem.replace(/'/g, "\\'")}')">
+                📝
+              </button>
+              <button class="btn-descontar ${isMarcado ? 'active' : ''}" 
+                      onclick="toggleItem(${blockIdx}, '${itemId}')">
+                ${isMarcado ? '✓ Descontado' : '✗ Descontar'}
+              </button>
+            </div>
+          `;
+          
+          blockEl.appendChild(itemEl);
+        });
+
+        container.appendChild(blockEl);
+      });
+    }
+
+    function toggleItem(blockIdx, itemId) {
+      const block = checklistData[blockIdx];
+      const wasMarcado = state.items[itemId];
+      
+      if (wasMarcado) {
+        // Desmarcando este item
+        delete state.items[itemId];
+        state.total--;
+        
+        // Verifica se ainda tem algum item marcado neste bloco
+        const blockHasMarked = block.items.some((_, idx) => {
+          const id = `${blockIdx}-${idx}`;
+          return state.items[id];
+        });
+        
+        // Se não tem mais nenhum item marcado no bloco, devolve a pontuação
+        if (!blockHasMarked) {
+          if (block.tipo === 'NCG') {
+            state.ncg--;
+            recalcularPontuacao();
+          } else if (block.tipo === 'NC') {
+            state.nc--;
+            if (!state.ncgDetected) {
+              state.score += block.peso;
+              if (state.score > 100) state.score = 100;
+            }
+          }
+        }
+      } else {
+        // Marcando este item
+        state.items[itemId] = true;
+        state.total++;
+        
+        // Verifica se é o primeiro item marcado neste bloco
+        const blockHadMarked = block.items.some((_, idx) => {
+          const id = `${blockIdx}-${idx}`;
+          return id !== itemId && state.items[id];
+        });
+        
+        // Se é o primeiro item do bloco, desconta a pontuação
+        if (!blockHadMarked) {
+          if (block.tipo === 'NCG') {
+            state.ncg++;
+            state.score = 0;
+            state.ncgDetected = true;
+            mostrarAlertaNCG();
+          } else if (block.tipo === 'NC') {
+            state.nc++;
+            if (!state.ncgDetected) {
+              state.score -= block.peso;
+              if (state.score < 0) state.score = 0;
+            }
+          }
+        }
+      }
+      
+      updateUI();
+      showScoreNotification();
+    }
+
+    function showScoreNotification() {
+      const notification = document.getElementById('scoreNotification');
+      const valueEl = document.getElementById('scoreNotificationValue');
+      
+      // Atualiza o valor
+      valueEl.textContent = Math.round(state.score);
+      
+      // Adiciona classe NCG se pontuação zerada
+      if (state.ncgDetected && state.score === 0) {
+        notification.classList.add('score-notification-ncg');
+      } else {
+        notification.classList.remove('score-notification-ncg');
+      }
+      
+      // Remove animação anterior se existir
+      notification.classList.remove('pulse');
+      
+      // Força reflow para reiniciar animação
+      void notification.offsetWidth;
+      
+      // Adiciona animação de pulse
+      notification.classList.add('pulse');
+      
+      // Remove classe de animação após completar
+      setTimeout(() => {
+        notification.classList.remove('pulse');
+      }, 500);
+    }
+
+    function recalcularPontuacao() {
+      state.score = 100;
+      state.nc = 0;
+      state.ncg = 0;
+      state.ncgDetected = false;
+      
+      // Verificar quais blocos têm pelo menos um item marcado
+      const blocosComItems = new Set();
+      
+      Object.keys(state.items).forEach(itemId => {
+        const [blockIdx] = itemId.split('-');
+        blocosComItems.add(blockIdx);
+      });
+      
+      // Contar blocos NC e NCG marcados
+      blocosComItems.forEach(blockIdx => {
+        const block = checklistData[blockIdx];
+        
+        if (block.tipo === 'NCG') {
+          state.ncg++;
+          state.ncgDetected = true;
+        } else if (block.tipo === 'NC') {
+          state.nc++;
+        }
+      });
+      
+      // Se tem NCG, zera
+      if (state.ncgDetected) {
+        state.score = 0;
+      } else {
+        // Senão, desconta o peso de cada bloco NC marcado
+        blocosComItems.forEach(blockIdx => {
+          const block = checklistData[blockIdx];
+          if (block.tipo === 'NC') {
+            state.score -= block.peso;
+          }
+        });
+        if (state.score < 0) state.score = 0;
+      }
+    }
+
+    function mostrarAlertaNCG() {
+      const alert = document.getElementById('alertNCG');
+      alert.classList.add('show');
+      
+      setTimeout(() => {
+        alert.classList.remove('show');
+      }, 5000);
+    }
+
+    function updateUI() {
+      const scoreEl = document.getElementById('totalScore');
+      
+      scoreEl.textContent = Math.round(state.score);
+      
+      if (state.score === 0 && state.ncgDetected) {
+        scoreEl.classList.add('zero-score');
+      } else {
+        scoreEl.classList.remove('zero-score');
+      }
+      
+      renderChecklist();
+    }
+
+    function resetarChecklist() {
+      document.getElementById('confirmResetar').classList.add('show');
+    }
+    
+    function cancelarResetar() {
+      document.getElementById('confirmResetar').classList.remove('show');
+    }
+    
+    function confirmarResetar() {
+      // Limpar estado completamente
+      state.score = 100;
+      state.nc = 0;
+      state.ncg = 0;
+      state.total = 0;
+      state.items = {};
+      state.observations = {};
+      state.ncgDetected = false;
+      
+      // Esconder alerta NCG se estiver visível
+      document.getElementById('alertNCG').classList.remove('show');
+      
+      // Fechar modal de confirmação
+      document.getElementById('confirmResetar').classList.remove('show');
+      
+      // Atualizar UI (isso vai re-renderizar tudo)
+      updateUI();
+      
+      // Atualizar o botão de pontuação flutuante
+      const scoreNotificationEl = document.getElementById('scoreNotification');
+      const scoreValueEl = document.getElementById('scoreNotificationValue');
+      scoreValueEl.textContent = '100';
+      scoreNotificationEl.classList.remove('score-notification-ncg');
+      
+      alert('✅ Checklist resetado com sucesso!');
+    }
+
+    function exportarResultado() {
+      const analista = document.getElementById('analistaNome').value || 'Não informado';
+      const supervisor = document.getElementById('supervisor').value || 'Não informado';
+      const tipo = document.getElementById('tipo').value || 'Não informado';
+      const formulario = document.getElementById('formulario').value || 'Não informado';
+      const subFormulario = document.getElementById('subFormulario').value || '';
+      const caixa = document.getElementById('caixa').value || '';
+      const subCaixa = document.getElementById('subCaixa').value || '';
+      const tratadoVia = document.getElementById('tratadoVia').value || '';
+      const estabelecimento = document.getElementById('estabelecimento').value || '';
+      const referenciaEvento = document.getElementById('referenciaEvento').value || '';
+      const protocolo = document.getElementById('protocolo').value || '';
+      const assuntoEmail = document.getElementById('assuntoEmail').value || '';
+      const dataInteracao = document.getElementById('dataInteracao').value || '';
+      const horarioInteracao = document.getElementById('horarioInteracao').value || '';
+      const assunto = document.getElementById('assunto').value || '';
+      const ticket = document.getElementById('ticket').value || '';
+      const resumoDesvio = document.getElementById('resumoDesvio').value || '';
+      const resumoInteracao = document.getElementById('resumoInteracao').value || '';
+      const feedback = document.getElementById('feedback').value || '';
+      const dataAvaliacao = document.getElementById('dataAvaliacao').value || new Date().toISOString().split('T')[0];
+      const horarioAvaliacao = document.getElementById('horarioAvaliacao').value || new Date().toTimeString().slice(0, 5);
+      
+      const resultado = {
+        analista,
+        supervisor,
+        tipo,
+        formulario,
+        tipoEvento: subFormulario,
+        caixa,
+        subCaixa,
+        tratadoVia,
+        estabelecimento,
+        referenciaEvento,
+        protocolo,
+        assuntoEmail,
+        dataInteracao,
+        horarioInteracao,
+        assunto,
+        ticket,
+        resumoDesvio,
+        dataAvaliacao,
+        horarioAvaliacao,
+        resumoInteracao,
+        feedback,
+        pontuacao: state.score,
+        nc: state.nc,
+        ncg: state.ncg,
+        itensDescontados: state.total,
+        ncgDetectado: state.ncgDetected,
+        detalhes: state.items,
+        observacoes: state.observations
+      };
+      
+      const blob = new Blob([JSON.stringify(resultado, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `checklist_${analista.replace(/\s+/g, '_')}_${data}.json`;
+      a.click();
+      
+      alert('✅ Resultado exportado com sucesso!');
+    }
+
+    function exportarParaControle() {
+      const analista = document.getElementById('analistaNome').value || 'Não informado';
+      const tipo = document.getElementById('tipo').value || '';
+      const formulario = document.getElementById('formulario').value || '';
+      const caixa = document.getElementById('caixa').value || '';
+      const subCaixa = document.getElementById('subCaixa').value || '';
+      const tipoEvento = document.getElementById('subFormulario').value || '';
+      const assunto = document.getElementById('assunto').value || '';
+      const ticket = document.getElementById('ticket').value || '';
+      const resumoDesvio = document.getElementById('resumoDesvio').value || '';
+      const resumoInteracao = document.getElementById('resumoInteracao').value || '';
+      const protocolo = document.getElementById('protocolo').value || '';
+      const assuntoEmail = document.getElementById('assuntoEmail').value || '';
+      const pontuacao = Math.round(state.score);
+      const dataAvaliacao = document.getElementById('dataAvaliacao').value || '';
+      
+      // Validações
+      if (!analista || analista === 'Não informado') {
+        alert('⚠️ Por favor, preencha o nome do analista!');
+        return;
+      }
+      if (!assunto) {
+        alert('⚠️ Por favor, preencha o assunto!');
+        return;
+      }
+      if (!ticket) {
+        alert('⚠️ Por favor, preencha o número do ticket!');
+        return;
+      }
+      
+      // Determinar categoria e caixa final
+      let categoria = '';
+      let caixaFinal = '';
+      
+      if (formulario === 'Agenda Financeira - Eventos') {
+        categoria = 'Eventos';
+        caixaFinal = tipoEvento || 'Evento';
+      } else if (caixa && (caixa === 'Cancelamento' || subCaixa.includes('Cancelamento'))) {
+        categoria = 'Cancelamento';
+        caixaFinal = subCaixa || caixa;
+      } else if (caixa) {
+        categoria = 'Agenda Financeira';
+        caixaFinal = subCaixa || caixa;
+      } else {
+        categoria = 'Eventos';
+        caixaFinal = formulario;
+      }
+      
+      // Determinar protocolo ou assunto email
+      const protocoloOuEmail = protocolo || assuntoEmail || '';
+      
+      // Criar objeto de registro
+      const registro = {
+        id: Date.now(),
+        data: dataAvaliacao,
+        nivel: tipo,
+        analista,
+        categoria,
+        caixa: caixaFinal,
+        assunto,
+        ticket,
+        protocoloOuEmail,
+        observacao: resumoInteracao,
+        desvio: resumoDesvio,
+        nota: pontuacao,
+        timestamp: new Date().toISOString()
+      };
+      
+      // Salvar no localStorage
+      let registros = JSON.parse(localStorage.getItem('controleAvaliacoes') || '[]');
+      registros.push(registro);
+      localStorage.setItem('controleAvaliacoes', JSON.stringify(registros));
+      
+      alert(`✅ Avaliação salva no controle!\n\nAnalista: ${analista}\nCaixa: ${caixaFinal}\nNota: ${pontuacao}`);
+      
+      // Atualizar contador no botão
+      atualizarContadorControle();
+    }
+
+    function carregarControle() {
+      const registros = JSON.parse(localStorage.getItem('controleAvaliacoes') || '[]');
+      renderizarTabelas(registros);
+    }
+
+    function filtrarControle() {
+      const analistaFiltro = document.getElementById('filtroAnalista').value.trim().toUpperCase();
+      const caixa = document.getElementById('filtroCaixa').value;
+      const semana = document.getElementById('filtroSemana').value;
+      
+      let registros = JSON.parse(localStorage.getItem('controleAvaliacoes') || '[]');
+      
+      // Filtro por analista (busca parcial, case insensitive)
+      if (analistaFiltro) {
+        registros = registros.filter(r => r.analista.toUpperCase().includes(analistaFiltro));
+      }
+      
+      // Filtro por caixa específica
+      if (caixa) {
+        registros = registros.filter(r => r.caixa === caixa);
+      }
+      
+      // Filtro por semana
+      if (semana) {
+        registros = registros.filter(r => {
+          const data = new Date(r.data);
+          const ano = data.getFullYear();
+          const numSemana = getWeekNumber(data);
+          const semanaFormatada = `${ano}-W${String(numSemana).padStart(2, '0')}`;
+          return semanaFormatada === semana;
+        });
+      }
+      
+      renderizarTabelas(registros);
+    }
+
+    function atualizarVisualizacaoSemana() {
+      const semanaInput = document.getElementById('filtroSemana').value;
+      const visualizacao = document.getElementById('visualizacaoSemana');
+      
+      if (semanaInput) {
+        // Formato: 2026-W11
+        const [ano, semana] = semanaInput.split('-W');
+        
+        // Calcular data de início e fim da semana
+        const primeiroDiaAno = new Date(ano, 0, 1);
+        const diasParaPrimeiraSegunda = (8 - primeiroDiaAno.getDay()) % 7;
+        const primeiraSegunda = new Date(ano, 0, 1 + diasParaPrimeiraSegunda);
+        
+        const inicioSemana = new Date(primeiraSegunda);
+        inicioSemana.setDate(primeiraSegunda.getDate() + (semana - 1) * 7);
+        
+        const fimSemana = new Date(inicioSemana);
+        fimSemana.setDate(inicioSemana.getDate() + 6);
+        
+        const formatarData = (data) => {
+          const dia = String(data.getDate()).padStart(2, '0');
+          const mes = String(data.getMonth() + 1).padStart(2, '0');
+          return `${dia}/${mes}`;
+        };
+        
+        visualizacao.textContent = `W${semana} - ${formatarData(inicioSemana)} à ${formatarData(fimSemana)}`;
+        visualizacao.style.display = 'block';
+      } else {
+        visualizacao.style.display = 'none';
+      }
+    }
+
+    function getWeekNumber(date) {
+      const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      const dayNum = d.getUTCDay() || 7;
+      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    }
+
+    function renderizarTabelas(registros) {
+      const container = document.getElementById('tabelasControle');
+      
+      if (registros.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #999; padding: 40px; font-size: 18px;">📭 Nenhuma avaliação registrada ainda.</p>';
+        return;
+      }
+      
+      // Agrupar por categoria
+      const porCategoria = {
+        'Agenda Financeira': [],
+        'Cancelamento': [],
+        'Eventos': []
+      };
+      
+      registros.forEach(r => {
+        if (porCategoria[r.categoria]) {
+          porCategoria[r.categoria].push(r);
+        }
+      });
+      
+      let html = '';
+      
+      // Tabela Agenda Financeira
+      if (porCategoria['Agenda Financeira'].length > 0) {
+        html += gerarTabelaCategoria('Agenda Financeira', porCategoria['Agenda Financeira'], '#00A4E0');
+      }
+      
+      // Tabela Cancelamento
+      if (porCategoria['Cancelamento'].length > 0) {
+        html += gerarTabelaCategoria('Agenda Financeira - Cancelamento', porCategoria['Cancelamento'], '#FF9F1C');
+      }
+      
+      // Tabela Eventos
+      if (porCategoria['Eventos'].length > 0) {
+        html += gerarTabelaCategoria('Agenda Financeira - Outras Caixas e Eventos', porCategoria['Eventos'], '#00D664');
+      }
+      
+      container.innerHTML = html;
+    }
+
+    function gerarTabelaCategoria(titulo, registros, cor) {
+      // Agrupar por analista e depois por caixa
+      const porAnalista = {};
+      registros.forEach(r => {
+        if (!porAnalista[r.analista]) {
+          porAnalista[r.analista] = {};
+        }
+        if (!porAnalista[r.analista][r.caixa]) {
+          porAnalista[r.analista][r.caixa] = [];
+        }
+        porAnalista[r.analista][r.caixa].push(r);
+      });
+      
+      let html = `
+        <div style="margin-bottom: 40px;">
+          <h3 style="background: linear-gradient(135deg, ${cor} 0%, ${cor}dd 100%); color: white; padding: 15px 20px; border-radius: 8px 8px 0 0; margin: 0; font-size: 20px; font-weight: 700;">${titulo}</h3>
+          <div style="overflow-x: auto; border: 2px solid ${cor}; border-radius: 0 0 8px 8px;">
+            <table style="width: 100%; border-collapse: collapse; background: white;">
+              <thead>
+                <tr style="background: ${cor}20;">
+                  <th style="padding: 12px; text-align: left; border-bottom: 2px solid ${cor}; font-weight: 700;">Nível</th>
+                  <th style="padding: 12px; text-align: left; border-bottom: 2px solid ${cor}; font-weight: 700;">Analista</th>
+                  <th style="padding: 12px; text-align: left; border-bottom: 2px solid ${cor}; font-weight: 700;">Caixa</th>
+                  <th style="padding: 12px; text-align: left; border-bottom: 2px solid ${cor}; font-weight: 700;">Assunto</th>
+                  <th style="padding: 12px; text-align: left; border-bottom: 2px solid ${cor}; font-weight: 700;">Protocolo/Email</th>
+                  <th style="padding: 12px; text-align: left; border-bottom: 2px solid ${cor}; font-weight: 700;">Observação</th>
+                  <th style="padding: 12px; text-align: left; border-bottom: 2px solid ${cor}; font-weight: 700;">Desvio</th>
+                  <th style="padding: 12px; text-align: center; border-bottom: 2px solid ${cor}; font-weight: 700;">Nota</th>
+                  <th style="padding: 12px; text-align: center; border-bottom: 2px solid ${cor}; font-weight: 700;">Média</th>
+                  <th style="padding: 12px; text-align: center; border-bottom: 2px solid ${cor}; font-weight: 700;">TAG</th>
+                  <th style="padding: 12px; text-align: center; border-bottom: 2px solid ${cor}; font-weight: 700;">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+      `;
+      
+      // Ordenar analistas
+      Object.keys(porAnalista).sort().forEach(analista => {
+        const caixas = porAnalista[analista];
+        let primeiraLinhaAnalista = true;
+        
+        // Ordenar caixas
+        Object.keys(caixas).sort().forEach(caixa => {
+          const regs = caixas[caixa];
+          
+          // Calcular média da caixa
+          const mediaCaixa = (regs.reduce((acc, r) => acc + r.nota, 0) / regs.length).toFixed(0);
+          
+          // Primeira linha da caixa
+          const r = regs[0];
+          html += `
+            <tr style="border-bottom: 1px solid #eee;">
+              ${primeiraLinhaAnalista ? `<td style="padding: 10px; vertical-align: top; font-weight: 600;">${r.nivel}</td>` : '<td style="padding: 10px;"></td>'}
+              ${primeiraLinhaAnalista ? `<td style="padding: 10px; font-weight: 700; vertical-align: top; color: #00A4E0;">${analista}</td>` : '<td style="padding: 10px;"></td>'}
+              <td style="padding: 10px; vertical-align: top; font-weight: 600;">${caixa}</td>
+              <td style="padding: 10px; vertical-align: top; font-size: 13px;">${r.assunto}</td>
+              <td style="padding: 10px; vertical-align: top; font-size: 12px; max-width: 200px; word-wrap: break-word;">${r.protocoloOuEmail || '-'}</td>
+              <td style="padding: 10px; vertical-align: top; font-size: 12px; max-width: 250px; word-wrap: break-word;">${r.observacao || '-'}</td>
+              <td style="padding: 10px; vertical-align: top; font-size: 12px; max-width: 150px; word-wrap: break-word;">${r.desvio}</td>
+              <td style="padding: 10px; text-align: center; font-weight: 700; color: ${r.nota < 70 ? '#dc3545' : r.nota < 90 ? '#FF9F1C' : '#28a745'};">${r.nota}</td>
+              <td style="padding: 10px; text-align: center; font-weight: 700; background: ${cor}10; font-size: 16px;" rowspan="${regs.length}">${mediaCaixa}</td>
+              <td style="padding: 10px; text-align: center;" rowspan="${regs.length}">-</td>
+              <td style="padding: 10px; text-align: center;"><button onclick="excluirRegistro(${r.id})" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">🗑️</button></td>
+            </tr>
+          `;
+          
+          primeiraLinhaAnalista = false;
+          
+          // Linhas seguintes da mesma caixa
+          for (let i = 1; i < regs.length; i++) {
+            const reg = regs[i];
+            html += `
+              <tr style="border-bottom: 1px solid #eee;">
+                <td style="padding: 10px;"></td>
+                <td style="padding: 10px;"></td>
+                <td style="padding: 10px;"></td>
+                <td style="padding: 10px; font-size: 13px;">${reg.assunto}</td>
+                <td style="padding: 10px; font-size: 12px; max-width: 200px; word-wrap: break-word;">${reg.protocoloOuEmail || '-'}</td>
+                <td style="padding: 10px; font-size: 12px; max-width: 250px; word-wrap: break-word;">${reg.observacao || '-'}</td>
+                <td style="padding: 10px; font-size: 12px; max-width: 150px; word-wrap: break-word;">${reg.desvio}</td>
+                <td style="padding: 10px; text-align: center; font-weight: 700; color: ${reg.nota < 70 ? '#dc3545' : reg.nota < 90 ? '#FF9F1C' : '#28a745'};">${reg.nota}</td>
+                <td style="padding: 10px; text-align: center;"><button onclick="excluirRegistro(${reg.id})" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">🗑️</button></td>
+              </tr>
+            `;
+          }
+        });
+      });
+      
+      html += `
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+      
+      return html;
+    }
+
+    function exportarTodoControle() {
+      const registros = JSON.parse(localStorage.getItem('controleAvaliacoes') || '[]');
+      
+      if (registros.length === 0) {
+        alert('⚠️ Nenhum registro para exportar!');
+        return;
+      }
+      
+      // CSV Header
+      let csv = 'Categoria,Nível,Analista,Caixa,Assunto,Protocolo/Email,Observação,Desvio,Nota,Data\n';
+      
+      registros.forEach(r => {
+        const linha = [
+          r.categoria,
+          r.nivel,
+          r.analista,
+          r.caixa,
+          r.assunto,
+          r.protocoloOuEmail || '',
+          r.observacao || '',
+          r.desvio,
+          r.nota,
+          r.data
+        ].map(field => `"${String(field).replace(/"/g, '""')}"`).join(',');
+        csv += linha + '\n';
+      });
+      
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `controle_completo_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      
+      alert('✅ Controle completo exportado!');
+    }
+
+    function excluirRegistro(id) {
+      if (!confirm('⚠️ Deseja realmente excluir este registro?')) return;
+      
+      let registros = JSON.parse(localStorage.getItem('controleAvaliacoes') || '[]');
+      registros = registros.filter(r => r.id !== id);
+      localStorage.setItem('controleAvaliacoes', JSON.stringify(registros));
+      
+      carregarControle();
+      atualizarContadorControle();
+      alert('✅ Registro excluído!');
+    }
+
+    function limparControle() {
+      if (!confirm('⚠️ ATENÇÃO! Isso irá apagar TODAS as avaliações salvas. Deseja continuar?')) return;
+      if (!confirm('⚠️ Tem certeza absoluta? Esta ação não pode ser desfeita!')) return;
+      
+      localStorage.removeItem('controleAvaliacoes');
+      carregarControle();
+      atualizarContadorControle();
+      alert('✅ Todos os registros foram apagados!');
+    }
+
+    function atualizarContadorControle() {
+      const registros = JSON.parse(localStorage.getItem('controleAvaliacoes') || '[]');
+      const badge = document.getElementById('badgeControle');
+      if (registros.length > 0) {
+        badge.textContent = registros.length;
+        badge.style.display = 'inline-block';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    function trocarAba(aba) {
+      // Esconder todas as visões
+      document.getElementById('viewFormularios').style.display = 'none';
+      document.getElementById('viewControle').style.display = 'none';
+      document.getElementById('viewAnalise').style.display = 'none';
+      
+      // Remover classe ativa de todos os botões
+      document.getElementById('tabFormularios').classList.remove('tab-active');
+      document.getElementById('tabControle').classList.remove('tab-active');
+      document.getElementById('tabAnalise').classList.remove('tab-active');
+      
+      // Esconder botões flutuantes
+      const btnExportar = document.getElementById('btnExportarControle');
+      const scoreNotification = document.getElementById('scoreNotification');
+      
+      // Mostrar visão selecionada e ativar botão
+      if (aba === 'formularios') {
+        document.getElementById('viewFormularios').style.display = 'block';
+        document.getElementById('tabFormularios').classList.add('tab-active');
+        btnExportar.style.display = 'flex'; // Mostrar botão apenas em Formulários
+        scoreNotification.style.display = 'flex'; // Mostrar pontuação apenas em Formulários
+      } else if (aba === 'controle') {
+        document.getElementById('viewControle').style.display = 'block';
+        document.getElementById('tabControle').classList.add('tab-active');
+        btnExportar.style.display = 'none'; // Esconder em Controle
+        scoreNotification.style.display = 'none'; // Esconder pontuação em Controle
+        carregarControle();
+      } else if (aba === 'analise') {
+        document.getElementById('viewAnalise').style.display = 'block';
+        document.getElementById('tabAnalise').classList.add('tab-active');
+        btnExportar.style.display = 'none'; // Esconder em Análise
+        scoreNotification.style.display = 'none'; // Esconder pontuação em Análise
+      }
+      
+      // Scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function limparFiltros() {
+      document.getElementById('filtroAnalista').value = '';
+      document.getElementById('filtroCaixa').value = '';
+      document.getElementById('filtroSemana').value = '';
+      document.getElementById('visualizacaoSemana').style.display = 'none';
+      filtrarControle();
+    }
+
+    // Initialize
+    const agora = new Date();
+    document.getElementById('dataAvaliacao').valueAsDate = agora;
+    document.getElementById('horarioAvaliacao').value = agora.toTimeString().slice(0, 5);
+    renderChecklist();
+    atualizarContadorControle(); // Atualizar contador de avaliações
+    
+    // Auto-update data e horário de avaliação (atualiza a cada segundo)
+    setInterval(() => {
+      const agora = new Date();
+      const dataAtual = document.getElementById('dataAvaliacao').value;
+      const horarioAtual = document.getElementById('horarioAvaliacao').value;
+      const dataHoje = agora.toISOString().split('T')[0];
+      const horarioHoje = agora.toTimeString().slice(0, 5);
+      
+      if (dataAtual !== dataHoje) {
+        document.getElementById('dataAvaliacao').valueAsDate = agora;
+      }
+      if (horarioAtual !== horarioHoje) {
+        document.getElementById('horarioAvaliacao').value = horarioHoje;
+      }
+    }, 1000);
+    
+    // Scroll detection for score notification
+    let lastScrollTop = 0;
+    const scoreNotification = document.getElementById('scoreNotification');
+    const header = document.querySelector('.header');
+    
+    window.addEventListener('scroll', function() {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      const headerBottom = header.offsetHeight;
+      
+      // Mostra o botão quando o banner do topo não estiver mais visível
+      if (scrollTop > headerBottom) {
+        scoreNotification.classList.add('visible');
+      } else {
+        scoreNotification.classList.remove('visible');
+      }
+      
+      lastScrollTop = scrollTop;
+    });
+  </script>
+</body>
+</html>
