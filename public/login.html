@@ -373,7 +373,7 @@
         
         if (snapshot.exists() && snapshot.val().autorizado) {
           // Redirecionar para o sistema
-          window.location.href = 'checklist_final.html';
+          window.location.href = '/checklist.html';
         } else {
           // Usuário não autorizado
           auth.signOut();
@@ -444,7 +444,7 @@
         
         // Redirecionar após 1 segundo
         setTimeout(() => {
-          window.location.href = 'checklist_final.html';
+          window.location.href = '/checklist.html';
         }, 1000);
 
       } catch (error) {
