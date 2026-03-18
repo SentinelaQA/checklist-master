@@ -993,7 +993,7 @@
     </div>
     
     <!-- Resumo da Interação -->
-    <div class="info-bar" id="resumoContainer" style="display: none; border-top: 2px solid #00A4E0;">
+    <div class="info-bar" id="resumoContainer" style="display: none; border-top: 2px solid #0d7ab5;">
       <div class="info-item">
         <label>Assunto</label>
         <input type="text" id="assunto" placeholder="Digite o assunto">
@@ -1006,13 +1006,13 @@
         <label>Resumo do Desvio</label>
         <textarea id="resumoDesvio" 
                   placeholder="Resuma brevemente o desvio identificado..." 
-                  style="min-height: 60px; resize: vertical; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; font-family: 'Inter', sans-serif;"></textarea>
+                  style="min-height: 60px; resize: vertical; padding: 12px; border: 2px solid #3a4256; border-radius: 8px; font-size: 14px; background: #1a1f2e; color: #e2e8f0; font-family: 'Inter', sans-serif;"></textarea>
       </div>
       <div class="info-item" style="grid-column: 1 / -1;">
         <label>Resumo da Interação</label>
         <textarea id="resumoInteracao" 
                   placeholder="Digite aqui um resumo da interação..." 
-                  style="min-height: 80px; resize: vertical; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; font-family: 'Inter', sans-serif;"></textarea>
+                  style="min-height: 80px; resize: vertical; padding: 12px; border: 2px solid #3a4256; border-radius: 8px; font-size: 14px; background: #1a1f2e; color: #e2e8f0; font-family: 'Inter', sans-serif;"></textarea>
       </div>
     </div>
 
@@ -1034,7 +1034,7 @@
         <label style="font-size: 16px; font-weight: 700; color: #FF9F1C;">💬 Feedback / Observação</label>
         <textarea id="feedback" 
                   placeholder="Digite aqui observações, feedbacks ou comentários sobre a avaliação..." 
-                  style="min-height: 120px; resize: vertical; padding: 12px; border: 2px solid #FF9F1C; border-radius: 8px; font-size: 14px; font-family: 'Inter', sans-serif;"></textarea>
+                  style="min-height: 120px; resize: vertical; padding: 12px; border: 2px solid #FF9F1C; border-radius: 8px; background: #1a1f2e; color: #e2e8f0; font-size: 14px; font-family: 'Inter', sans-serif;"></textarea>
       </div>
     </div>
 
@@ -1141,13 +1141,13 @@
 
       <div style="padding: 60px 20px; text-align: center; background: #1e2536; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); margin-bottom: 30px;">
         <div style="font-size: 80px; margin-bottom: 20px;">📊</div>
-        <h2 style="color: #495057; margin-bottom: 15px; font-size: 28px;">Em Desenvolvimento</h2>
-        <p style="color: #6c757d; font-size: 16px; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #e2e8f0; margin-bottom: 15px; font-size: 28px;">Em Desenvolvimento</h2>
+        <p style="color: #8892a4; font-size: 16px; max-width: 600px; margin: 0 auto;">
           Esta seção estará disponível em breve com gráficos, dashboards interativos e relatórios detalhados de performance.
         </p>
-        <div style="margin-top: 30px; padding: 20px; background: #e7f3ff; border-left: 4px solid #00A4E0; border-radius: 8px; max-width: 700px; margin-left: auto; margin-right: auto;">
-          <p style="margin: 0; color: #495057; font-weight: 600;">💡 Funcionalidades Planejadas:</p>
-          <ul style="text-align: left; margin-top: 15px; color: #6c757d; line-height: 1.8;">
+        <div style="margin-top: 30px; padding: 20px; background: rgba(13,122,181,0.1); border-left: 4px solid #0d7ab5; border-radius: 8px; max-width: 700px; margin-left: auto; margin-right: auto;">
+          <p style="margin: 0; color: #e2e8f0; font-weight: 600;">💡 Funcionalidades Planejadas:</p>
+          <ul style="text-align: left; margin-top: 15px; color: #8892a4; line-height: 1.8;">
             <li>Gráficos de evolução de notas por analista</li>
             <li>Ranking de performance</li>
             <li>Indicadores de conformidade por categoria</li>
@@ -1178,25 +1178,25 @@
       <div id="alertCadastro" style="padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; font-weight: 500; display: none;"></div>
 
       <!-- Card de Cadastro -->
-      <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); margin-bottom: 25px;">
-        <h2 style="margin-bottom: 20px; color: #495057; font-size: 20px;">➕ Cadastrar Novo Usuário</h2>
+      <div style="background: #1e2536; padding: 30px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); box-shadow: 0 4px 16px rgba(0,0,0,0.08); margin-bottom: 25px;">
+        <h2 style="margin-bottom: 20px; color: #e2e8f0; font-size: 20px;">➕ Cadastrar Novo Usuário</h2>
         <form id="cadastroForm">
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
             <div>
               <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #a0aec0; font-size: 14px;">Nome Completo *</label>
-              <input type="text" id="cadastroNome" required placeholder="Ex: João Silva" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px;">
+              <input type="text" id="cadastroNome" required placeholder="Ex: João Silva" style="width: 100%; padding: 12px; border: 2px solid #3a4256; border-radius: 8px; font-size: 14px; background: #1a1f2e; color: #e2e8f0;">
             </div>
             <div>
               <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #a0aec0; font-size: 14px;">E-mail *</label>
-              <input type="email" id="cadastroEmail" required placeholder="joao.silva@cielo.com.br" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px;">
+              <input type="email" id="cadastroEmail" required placeholder="joao.silva@cielo.com.br" style="width: 100%; padding: 12px; border: 2px solid #3a4256; border-radius: 8px; font-size: 14px; background: #1a1f2e; color: #e2e8f0;">
             </div>
             <div>
               <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #a0aec0; font-size: 14px;">Senha *</label>
-              <input type="password" id="cadastroSenha" required placeholder="Mínimo 6 caracteres" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px;">
+              <input type="password" id="cadastroSenha" required placeholder="Mínimo 6 caracteres" style="width: 100%; padding: 12px; border: 2px solid #3a4256; border-radius: 8px; font-size: 14px; background: #1a1f2e; color: #e2e8f0;">
             </div>
             <div>
               <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #a0aec0; font-size: 14px;">Cargo</label>
-              <select id="cadastroCargo" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px;">
+              <select id="cadastroCargo" style="width: 100%; padding: 12px; border: 2px solid #3a4256; border-radius: 8px; font-size: 14px; background: #1a1f2e; color: #e2e8f0;">
                 <option value="Analista">Analista</option>
                 <option value="Supervisor">Supervisor</option>
                 <option value="Coordenador">Coordenador</option>
@@ -1209,8 +1209,8 @@
       </div>
 
       <!-- Card de Usuários -->
-      <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
-        <h2 style="margin-bottom: 20px; color: #495057; font-size: 20px;">👥 Usuários Cadastrados</h2>
+      <div style="background: #1e2536; padding: 30px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+        <h2 style="margin-bottom: 20px; color: #e2e8f0; font-size: 20px;">👥 Usuários Cadastrados</h2>
         
         <div id="loadingUsuarios" style="text-align: center; padding: 40px; display: none;">
           <div style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #00A4E0; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px;"></div>
@@ -3309,7 +3309,7 @@
       const container = document.getElementById('tabelasControle');
       
       if (registros.length === 0) {
-        container.innerHTML = '<p style="text-align: center; color: #999; padding: 40px; font-size: 18px;">📭 Nenhuma avaliação registrada ainda.</p>';
+        container.innerHTML = '<p style="text-align: center; color: #6a7489; padding: 40px; font-size: 18px;">📭 Nenhuma avaliação registrada ainda.</p>';
         return;
       }
       
@@ -3787,7 +3787,7 @@
 
         usuarios.forEach(user => {
           html += `
-            <tr style="border-bottom: 1px solid #e9ecef;">
+            <tr style="border-bottom: 1px solid #2d3548;">
               <td style="padding: 15px;">${user.nome}</td>
               <td style="padding: 15px; font-size: 13px;">${user.email}</td>
               <td style="padding: 15px;">${user.cargo || '-'}</td>
