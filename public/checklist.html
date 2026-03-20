@@ -3612,228 +3612,32 @@
     });
   </script>
 
-  <!-- Firebase SDK e Autenticação -->
-  <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
-    import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
-    import { getDatabase, ref, set, get, remove, onValue } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
-
-    // Configuração do Firebase - SUBSTITUA COM SUAS CREDENCIAIS
-    const firebaseConfig = {
-      apiKey: "SUA_API_KEY_AQUI",
-      authDomain: "SEU_PROJECT_ID.firebaseapp.com",
-      databaseURL: "https://SEU_PROJECT_ID-default-rtdb.firebaseio.com",
-      projectId: "SEU_PROJECT_ID",
-      storageBucket: "SEU_PROJECT_ID.appspot.com",
-      messagingSenderId: "SEU_MESSAGING_SENDER_ID",
-      appId: "SEU_APP_ID"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const database = getDatabase(app);
-
-    let usuarioAtual = null;
-    let isAdmin = false;
-
-    // Verificar autenticação
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        // Não está logado, redirecionar para login
-        window.location.href = '/login.html';
-        return;
-      }
-
-      usuarioAtual = user;
-
-      // Verificar se usuário está autorizado e se é admin
-      const userRef = ref(database, 'usuarios/' + user.uid);
-      const snapshot = await get(userRef);
-
-      if (!snapshot.exists()) {
-        alert('Usuário não encontrado no sistema.');
-        await signOut(auth);
-        window.location.href = '/login.html';
-        return;
-      }
-
-      const userData = snapshot.val();
-
-      if (!userData.autorizado) {
-        alert('Acesso não autorizado. Contate o administrador.');
-        await signOut(auth);
-        window.location.href = '/login.html';
-        return;
-      }
-
-      // Verificar se é admin
-      isAdmin = userData.admin === true;
-
-      // Mostrar/esconder aba de cadastro baseado em permissão
-      const tabCadastro = document.getElementById('tabCadastro');
-      if (isAdmin) {
-        tabCadastro.style.display = 'flex';
-      } else {
-        tabCadastro.style.display = 'none';
-      }
-
-      // Preencher nome do analista automaticamente
-      const analistaInput = document.getElementById('analistaNome');
-      if (analistaInput && !analistaInput.value) {
-        analistaInput.value = userData.nome || '';
-      }
-    });
-
-    // Cadastrar usuário (apenas admin)
-    const cadastroForm = document.getElementById('cadastroForm');
-    if (cadastroForm) {
-      cadastroForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        if (!isAdmin) {
-          showAlertCadastro('Você não tem permissão para cadastrar usuários.', 'error');
-          return;
-        }
-
-        const nome = document.getElementById('cadastroNome').value.trim();
-        const email = document.getElementById('cadastroEmail').value.trim();
-        const senha = document.getElementById('cadastroSenha').value;
-        const cargo = document.getElementById('cadastroCargo').value;
-
-        if (senha.length < 6) {
-          showAlertCadastro('A senha deve ter no mínimo 6 caracteres.', 'error');
-          return;
-        }
-
-        try {
-          // Criar usuário
-          const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
-          const user = userCredential.user;
-
-          // Salvar dados no database
-          await set(ref(database, 'usuarios/' + user.uid), {
-            nome: nome,
-            email: email,
-            cargo: cargo,
-            autorizado: true,
-            admin: false,
-            ativo: true,
-            dataCadastro: new Date().toISOString()
-          });
-
-          showAlertCadastro(`✅ Usuário ${nome} cadastrado com sucesso!`, 'success');
-          cadastroForm.reset();
-
-        } catch (error) {
-          console.error('Erro ao cadastrar:', error);
-
-          let errorMessage = 'Erro ao cadastrar usuário.';
-          if (error.code === 'auth/email-already-in-use') {
-            errorMessage = 'Este e-mail já está cadastrado.';
-          } else if (error.code === 'auth/weak-password') {
-            errorMessage = 'Senha muito fraca.';
-          }
-
-          showAlertCadastro(errorMessage, 'error');
-        }
-      });
+  <!-- Autenticação local -->
+  <script>
+    // Verificar se está logado
+    if (localStorage.getItem('isLoggedIn') !== 'true') {
+      window.location.href = '/login.html';
     }
 
-    // Carregar usuários
-    window.carregarUsuarios = function() {
-      if (!isAdmin) return;
+    let usuarioAtual = { email: 'ymcampos@stefanini.com' };
+    let isAdmin = true;
 
-      const loadingDiv = document.getElementById('loadingUsuarios');
-      const tableDiv = document.getElementById('usuariosTable');
+    // Mostrar aba de cadastro se admin
+    const tabCadastro = document.getElementById('tabCadastro');
+    if (tabCadastro) {
+      tabCadastro.style.display = isAdmin ? 'flex' : 'none';
+    }
 
-      loadingDiv.style.display = 'block';
+    // Preencher nome do analista
+    const analistaInput = document.getElementById('analistaNome');
+    if (analistaInput && !analistaInput.value) {
+      analistaInput.value = 'Yasmin de Melo Campos';
+    }
 
-      const usuariosRef = ref(database, 'usuarios');
-      onValue(usuariosRef, (snapshot) => {
-        loadingDiv.style.display = 'none';
-
-        if (!snapshot.exists()) {
-          tableDiv.innerHTML = `
-            <div style="text-align: center; padding: 60px; color: #6c757d;">
-              <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.3;">👤</div>
-              <p>Nenhum usuário cadastrado ainda.</p>
-            </div>
-          `;
-          return;
-        }
-
-        const usuarios = [];
-        snapshot.forEach((childSnapshot) => {
-          const uid = childSnapshot.key;
-          const data = childSnapshot.val();
-          usuarios.push({ uid, ...data });
-        });
-
-        let html = `
-          <div style="overflow-x: auto;">
-            <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-              <thead style="background: linear-gradient(135deg, #00A4E0 0%, #00D664 100%); color: white;">
-                <tr>
-                  <th style="padding: 15px; text-align: left; font-weight: 700;">Nome</th>
-                  <th style="padding: 15px; text-align: left; font-weight: 700;">E-mail</th>
-                  <th style="padding: 15px; text-align: left; font-weight: 700;">Cargo</th>
-                  <th style="padding: 15px; text-align: center; font-weight: 700;">Status</th>
-                  <th style="padding: 15px; text-align: center; font-weight: 700;">Admin</th>
-                  <th style="padding: 15px; text-align: center; font-weight: 700;">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-        `;
-
-        usuarios.forEach(user => {
-          html += `
-            <tr style="border-bottom: 1px solid #2d3548;">
-              <td style="padding: 15px;">${user.nome}</td>
-              <td style="padding: 15px; font-size: 13px;">${user.email}</td>
-              <td style="padding: 15px;">${user.cargo || '-'}</td>
-              <td style="padding: 15px; text-align: center;">
-                <span style="padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; background: ${user.ativo ? '#d4edda' : '#f8d7da'}; color: ${user.ativo ? '#155724' : '#721c24'};">
-                  ${user.ativo ? 'Ativo' : 'Inativo'}
-                </span>
-              </td>
-              <td style="padding: 15px; text-align: center; font-size: 18px;">${user.admin ? '✅' : '❌'}</td>
-              <td style="padding: 15px; text-align: center;">
-                <button onclick="removerUsuario('${user.uid}', '${user.nome}')" style="background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 700;">
-                  🗑️ Remover
-                </button>
-              </td>
-            </tr>
-          `;
-        });
-
-        html += `
-              </tbody>
-            </table>
-          </div>
-        `;
-
-        tableDiv.innerHTML = html;
-      });
-    };
-
-    // Remover usuário
-    window.removerUsuario = async function(uid, nome) {
-      if (!isAdmin) {
-        alert('Você não tem permissão para remover usuários.');
-        return;
-      }
-
-      if (!confirm(`Tem certeza que deseja remover o usuário ${nome}?`)) {
-        return;
-      }
-
-      try {
-        await remove(ref(database, 'usuarios/' + uid));
-        showAlertCadastro(`Usuário ${nome} removido com sucesso!`, 'success');
-      } catch (error) {
-        console.error('Erro ao remover:', error);
-        showAlertCadastro('Erro ao remover usuário.', 'error');
-      }
+    // Logout
+    window.fazerLogout = function() {
+      localStorage.removeItem('isLoggedIn');
+      window.location.href = '/login.html';
     };
 
     function showAlertCadastro(message, type) {
@@ -3844,13 +3648,13 @@
       alertBox.style.display = 'block';
 
       if (type === 'success') {
-        alertBox.style.background = '#d4edda';
-        alertBox.style.color = '#155724';
-        alertBox.style.border = '2px solid #c3e6cb';
+        alertBox.style.background = 'rgba(40, 167, 69, 0.15)';
+        alertBox.style.color = '#5be880';
+        alertBox.style.border = '2px solid rgba(40, 167, 69, 0.4)';
       } else {
-        alertBox.style.background = '#f8d7da';
-        alertBox.style.color = '#721c24';
-        alertBox.style.border = '2px solid #f5c6cb';
+        alertBox.style.background = 'rgba(220, 53, 69, 0.15)';
+        alertBox.style.color = '#ff6b7a';
+        alertBox.style.border = '2px solid rgba(220, 53, 69, 0.4)';
       }
 
       setTimeout(() => {
