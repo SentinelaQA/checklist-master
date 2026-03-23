@@ -3658,6 +3658,57 @@
       
       lastScrollTop = scrollTop;
     });
+
+    // Limpar campos do formulário
+    function limparCamposFormulario() {
+      document.getElementById('analistaNome').value = '';
+      document.getElementById('supervisor').value = '';
+      document.getElementById('tipo').value = '';
+      document.getElementById('formulario').value = '';
+      mostrarSubFormulario();
+    }
+
+    // Salvar feedback
+    function salvarFeedback() {
+      const feedback = document.getElementById('feedback').value;
+      if (!feedback.trim()) {
+        alert('⚠️ Por favor, digite um feedback antes de salvar!');
+        return;
+      }
+      const analista = document.getElementById('analistaNome').value || 'Não informado';
+      const dataAvaliacao = document.getElementById('dataAvaliacao').value || new Date().toISOString().split('T')[0];
+      
+      let feedbacks = JSON.parse(localStorage.getItem('feedbacksSalvos') || '[]');
+      feedbacks.push({
+        id: Date.now(),
+        analista,
+        data: dataAvaliacao,
+        feedback,
+        pontuacao: state.score
+      });
+      localStorage.setItem('feedbacksSalvos', JSON.stringify(feedbacks));
+      alert('✅ Feedback salvo com sucesso!');
+    }
+
+    // Atualizar TAG de registro no controle
+    function atualizarTagRegistro(id, valor) {
+      let registros = JSON.parse(localStorage.getItem('controleAvaliacoes') || '[]');
+      registros = registros.map(r => {
+        if (r.id === id) r.tag = valor;
+        return r;
+      });
+      localStorage.setItem('controleAvaliacoes', JSON.stringify(registros));
+    }
+
+    // Atualizar Nível de registro no controle
+    function atualizarNivelRegistro(id, valor) {
+      let registros = JSON.parse(localStorage.getItem('controleAvaliacoes') || '[]');
+      registros = registros.map(r => {
+        if (r.id === id) r.nivel = valor;
+        return r;
+      });
+      localStorage.setItem('controleAvaliacoes', JSON.stringify(registros));
+    }
   </script>
 
   <!-- Autenticação local -->
