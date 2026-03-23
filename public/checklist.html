@@ -2641,6 +2641,8 @@
         assuntoEmailContainer.style.display = 'none';
         document.getElementById('protocolo').value = '';
         document.getElementById('assuntoEmail').value = '';
+        if (assuntoParent) assuntoParent.style.display = 'flex';
+        if (ticketParent) ticketParent.style.display = 'flex';
       }
     }
     
