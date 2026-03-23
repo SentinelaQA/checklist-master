@@ -3194,18 +3194,23 @@
       const pontuacao = Math.round(state.score);
       const dataAvaliacao = document.getElementById('dataAvaliacao').value || '';
       
+      const tratadoVia = document.getElementById('tratadoVia').value || '';
+      
       // Validações
       if (!analista || analista === 'Não informado') {
         alert('⚠️ Por favor, preencha o nome do analista!');
         return;
       }
-      if (!assunto) {
-        alert('⚠️ Por favor, preencha o assunto!');
-        return;
-      }
-      if (!ticket) {
-        alert('⚠️ Por favor, preencha o número do ticket!');
-        return;
+      // Só exige assunto e ticket se NÃO for CRM
+      if (tratadoVia !== 'CRM') {
+        if (!assunto) {
+          alert('⚠️ Por favor, preencha o assunto!');
+          return;
+        }
+        if (!ticket) {
+          alert('⚠️ Por favor, preencha o número do ticket!');
+          return;
+        }
       }
       
       // Determinar categoria e caixa final
