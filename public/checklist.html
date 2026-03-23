@@ -3760,6 +3760,77 @@
         alertBox.style.display = 'none';
       }, 5000);
     }
+
+    // Cadastro de usuários (localStorage)
+    function carregarUsuarios() {
+      const usuarios = JSON.parse(localStorage.getItem('usuariosCadastrados') || '[]');
+      const container = document.getElementById('usuariosTable');
+      if (!container) return;
+      
+      if (usuarios.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #6a7489; padding: 40px; font-size: 16px;">📭 Nenhum usuário cadastrado ainda.</p>';
+        return;
+      }
+      
+      let html = '<table style="width: 100%; border-collapse: collapse;">';
+      html += '<thead><tr style="border-bottom: 2px solid #3a4256;"><th style="padding: 12px; text-align: left; color: #a0aec0;">Nome</th><th style="padding: 12px; text-align: left; color: #a0aec0;">E-mail</th><th style="padding: 12px; text-align: left; color: #a0aec0;">Cargo</th><th style="padding: 12px; text-align: center; color: #a0aec0;">Ações</th></tr></thead><tbody>';
+      
+      usuarios.forEach(u => {
+        html += `<tr style="border-bottom: 1px solid #3a4256;">
+          <td style="padding: 10px; color: #e2e8f0;">${u.nome}</td>
+          <td style="padding: 10px; color: #8892a4;">${u.email}</td>
+          <td style="padding: 10px; color: #8892a4;">${u.cargo}</td>
+          <td style="padding: 10px; text-align: center;"><button onclick="excluirUsuario(${u.id})" style="background: #dc3545; color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">🗑️</button></td>
+        </tr>`;
+      });
+      
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    }
+
+    function excluirUsuario(id) {
+      if (!confirm('⚠️ Deseja excluir este usuário?')) return;
+      let usuarios = JSON.parse(localStorage.getItem('usuariosCadastrados') || '[]');
+      usuarios = usuarios.filter(u => u.id !== id);
+      localStorage.setItem('usuariosCadastrados', JSON.stringify(usuarios));
+      carregarUsuarios();
+    }
+
+    // Form submit handler
+    const cadastroForm = document.getElementById('cadastroForm');
+    if (cadastroForm) {
+      cadastroForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const nome = document.getElementById('cadastroNome').value.trim();
+        const email = document.getElementById('cadastroEmail').value.trim();
+        const senha = document.getElementById('cadastroSenha').value;
+        const cargo = document.getElementById('cadastroCargo').value;
+        
+        if (!nome || !email || !senha) {
+          showAlertCadastro('⚠️ Preencha todos os campos obrigatórios!', 'error');
+          return;
+        }
+        if (senha.length < 6) {
+          showAlertCadastro('⚠️ A senha deve ter no mínimo 6 caracteres!', 'error');
+          return;
+        }
+        
+        let usuarios = JSON.parse(localStorage.getItem('usuariosCadastrados') || '[]');
+        
+        if (usuarios.some(u => u.email === email)) {
+          showAlertCadastro('⚠️ Já existe um usuário com este e-mail!', 'error');
+          return;
+        }
+        
+        usuarios.push({ id: Date.now(), nome, email, cargo });
+        localStorage.setItem('usuariosCadastrados', JSON.stringify(usuarios));
+        
+        cadastroForm.reset();
+        carregarUsuarios();
+        showAlertCadastro('✅ Usuário cadastrado com sucesso!', 'success');
+      });
+    }
   </script>
 </body>
 </html>
