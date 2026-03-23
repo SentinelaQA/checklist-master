@@ -2616,11 +2616,23 @@
       const protocoloContainer = document.getElementById('protocoloContainer');
       const assuntoEmailContainer = document.getElementById('assuntoEmailContainer');
       
+      // Esconder assunto e ticket quando CRM selecionado
+      const resumoAssunto = document.getElementById('assunto');
+      const resumoTicket = document.getElementById('ticket');
+      const assuntoParent = resumoAssunto ? resumoAssunto.closest('.info-item') : null;
+      const ticketParent = resumoTicket ? resumoTicket.closest('.info-item') : null;
+
       if (tratadoVia === 'CRM') {
         protocoloContainer.style.display = 'flex';
         assuntoEmailContainer.style.display = 'none';
         document.getElementById('assuntoEmail').value = '';
+        if (assuntoParent) assuntoParent.style.display = 'none';
+        if (ticketParent) ticketParent.style.display = 'none';
+        resumoAssunto.value = '';
+        resumoTicket.value = '';
       } else if (tratadoVia === 'E-mail') {
+        if (assuntoParent) assuntoParent.style.display = 'flex';
+        if (ticketParent) ticketParent.style.display = 'flex';
         protocoloContainer.style.display = 'none';
         assuntoEmailContainer.style.display = 'flex';
         document.getElementById('protocolo').value = '';
