@@ -3426,7 +3426,15 @@
           const r = regs[0];
           html += `
             <tr style="border-bottom: 1px solid #eee;">
-              ${primeiraLinhaAnalista ? `<td style="padding: 10px; vertical-align: top; font-weight: 600;">${r.nivel}</td>` : '<td style="padding: 10px;"></td>'}
+              ${primeiraLinhaAnalista ? `<td style="padding: 10px; vertical-align: top; font-weight: 600;">
+                <select onchange="atualizarNivelRegistro(${r.id}, this.value)" style="padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 12px; cursor: pointer;">
+                  <option value="Veterano" ${(r.nivel || '') === 'Veterano' ? 'selected' : ''}>Veterano</option>
+                  <option value="Novato" ${r.nivel === 'Novato' ? 'selected' : ''}>Novato</option>
+                  <option value="Migração Novato" ${r.nivel === 'Migração Novato' ? 'selected' : ''}>Migração Novato</option>
+                  <option value="Migração Veterano" ${r.nivel === 'Migração Veterano' ? 'selected' : ''}>Migração Veterano</option>
+                  <option value="Supervisor" ${r.nivel === 'Supervisor' ? 'selected' : ''}>Supervisor</option>
+                </select>
+              </td>` : '<td style="padding: 10px;"></td>'}
               ${primeiraLinhaAnalista ? `<td style="padding: 10px; font-weight: 700; vertical-align: top; color: #00A4E0;">${analista}</td>` : '<td style="padding: 10px;"></td>'}
               <td style="padding: 10px; vertical-align: top; font-weight: 600;">${caixa}</td>
               <td style="padding: 10px; vertical-align: top; font-size: 13px;">${r.assunto}</td>
