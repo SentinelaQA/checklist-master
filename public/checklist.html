@@ -717,13 +717,18 @@
       right: 30px;
       background: linear-gradient(135deg, #0d7ab5 0%, #0aab50 100%);
       color: white;
-      padding: 12px 20px;
+      padding: 15px 22px;
       border-radius: 12px;
       box-shadow: 0 5px 20px rgba(13, 122, 181, 0.4);
       z-index: 1500;
       text-align: center;
       transition: all 0.3s ease;
-      min-width: 100px;
+      min-width: 110px;
+      min-height: 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       opacity: 0;
       transform: translateY(20px);
       pointer-events: none;
@@ -898,7 +903,10 @@
         <label>Tipo</label>
         <select id="tipo">
           <option value="">Selecione</option>
-          <option value="Monitor">Monitor</option>
+          <option value="Veterano">Veterano</option>
+          <option value="Novato">Novato</option>
+          <option value="Migração Novato">Migração Novato</option>
+          <option value="Migração Veterano">Migração Veterano</option>
           <option value="Supervisor">Supervisor</option>
         </select>
       </div>
@@ -912,6 +920,9 @@
           <option value="Atendimento">Atendimento</option>
           <option value="Cobrança">Cobrança</option>
         </select>
+      </div>
+      <div class="info-item" style="display: flex; align-items: flex-end;">
+        <button type="button" onclick="limparCamposFormulario()" style="width: 100%; padding: 10px; background: #3a4256; color: #a0aec0; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s; font-size: 13px;">🧹 Limpar</button>
       </div>
     </div>
     
@@ -984,11 +995,11 @@
     <div class="info-bar" id="dataAvaliacaoBar" style="display: none;">
       <div class="info-item">
         <label>Data da Avaliação</label>
-        <input type="date" id="dataAvaliacao" readonly style="background: #f5f5f5;">
+        <input type="date" id="dataAvaliacao" readonly style="background: #242b3d; color: #e2e8f0; border: 2px solid #3a4256;">
       </div>
       <div class="info-item">
         <label>Horário da Avaliação</label>
-        <input type="time" id="horarioAvaliacao" readonly style="background: #f5f5f5;">
+        <input type="time" id="horarioAvaliacao" readonly style="background: #242b3d; color: #e2e8f0; border: 2px solid #3a4256;">
       </div>
     </div>
     
@@ -1035,6 +1046,9 @@
         <textarea id="feedback" 
                   placeholder="Digite aqui observações, feedbacks ou comentários sobre a avaliação..." 
                   style="min-height: 120px; resize: vertical; padding: 12px; border: 2px solid #FF9F1C; border-radius: 8px; background: #1a1f2e; color: #e2e8f0; font-size: 14px; font-family: 'Inter', sans-serif;"></textarea>
+      </div>
+      <div style="grid-column: 1 / -1; text-align: right; padding-top: 10px;">
+        <button type="button" onclick="salvarFeedback()" style="padding: 12px 30px; background: linear-gradient(135deg, #FF9F1C 0%, #e6890a 100%); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 14px; transition: all 0.3s;">💾 Salvar Feedback</button>
       </div>
     </div>
 
@@ -1204,7 +1218,7 @@
               </select>
             </div>
           </div>
-          <button type="submit" class="export-btn" style="margin-top: 20px;">Cadastrar Usuário</button>
+          <button type="submit" style="margin-top: 20px; padding: 14px 30px; background: linear-gradient(135deg, #0d7ab5 0%, #0aab50 100%); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; transition: all 0.3s; position: static;">✅ Cadastrar Usuário</button>
         </form>
       </div>
 
@@ -2602,11 +2616,23 @@
       const protocoloContainer = document.getElementById('protocoloContainer');
       const assuntoEmailContainer = document.getElementById('assuntoEmailContainer');
       
+      // Esconder assunto e ticket quando CRM selecionado
+      const resumoAssunto = document.getElementById('assunto');
+      const resumoTicket = document.getElementById('ticket');
+      const assuntoParent = resumoAssunto ? resumoAssunto.closest('.info-item') : null;
+      const ticketParent = resumoTicket ? resumoTicket.closest('.info-item') : null;
+
       if (tratadoVia === 'CRM') {
         protocoloContainer.style.display = 'flex';
         assuntoEmailContainer.style.display = 'none';
         document.getElementById('assuntoEmail').value = '';
+        if (assuntoParent) assuntoParent.style.display = 'none';
+        if (ticketParent) ticketParent.style.display = 'none';
+        resumoAssunto.value = '';
+        resumoTicket.value = '';
       } else if (tratadoVia === 'E-mail') {
+        if (assuntoParent) assuntoParent.style.display = 'flex';
+        if (ticketParent) ticketParent.style.display = 'flex';
         protocoloContainer.style.display = 'none';
         assuntoEmailContainer.style.display = 'flex';
         document.getElementById('protocolo').value = '';
@@ -2615,6 +2641,8 @@
         assuntoEmailContainer.style.display = 'none';
         document.getElementById('protocolo').value = '';
         document.getElementById('assuntoEmail').value = '';
+        if (assuntoParent) assuntoParent.style.display = 'flex';
+        if (ticketParent) ticketParent.style.display = 'flex';
       }
     }
     
@@ -3166,18 +3194,23 @@
       const pontuacao = Math.round(state.score);
       const dataAvaliacao = document.getElementById('dataAvaliacao').value || '';
       
+      const tratadoVia = document.getElementById('tratadoVia').value || '';
+      
       // Validações
       if (!analista || analista === 'Não informado') {
         alert('⚠️ Por favor, preencha o nome do analista!');
         return;
       }
-      if (!assunto) {
-        alert('⚠️ Por favor, preencha o assunto!');
-        return;
-      }
-      if (!ticket) {
-        alert('⚠️ Por favor, preencha o número do ticket!');
-        return;
+      // Só exige assunto e ticket se NÃO for CRM
+      if (tratadoVia !== 'CRM') {
+        if (!assunto) {
+          alert('⚠️ Por favor, preencha o assunto!');
+          return;
+        }
+        if (!ticket) {
+          alert('⚠️ Por favor, preencha o número do ticket!');
+          return;
+        }
       }
       
       // Determinar categoria e caixa final
@@ -3398,7 +3431,15 @@
           const r = regs[0];
           html += `
             <tr style="border-bottom: 1px solid #eee;">
-              ${primeiraLinhaAnalista ? `<td style="padding: 10px; vertical-align: top; font-weight: 600;">${r.nivel}</td>` : '<td style="padding: 10px;"></td>'}
+              ${primeiraLinhaAnalista ? `<td style="padding: 10px; vertical-align: top; font-weight: 600;">
+                <select onchange="atualizarNivelRegistro(${r.id}, this.value)" style="padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 12px; cursor: pointer;">
+                  <option value="Veterano" ${(r.nivel || '') === 'Veterano' ? 'selected' : ''}>Veterano</option>
+                  <option value="Novato" ${r.nivel === 'Novato' ? 'selected' : ''}>Novato</option>
+                  <option value="Migração Novato" ${r.nivel === 'Migração Novato' ? 'selected' : ''}>Migração Novato</option>
+                  <option value="Migração Veterano" ${r.nivel === 'Migração Veterano' ? 'selected' : ''}>Migração Veterano</option>
+                  <option value="Supervisor" ${r.nivel === 'Supervisor' ? 'selected' : ''}>Supervisor</option>
+                </select>
+              </td>` : '<td style="padding: 10px;"></td>'}
               ${primeiraLinhaAnalista ? `<td style="padding: 10px; font-weight: 700; vertical-align: top; color: #00A4E0;">${analista}</td>` : '<td style="padding: 10px;"></td>'}
               <td style="padding: 10px; vertical-align: top; font-weight: 600;">${caixa}</td>
               <td style="padding: 10px; vertical-align: top; font-size: 13px;">${r.assunto}</td>
@@ -3407,7 +3448,14 @@
               <td style="padding: 10px; vertical-align: top; font-size: 12px; max-width: 150px; word-wrap: break-word;">${r.desvio}</td>
               <td style="padding: 10px; text-align: center; font-weight: 700; color: ${r.nota < 70 ? '#dc3545' : r.nota < 90 ? '#FF9F1C' : '#28a745'};">${r.nota}</td>
               <td style="padding: 10px; text-align: center; font-weight: 700; background: ${cor}10; font-size: 16px;" rowspan="${regs.length}">${mediaCaixa}</td>
-              <td style="padding: 10px; text-align: center;" rowspan="${regs.length}">-</td>
+              <td style="padding: 10px; text-align: center;" rowspan="${regs.length}">
+                <select onchange="atualizarTagRegistro(${r.id}, this.value)" style="padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 12px; cursor: pointer;">
+                  <option value="Veterano" ${(r.tag || 'Veterano') === 'Veterano' ? 'selected' : ''}>Veterano</option>
+                  <option value="Novato" ${r.tag === 'Novato' ? 'selected' : ''}>Novato</option>
+                  <option value="Migração Novato" ${r.tag === 'Migração Novato' ? 'selected' : ''}>Migração Novato</option>
+                  <option value="Migração Veterano" ${r.tag === 'Migração Veterano' ? 'selected' : ''}>Migração Veterano</option>
+                </select>
+              </td>
               <td style="padding: 10px; text-align: center;"><button onclick="excluirRegistro(${r.id})" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">🗑️</button></td>
             </tr>
           `;
@@ -3610,6 +3658,57 @@
       
       lastScrollTop = scrollTop;
     });
+
+    // Limpar campos do formulário
+    function limparCamposFormulario() {
+      document.getElementById('analistaNome').value = '';
+      document.getElementById('supervisor').value = '';
+      document.getElementById('tipo').value = '';
+      document.getElementById('formulario').value = '';
+      mostrarSubFormulario();
+    }
+
+    // Salvar feedback
+    function salvarFeedback() {
+      const feedback = document.getElementById('feedback').value;
+      if (!feedback.trim()) {
+        alert('⚠️ Por favor, digite um feedback antes de salvar!');
+        return;
+      }
+      const analista = document.getElementById('analistaNome').value || 'Não informado';
+      const dataAvaliacao = document.getElementById('dataAvaliacao').value || new Date().toISOString().split('T')[0];
+      
+      let feedbacks = JSON.parse(localStorage.getItem('feedbacksSalvos') || '[]');
+      feedbacks.push({
+        id: Date.now(),
+        analista,
+        data: dataAvaliacao,
+        feedback,
+        pontuacao: state.score
+      });
+      localStorage.setItem('feedbacksSalvos', JSON.stringify(feedbacks));
+      alert('✅ Feedback salvo com sucesso!');
+    }
+
+    // Atualizar TAG de registro no controle
+    function atualizarTagRegistro(id, valor) {
+      let registros = JSON.parse(localStorage.getItem('controleAvaliacoes') || '[]');
+      registros = registros.map(r => {
+        if (r.id === id) r.tag = valor;
+        return r;
+      });
+      localStorage.setItem('controleAvaliacoes', JSON.stringify(registros));
+    }
+
+    // Atualizar Nível de registro no controle
+    function atualizarNivelRegistro(id, valor) {
+      let registros = JSON.parse(localStorage.getItem('controleAvaliacoes') || '[]');
+      registros = registros.map(r => {
+        if (r.id === id) r.nivel = valor;
+        return r;
+      });
+      localStorage.setItem('controleAvaliacoes', JSON.stringify(registros));
+    }
   </script>
 
   <!-- Autenticação local -->
@@ -3660,6 +3759,77 @@
       setTimeout(() => {
         alertBox.style.display = 'none';
       }, 5000);
+    }
+
+    // Cadastro de usuários (localStorage)
+    function carregarUsuarios() {
+      const usuarios = JSON.parse(localStorage.getItem('usuariosCadastrados') || '[]');
+      const container = document.getElementById('usuariosTable');
+      if (!container) return;
+      
+      if (usuarios.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #6a7489; padding: 40px; font-size: 16px;">📭 Nenhum usuário cadastrado ainda.</p>';
+        return;
+      }
+      
+      let html = '<table style="width: 100%; border-collapse: collapse;">';
+      html += '<thead><tr style="border-bottom: 2px solid #3a4256;"><th style="padding: 12px; text-align: left; color: #a0aec0;">Nome</th><th style="padding: 12px; text-align: left; color: #a0aec0;">E-mail</th><th style="padding: 12px; text-align: left; color: #a0aec0;">Cargo</th><th style="padding: 12px; text-align: center; color: #a0aec0;">Ações</th></tr></thead><tbody>';
+      
+      usuarios.forEach(u => {
+        html += `<tr style="border-bottom: 1px solid #3a4256;">
+          <td style="padding: 10px; color: #e2e8f0;">${u.nome}</td>
+          <td style="padding: 10px; color: #8892a4;">${u.email}</td>
+          <td style="padding: 10px; color: #8892a4;">${u.cargo}</td>
+          <td style="padding: 10px; text-align: center;"><button onclick="excluirUsuario(${u.id})" style="background: #dc3545; color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">🗑️</button></td>
+        </tr>`;
+      });
+      
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    }
+
+    function excluirUsuario(id) {
+      if (!confirm('⚠️ Deseja excluir este usuário?')) return;
+      let usuarios = JSON.parse(localStorage.getItem('usuariosCadastrados') || '[]');
+      usuarios = usuarios.filter(u => u.id !== id);
+      localStorage.setItem('usuariosCadastrados', JSON.stringify(usuarios));
+      carregarUsuarios();
+    }
+
+    // Form submit handler
+    const cadastroForm = document.getElementById('cadastroForm');
+    if (cadastroForm) {
+      cadastroForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const nome = document.getElementById('cadastroNome').value.trim();
+        const email = document.getElementById('cadastroEmail').value.trim();
+        const senha = document.getElementById('cadastroSenha').value;
+        const cargo = document.getElementById('cadastroCargo').value;
+        
+        if (!nome || !email || !senha) {
+          showAlertCadastro('⚠️ Preencha todos os campos obrigatórios!', 'error');
+          return;
+        }
+        if (senha.length < 6) {
+          showAlertCadastro('⚠️ A senha deve ter no mínimo 6 caracteres!', 'error');
+          return;
+        }
+        
+        let usuarios = JSON.parse(localStorage.getItem('usuariosCadastrados') || '[]');
+        
+        if (usuarios.some(u => u.email === email)) {
+          showAlertCadastro('⚠️ Já existe um usuário com este e-mail!', 'error');
+          return;
+        }
+        
+        usuarios.push({ id: Date.now(), nome, email, cargo });
+        localStorage.setItem('usuariosCadastrados', JSON.stringify(usuarios));
+        
+        cadastroForm.reset();
+        carregarUsuarios();
+        showAlertCadastro('✅ Usuário cadastrado com sucesso!', 'success');
+      });
     }
   </script>
 </body>
