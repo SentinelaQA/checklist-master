@@ -894,10 +894,14 @@
       </div>
       <div class="info-item">
         <label>Supervisor</label>
-        <select id="supervisor">
-          <option value="">Selecione</option>
-          <option value="MARLEILDE NETO SILVA">MARLEILDE NETO SILVA</option>
-        </select>
+        <input list="listaSupervisoresForm" id="supervisor" placeholder="Digite ou selecione o supervisor">
+        <datalist id="listaSupervisoresForm">
+          <option value="MARLEILDE NETO SILVA">
+          <option value="JENIFFER FRANCA DOS SANTOS">
+          <option value="FERNANDA LOPES CANABRAVA">
+          <option value="ALEXANDRE DONIZETTE CANDIDO">
+          <option value="JENNIFER OLIVEIRA DE PAULA">
+        </datalist>
       </div>
       <div class="info-item">
         <label>Tipo</label>
@@ -907,7 +911,6 @@
           <option value="Novato">Novato</option>
           <option value="Migração Novato">Migração Novato</option>
           <option value="Migração Veterano">Migração Veterano</option>
-          <option value="Supervisor">Supervisor</option>
         </select>
       </div>
       <div class="info-item">
@@ -3305,6 +3308,7 @@
       if (semanaInput) {
         // Formato: 2026-W11
         const [ano, semana] = semanaInput.split('-W');
+        const semanaNum = parseInt(semana);
         
         // Calcular data de início e fim da semana
         const primeiroDiaAno = new Date(ano, 0, 1);
@@ -3312,7 +3316,7 @@
         const primeiraSegunda = new Date(ano, 0, 1 + diasParaPrimeiraSegunda);
         
         const inicioSemana = new Date(primeiraSegunda);
-        inicioSemana.setDate(primeiraSegunda.getDate() + (semana - 1) * 7);
+        inicioSemana.setDate(primeiraSegunda.getDate() + (semanaNum - 1) * 7);
         
         const fimSemana = new Date(inicioSemana);
         fimSemana.setDate(inicioSemana.getDate() + 6);
@@ -3323,7 +3327,23 @@
           return `${dia}/${mes}`;
         };
         
-        visualizacao.textContent = `W${semana} - ${formatarData(inicioSemana)} à ${formatarData(fimSemana)}`;
+        // Calcular ciclo de monitoria (cada mês tem ~4 semanas)
+        // Ciclo baseado na posição da semana dentro do mês
+        const mesInicio = inicioSemana.getMonth();
+        const anoInicio = inicioSemana.getFullYear();
+        const primeiroDiaMes = new Date(anoInicio, mesInicio, 1);
+        const primeiraSegundaMes = new Date(primeiroDiaMes);
+        const diaSemana = primeiraSegundaMes.getDay();
+        if (diaSemana !== 1) {
+          primeiraSegundaMes.setDate(primeiraSegundaMes.getDate() + ((8 - diaSemana) % 7));
+        }
+        // Se a primeira segunda é depois do dia 4, a primeira semana do mês começa na semana anterior
+        const diffDias = Math.floor((inicioSemana - primeiraSegundaMes) / (7 * 24 * 60 * 60 * 1000));
+        const ciclo = Math.max(1, Math.min(4, diffDias + 1));
+        
+        const cicloTexto = ciclo === 1 ? '1º Ciclo' : ciclo === 2 ? '2º Ciclo' : ciclo === 3 ? '3º Ciclo' : '4º Ciclo (Último)';
+        
+        visualizacao.innerHTML = `<strong>W${semana}</strong> - ${formatarData(inicioSemana)} à ${formatarData(fimSemana)} | <span style="color: #00A4E0;">${cicloTexto}</span>`;
         visualizacao.style.display = 'block';
       } else {
         visualizacao.style.display = 'none';
@@ -3391,6 +3411,16 @@
         }
         porAnalista[r.analista][r.caixa].push(r);
       });
+
+      // Calcular média geral por analista (todas as notas de todas as caixas)
+      const mediaGeralPorAnalista = {};
+      Object.keys(porAnalista).forEach(analista => {
+        const todasNotas = [];
+        Object.values(porAnalista[analista]).forEach(regs => {
+          regs.forEach(r => todasNotas.push(r.nota));
+        });
+        mediaGeralPorAnalista[analista] = (todasNotas.reduce((a, b) => a + b, 0) / todasNotas.length).toFixed(1);
+      });
       
       let html = `
         <div style="margin-bottom: 40px;">
@@ -3419,66 +3449,41 @@
       Object.keys(porAnalista).sort().forEach(analista => {
         const caixas = porAnalista[analista];
         let primeiraLinhaAnalista = true;
+        // Contar total de linhas do analista para rowspan da média
+        let totalLinhasAnalista = 0;
+        Object.values(caixas).forEach(regs => { totalLinhasAnalista += regs.length; });
+        
+        // Pegar tag e nivel do primeiro registro do analista
+        const primeiroReg = Object.values(caixas)[0][0];
         
         // Ordenar caixas
         Object.keys(caixas).sort().forEach(caixa => {
           const regs = caixas[caixa];
           
-          // Calcular média da caixa
-          const mediaCaixa = (regs.reduce((acc, r) => acc + r.nota, 0) / regs.length).toFixed(0);
-          
-          // Primeira linha da caixa
-          const r = regs[0];
-          html += `
-            <tr style="border-bottom: 1px solid #eee;">
-              ${primeiraLinhaAnalista ? `<td style="padding: 10px; vertical-align: top; font-weight: 600;">
-                <select onchange="atualizarNivelRegistro(${r.id}, this.value)" style="padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 12px; cursor: pointer;">
-                  <option value="Veterano" ${(r.nivel || '') === 'Veterano' ? 'selected' : ''}>Veterano</option>
-                  <option value="Novato" ${r.nivel === 'Novato' ? 'selected' : ''}>Novato</option>
-                  <option value="Migração Novato" ${r.nivel === 'Migração Novato' ? 'selected' : ''}>Migração Novato</option>
-                  <option value="Migração Veterano" ${r.nivel === 'Migração Veterano' ? 'selected' : ''}>Migração Veterano</option>
-                  <option value="Supervisor" ${r.nivel === 'Supervisor' ? 'selected' : ''}>Supervisor</option>
-                </select>
-              </td>` : '<td style="padding: 10px;"></td>'}
-              ${primeiraLinhaAnalista ? `<td style="padding: 10px; font-weight: 700; vertical-align: top; color: #00A4E0;">${analista}</td>` : '<td style="padding: 10px;"></td>'}
-              <td style="padding: 10px; vertical-align: top; font-weight: 600;">${caixa}</td>
-              <td style="padding: 10px; vertical-align: top; font-size: 13px;">${r.assunto}</td>
-              <td style="padding: 10px; vertical-align: top; font-size: 12px; max-width: 200px; word-wrap: break-word;">${r.protocoloOuEmail || '-'}</td>
-              <td style="padding: 10px; vertical-align: top; font-size: 12px; max-width: 250px; word-wrap: break-word;">${r.observacao || '-'}</td>
-              <td style="padding: 10px; vertical-align: top; font-size: 12px; max-width: 150px; word-wrap: break-word;">${r.desvio}</td>
-              <td style="padding: 10px; text-align: center; font-weight: 700; color: ${r.nota < 70 ? '#dc3545' : r.nota < 90 ? '#FF9F1C' : '#28a745'};">${r.nota}</td>
-              <td style="padding: 10px; text-align: center; font-weight: 700; background: ${cor}10; font-size: 16px;" rowspan="${regs.length}">${mediaCaixa}</td>
-              <td style="padding: 10px; text-align: center;" rowspan="${regs.length}">
-                <select onchange="atualizarTagRegistro(${r.id}, this.value)" style="padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 12px; cursor: pointer;">
-                  <option value="Veterano" ${(r.tag || 'Veterano') === 'Veterano' ? 'selected' : ''}>Veterano</option>
-                  <option value="Novato" ${r.tag === 'Novato' ? 'selected' : ''}>Novato</option>
-                  <option value="Migração Novato" ${r.tag === 'Migração Novato' ? 'selected' : ''}>Migração Novato</option>
-                  <option value="Migração Veterano" ${r.tag === 'Migração Veterano' ? 'selected' : ''}>Migração Veterano</option>
-                </select>
-              </td>
-              <td style="padding: 10px; text-align: center;"><button onclick="excluirRegistro(${r.id})" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">🗑️</button></td>
-            </tr>
-          `;
-          
-          primeiraLinhaAnalista = false;
-          
-          // Linhas seguintes da mesma caixa
-          for (let i = 1; i < regs.length; i++) {
-            const reg = regs[i];
+          regs.forEach((r, idx) => {
             html += `
               <tr style="border-bottom: 1px solid #eee;">
-                <td style="padding: 10px;"></td>
-                <td style="padding: 10px;"></td>
-                <td style="padding: 10px;"></td>
-                <td style="padding: 10px; font-size: 13px;">${reg.assunto}</td>
-                <td style="padding: 10px; font-size: 12px; max-width: 200px; word-wrap: break-word;">${reg.protocoloOuEmail || '-'}</td>
-                <td style="padding: 10px; font-size: 12px; max-width: 250px; word-wrap: break-word;">${reg.observacao || '-'}</td>
-                <td style="padding: 10px; font-size: 12px; max-width: 150px; word-wrap: break-word;">${reg.desvio}</td>
-                <td style="padding: 10px; text-align: center; font-weight: 700; color: ${reg.nota < 70 ? '#dc3545' : reg.nota < 90 ? '#FF9F1C' : '#28a745'};">${reg.nota}</td>
-                <td style="padding: 10px; text-align: center;"><button onclick="excluirRegistro(${reg.id})" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">🗑️</button></td>
+                ${primeiraLinhaAnalista ? `<td style="padding: 10px; vertical-align: top; font-weight: 600;" rowspan="${totalLinhasAnalista}">${r.nivel || 'Veterano'}</td>` : ''}
+                ${primeiraLinhaAnalista ? `<td style="padding: 10px; font-weight: 700; vertical-align: top; color: #00A4E0;" rowspan="${totalLinhasAnalista}">${analista}</td>` : ''}
+                <td style="padding: 10px; vertical-align: top; font-weight: 600;">${caixa}</td>
+                <td style="padding: 10px; vertical-align: top; font-size: 13px;">${r.assunto}</td>
+                <td style="padding: 10px; vertical-align: top; font-size: 12px; max-width: 200px; word-wrap: break-word;">${r.protocoloOuEmail || '-'}</td>
+                <td style="padding: 10px; vertical-align: top; font-size: 12px; max-width: 250px; word-wrap: break-word;">${r.observacao || '-'}</td>
+                <td style="padding: 10px; vertical-align: top; font-size: 12px; max-width: 150px; word-wrap: break-word;">${r.desvio}</td>
+                <td style="padding: 10px; text-align: center; font-weight: 700; color: ${r.nota < 70 ? '#dc3545' : r.nota < 90 ? '#FF9F1C' : '#28a745'};">${r.nota}</td>
+                ${primeiraLinhaAnalista ? `<td style="padding: 10px; text-align: center; font-weight: 700; background: ${cor}10; font-size: 16px;" rowspan="${totalLinhasAnalista}">${mediaGeralPorAnalista[analista]}</td>` : ''}
+                ${primeiraLinhaAnalista ? `<td style="padding: 10px; text-align: center;" rowspan="${totalLinhasAnalista}">
+                  <div style="display: flex; align-items: center; gap: 4px;">
+                    <input type="text" value="${r.tag || ''}" id="tagInput_${r.id}" placeholder="Digite a tag" style="padding: 4px 6px; border-radius: 4px; border: 1px solid #ccc; font-size: 12px; width: 100px;">
+                    <button onclick="salvarTagDigitada(${r.id}, '${analista}')" style="background: #28a745; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;" title="Salvar TAG">💾</button>
+                  </div>
+                </td>` : ''}
+                <td style="padding: 10px; text-align: center;"><button onclick="excluirRegistro(${r.id})" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">🗑️</button></td>
               </tr>
             `;
-          }
+            
+            if (primeiraLinhaAnalista) primeiraLinhaAnalista = false;
+          });
         });
       });
       
@@ -3690,7 +3695,20 @@
       alert('✅ Feedback salvo com sucesso!');
     }
 
-    // Atualizar TAG de registro no controle
+    // Atualizar TAG de registro no controle (para todos do mesmo analista)
+    function salvarTagDigitada(id, analista) {
+      const input = document.getElementById('tagInput_' + id);
+      if (!input) return;
+      const valor = input.value.trim();
+      let registros = JSON.parse(localStorage.getItem('controleAvaliacoes') || '[]');
+      registros = registros.map(r => {
+        if (r.analista === analista) r.tag = valor;
+        return r;
+      });
+      localStorage.setItem('controleAvaliacoes', JSON.stringify(registros));
+      alert('✅ TAG salva para ' + analista + '!');
+    }
+
     function atualizarTagRegistro(id, valor) {
       let registros = JSON.parse(localStorage.getItem('controleAvaliacoes') || '[]');
       registros = registros.map(r => {
