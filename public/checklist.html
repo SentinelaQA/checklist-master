@@ -894,10 +894,14 @@
       </div>
       <div class="info-item">
         <label>Supervisor</label>
-        <select id="supervisor">
-          <option value="">Selecione</option>
-          <option value="MARLEILDE NETO SILVA">MARLEILDE NETO SILVA</option>
-        </select>
+        <input list="listaSupervisoresForm" id="supervisor" placeholder="Digite ou selecione o supervisor">
+        <datalist id="listaSupervisoresForm">
+          <option value="MARLEILDE NETO SILVA">
+          <option value="JENIFFER FRANCA DOS SANTOS">
+          <option value="FERNANDA LOPES CANABRAVA">
+          <option value="ALEXANDRE DONIZETTE CANDIDO">
+          <option value="JENNIFER OLIVEIRA DE PAULA">
+        </datalist>
       </div>
       <div class="info-item">
         <label>Tipo</label>
@@ -907,7 +911,6 @@
           <option value="Novato">Novato</option>
           <option value="Migração Novato">Migração Novato</option>
           <option value="Migração Veterano">Migração Veterano</option>
-          <option value="Supervisor">Supervisor</option>
         </select>
       </div>
       <div class="info-item">
