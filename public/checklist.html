@@ -3308,6 +3308,7 @@
       if (semanaInput) {
         // Formato: 2026-W11
         const [ano, semana] = semanaInput.split('-W');
+        const semanaNum = parseInt(semana);
         
         // Calcular data de início e fim da semana
         const primeiroDiaAno = new Date(ano, 0, 1);
@@ -3315,7 +3316,7 @@
         const primeiraSegunda = new Date(ano, 0, 1 + diasParaPrimeiraSegunda);
         
         const inicioSemana = new Date(primeiraSegunda);
-        inicioSemana.setDate(primeiraSegunda.getDate() + (semana - 1) * 7);
+        inicioSemana.setDate(primeiraSegunda.getDate() + (semanaNum - 1) * 7);
         
         const fimSemana = new Date(inicioSemana);
         fimSemana.setDate(inicioSemana.getDate() + 6);
@@ -3326,7 +3327,23 @@
           return `${dia}/${mes}`;
         };
         
-        visualizacao.textContent = `W${semana} - ${formatarData(inicioSemana)} à ${formatarData(fimSemana)}`;
+        // Calcular ciclo de monitoria (cada mês tem ~4 semanas)
+        // Ciclo baseado na posição da semana dentro do mês
+        const mesInicio = inicioSemana.getMonth();
+        const anoInicio = inicioSemana.getFullYear();
+        const primeiroDiaMes = new Date(anoInicio, mesInicio, 1);
+        const primeiraSegundaMes = new Date(primeiroDiaMes);
+        const diaSemana = primeiraSegundaMes.getDay();
+        if (diaSemana !== 1) {
+          primeiraSegundaMes.setDate(primeiraSegundaMes.getDate() + ((8 - diaSemana) % 7));
+        }
+        // Se a primeira segunda é depois do dia 4, a primeira semana do mês começa na semana anterior
+        const diffDias = Math.floor((inicioSemana - primeiraSegundaMes) / (7 * 24 * 60 * 60 * 1000));
+        const ciclo = Math.max(1, Math.min(4, diffDias + 1));
+        
+        const cicloTexto = ciclo === 1 ? '1º Ciclo' : ciclo === 2 ? '2º Ciclo' : ciclo === 3 ? '3º Ciclo' : '4º Ciclo (Último)';
+        
+        visualizacao.innerHTML = `<strong>W${semana}</strong> - ${formatarData(inicioSemana)} à ${formatarData(fimSemana)} | <span style="color: #00A4E0;">${cicloTexto}</span>`;
         visualizacao.style.display = 'block';
       } else {
         visualizacao.style.display = 'none';
