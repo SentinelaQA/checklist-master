@@ -3695,7 +3695,20 @@
       alert('✅ Feedback salvo com sucesso!');
     }
 
-    // Atualizar TAG de registro no controle
+    // Atualizar TAG de registro no controle (para todos do mesmo analista)
+    function salvarTagDigitada(id, analista) {
+      const input = document.getElementById('tagInput_' + id);
+      if (!input) return;
+      const valor = input.value.trim();
+      let registros = JSON.parse(localStorage.getItem('controleAvaliacoes') || '[]');
+      registros = registros.map(r => {
+        if (r.analista === analista) r.tag = valor;
+        return r;
+      });
+      localStorage.setItem('controleAvaliacoes', JSON.stringify(registros));
+      alert('✅ TAG salva para ' + analista + '!');
+    }
+
     function atualizarTagRegistro(id, valor) {
       let registros = JSON.parse(localStorage.getItem('controleAvaliacoes') || '[]');
       registros = registros.map(r => {
