@@ -4080,13 +4080,30 @@
       window.location.href = '/login.html';
     }
 
+    const userRole = localStorage.getItem('userRole') || 'usuario';
+    const userName = localStorage.getItem('userName') || '';
     let usuarioAtual = { email: 'ymcampos@stefanini.com' };
-    let isAdmin = true;
+    let isAdmin = (userRole === 'admin');
 
     // Mostrar aba de cadastro se admin
     const tabCadastro = document.getElementById('tabCadastro');
     if (tabCadastro) {
       tabCadastro.style.display = isAdmin ? 'flex' : 'none';
+    }
+
+    // Se não for admin, esconder Formulários e ir direto para Controle (somente leitura)
+    if (!isAdmin) {
+      const tabFormularios = document.getElementById('tabFormularios');
+      if (tabFormularios) tabFormularios.style.display = 'none';
+      
+      // Esconder botões de ação flutuantes
+      const btnExportar = document.getElementById('btnExportarControle');
+      if (btnExportar) btnExportar.style.display = 'none';
+      const scoreNotif = document.getElementById('scoreNotification');
+      if (scoreNotif) scoreNotif.style.display = 'none';
+      
+      // Iniciar na aba de Controle
+      trocarAba('controle');
     }
 
     // Campo analista começa vazio para seleção
@@ -4095,6 +4112,8 @@
     // Logout
     window.fazerLogout = function() {
       localStorage.removeItem('isLoggedIn');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('userName');
       window.location.href = '/login.html';
     };
 
