@@ -381,6 +381,7 @@
       // Simular delay de verificação
       await new Promise(resolve => setTimeout(resolve, 800));
 
+      // Check admin credentials first
       if (email === AUTHORIZED_EMAIL && password === AUTHORIZED_PASSWORD) {
         if (rememberMe.checked) {
           localStorage.setItem('rememberedEmail', email);
@@ -389,16 +390,39 @@
         }
 
         localStorage.setItem('isLoggedIn', 'true');
+        localStorage.setItem('userRole', 'admin');
+        localStorage.setItem('userName', 'Yasmin de Melo Campos');
         showAlert('Login realizado com sucesso! Redirecionando...', 'success');
         
         setTimeout(() => {
           window.location.href = '/checklist.html';
         }, 1000);
       } else {
-        showAlert('E-mail ou senha incorretos.', 'error');
-        btnLogin.disabled = false;
-        btnLogin.textContent = 'Entrar';
-        loadingBox.style.display = 'none';
+        // Check registered users
+        const usuarios = JSON.parse(localStorage.getItem('usuariosCadastrados') || '[]');
+        const usuario = usuarios.find(u => u.email === email);
+        
+        if (usuario && password === 'Qualidade2026') {
+          if (rememberMe.checked) {
+            localStorage.setItem('rememberedEmail', email);
+          } else {
+            localStorage.removeItem('rememberedEmail');
+          }
+
+          localStorage.setItem('isLoggedIn', 'true');
+          localStorage.setItem('userRole', usuario.cargo || 'usuario');
+          localStorage.setItem('userName', usuario.nome);
+          showAlert('Login realizado com sucesso! Redirecionando...', 'success');
+          
+          setTimeout(() => {
+            window.location.href = '/checklist.html';
+          }, 1000);
+        } else {
+          showAlert('E-mail ou senha incorretos.', 'error');
+          btnLogin.disabled = false;
+          btnLogin.textContent = 'Entrar';
+          loadingBox.style.display = 'none';
+        }
       }
     });
 
