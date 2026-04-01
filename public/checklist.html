@@ -3749,11 +3749,8 @@
       tabCadastro.style.display = isAdmin ? 'flex' : 'none';
     }
 
-    // Preencher nome do analista
-    const analistaInput = document.getElementById('analistaNome');
-    if (analistaInput && !analistaInput.value) {
-      analistaInput.value = 'Yasmin de Melo Campos';
-    }
+    // Campo analista começa vazio para seleção
+    // Avaliadora já está preenchida como readonly
 
     // Logout
     window.fazerLogout = function() {
