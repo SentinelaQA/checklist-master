@@ -3474,7 +3474,7 @@
                   <th style="padding: 12px; text-align: center; border-bottom: 2px solid ${cor}; font-weight: 700;">Nota</th>
                   <th style="padding: 12px; text-align: center; border-bottom: 2px solid ${cor}; font-weight: 700;">Média</th>
                   <th style="padding: 12px; text-align: center; border-bottom: 2px solid ${cor}; font-weight: 700;">TAG</th>
-                  <th style="padding: 12px; text-align: center; border-bottom: 2px solid ${cor}; font-weight: 700;">Ações</th>
+                  ${typeof isAdmin !== 'undefined' && !isAdmin ? '' : '<th style="padding: 12px; text-align: center; border-bottom: 2px solid ' + cor + '; font-weight: 700;">Ações</th>'}
                 </tr>
               </thead>
               <tbody>
