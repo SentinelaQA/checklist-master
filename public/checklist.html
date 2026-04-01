@@ -3509,11 +3509,11 @@
                 ${primeiraLinhaAnalista ? `<td style="padding: 10px; text-align: center; font-weight: 700; background: ${cor}10; font-size: 16px;" rowspan="${totalLinhasAnalista}">${mediaGeralPorAnalista[analista]}</td>` : ''}
                 ${primeiraLinhaAnalista ? `<td style="padding: 10px; text-align: center;" rowspan="${totalLinhasAnalista}">
                   <div style="display: flex; align-items: center; gap: 4px;">
-                    <input type="text" value="${r.tag || ''}" id="tagInput_${r.id}" placeholder="Digite a tag" style="padding: 4px 6px; border-radius: 4px; border: 1px solid #ccc; font-size: 12px; width: 100px;">
-                    <button onclick="salvarTagDigitada(${r.id}, '${analista}')" style="background: #28a745; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;" title="Salvar TAG">💾</button>
+                    <input type="text" value="${r.tag || ''}" id="tagInput_${r.id}" placeholder="Digite a tag" style="padding: 4px 6px; border-radius: 4px; border: 1px solid #ccc; font-size: 12px; width: 100px;" ${typeof isAdmin !== 'undefined' && !isAdmin ? 'readonly' : ''}>
+                    ${typeof isAdmin !== 'undefined' && !isAdmin ? '' : `<button onclick="salvarTagDigitada(${r.id}, '${analista}')" style="background: #28a745; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;" title="Salvar TAG">💾</button>`}
                   </div>
                 </td>` : ''}
-                <td style="padding: 10px; text-align: center;"><button onclick="excluirRegistro(${r.id})" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">🗑️</button></td>
+                ${typeof isAdmin !== 'undefined' && !isAdmin ? '' : `<td style="padding: 10px; text-align: center;"><button onclick="excluirRegistro(${r.id})" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">🗑️</button></td>`}
               </tr>
             `;
             
