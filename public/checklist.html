@@ -4102,6 +4102,13 @@
       const scoreNotif = document.getElementById('scoreNotification');
       if (scoreNotif) scoreNotif.style.display = 'none';
       
+      // Esconder botão Limpar Tudo no controle
+      const btnLimparTudo = document.getElementById('btnLimparTudo');
+      if (btnLimparTudo) btnLimparTudo.style.display = 'none';
+      
+      // Esconder botões resetar e exportar resultado
+      document.querySelectorAll('.reset-btn, .export-btn').forEach(el => el.style.display = 'none');
+      
       // Iniciar na aba de Controle
       trocarAba('controle');
     }
