@@ -3241,6 +3241,27 @@
       // Determinar protocolo ou assunto email
       const protocoloOuEmail = protocolo || assuntoEmail || '';
       
+      // Calcular semana e ciclo a partir da data
+      const dataObj = new Date(dataAvaliacao + 'T12:00:00');
+      const semanaNum = getWeekNumber(dataObj);
+      const anoData = dataObj.getFullYear();
+      const semanaFormatada = `W${String(semanaNum).padStart(2, '0')}`;
+      
+      // Calcular ciclo
+      const mesData = dataObj.getMonth();
+      const primeiroDiaMes = new Date(anoData, mesData, 1);
+      const primeiraSegundaMes = new Date(primeiroDiaMes);
+      const diaSemMes = primeiraSegundaMes.getDay();
+      if (diaSemMes !== 1) {
+        primeiraSegundaMes.setDate(primeiraSegundaMes.getDate() + ((8 - diaSemMes) % 7));
+      }
+      const diffDiasCalc = Math.floor((dataObj - primeiraSegundaMes) / (7 * 24 * 60 * 60 * 1000));
+      const cicloNum = Math.max(1, Math.min(4, diffDiasCalc + 1));
+      
+      // Mês por extenso
+      const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+      const mesNome = meses[mesData];
+      
       // Criar objeto de registro
       const registro = {
         id: Date.now(),
@@ -3255,6 +3276,10 @@
         observacao: resumoInteracao,
         desvio: resumoDesvio,
         nota: pontuacao,
+        semana: semanaFormatada,
+        ciclo: cicloNum,
+        mes: mesNome,
+        anoRef: anoData,
         timestamp: new Date().toISOString()
       };
       
