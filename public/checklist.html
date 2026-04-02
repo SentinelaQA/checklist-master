@@ -3179,7 +3179,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `checklist_${analista.replace(/\s+/g, '_')}_${data}.json`;
+      a.download = `checklist_${analista.replace(/\s+/g, '_')}_${dataAvaliacao}.json`;
       a.click();
       
       alert('✅ Resultado exportado com sucesso!');
