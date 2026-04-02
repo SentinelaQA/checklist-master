@@ -836,6 +836,11 @@
       transform: translateY(-2px);
       box-shadow: 0 6px 30px rgba(155, 89, 182, 0.6);
     }
+
+    .tag-cell .tag-display { display: flex; align-items: center; justify-content: center; min-height: 30px; cursor: default; padding: 4px; border-radius: 4px; font-size: 13px; font-weight: 600; color: #333; }
+    .tag-cell .tag-edit { display: none; align-items: center; gap: 4px; justify-content: center; }
+    .tag-cell:hover .tag-display { display: none !important; }
+    .tag-cell:hover .tag-edit { display: flex !important; }
   </style>
 </head>
 <body>
