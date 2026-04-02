@@ -3288,10 +3288,51 @@
       registros.push(registro);
       localStorage.setItem('controleAvaliacoes', JSON.stringify(registros));
       
-      alert(`✅ Avaliação salva no controle!\n\nAnalista: ${analista}\nCaixa: ${caixaFinal}\nNota: ${pontuacao}`);
-      
       // Atualizar contador no botão
       atualizarContadorControle();
+      
+      // Limpar todos os campos do formulário
+      document.getElementById('analistaNome').value = '';
+      document.getElementById('supervisor').value = '';
+      document.getElementById('tipo').value = '';
+      document.getElementById('formulario').value = '';
+      document.getElementById('subFormulario').value = '';
+      document.getElementById('caixa').value = '';
+      document.getElementById('subCaixa').value = '';
+      document.getElementById('tratadoVia').value = '';
+      document.getElementById('estabelecimento').value = '';
+      document.getElementById('referenciaEvento').value = '';
+      document.getElementById('protocolo').value = '';
+      document.getElementById('assuntoEmail').value = '';
+      document.getElementById('dataInteracao').value = '';
+      document.getElementById('horarioInteracao').value = '';
+      document.getElementById('assunto').value = '';
+      document.getElementById('ticket').value = '';
+      document.getElementById('resumoDesvio').value = '';
+      document.getElementById('resumoInteracao').value = '';
+      document.getElementById('feedback').value = '';
+      
+      // Esconder campos condicionais
+      document.getElementById('camposCondicionais').style.display = 'none';
+      document.getElementById('dataAvaliacaoBar').style.display = 'none';
+      document.getElementById('resumoContainer').style.display = 'none';
+      document.getElementById('feedbackContainer').style.display = 'none';
+      
+      // Resetar checklist
+      state.score = 100;
+      state.nc = 0;
+      state.ncg = 0;
+      state.total = 0;
+      state.items = {};
+      state.observations = {};
+      state.ncgDetected = false;
+      document.getElementById('alertNCG').classList.remove('show');
+      updateUI();
+      
+      const scoreNotificationEl = document.getElementById('scoreNotification');
+      const scoreValueEl = document.getElementById('scoreNotificationValue');
+      scoreValueEl.textContent = '100';
+      scoreNotificationEl.classList.remove('score-notification-ncg');
       
       // Navegar automaticamente para o Controle de Avaliações
       trocarAba('controle');
