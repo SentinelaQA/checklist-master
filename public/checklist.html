@@ -3664,6 +3664,10 @@
         document.getElementById('tabControle').classList.add('tab-active');
         btnExportar.style.display = 'none';
         scoreNotification.style.display = 'none';
+        // Marcar como visto e esconder badge
+        const regs = JSON.parse(localStorage.getItem('controleAvaliacoes') || '[]');
+        localStorage.setItem('lastSeenControleCount', regs.length.toString());
+        document.getElementById('badgeControle').style.display = 'none';
         carregarControle();
       } else if (aba === 'analise') {
         document.getElementById('viewAnalise').style.display = 'block';
