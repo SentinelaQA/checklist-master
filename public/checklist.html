@@ -846,7 +846,7 @@
 <body>
   <!-- Sistema de Navegação por Abas -->
   <div style="max-width: 1200px; margin: 20px auto; background: #1e2536; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); overflow: hidden;">
-    <div id="tabsNavigation" style="display: flex; border-bottom: 3px solid #0d7ab5; background: linear-gradient(135deg, #242b3d 0%, #2d3548 100%);">
+    <div id="tabsNavigation" style="display: flex; border-bottom: 3px solid #0d7ab5; background: linear-gradient(135deg, #242b3d 0%, #2d3548 100%); align-items: stretch;">
       <button id="tabFormularios" onclick="trocarAba('formularios')" class="tab-button tab-active">
         📋 Formulários de Avaliação
       </button>
@@ -858,6 +858,9 @@
       </button>
       <button id="tabCadastro" onclick="trocarAba('cadastro')" class="tab-button" style="display: none;">
         👥 Gerenciar Usuários
+      </button>
+      <button onclick="fazerLogout()" style="padding: 10px 20px; background: rgba(220,53,69,0.15); color: #ff6b7a; border: none; border-left: 1px solid rgba(255,255,255,0.06); font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.3s; white-space: nowrap;" onmouseover="this.style.background='rgba(220,53,69,0.3)'" onmouseout="this.style.background='rgba(220,53,69,0.15)'">
+        🚪 Sair
       </button>
     </div>
   </div>
