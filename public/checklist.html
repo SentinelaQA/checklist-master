@@ -3824,288 +3824,349 @@
     function renderizarDashboard() {
       const container = document.getElementById('dashboardContent');
       const mesFiltro = document.getElementById('dashMes').value;
-      let registros = JSON.parse(localStorage.getItem('controleAvaliacoes') || '[]');
-      
-      if (registros.length === 0) {
-        container.innerHTML = '<p style="text-align: center; color: #6a7489; padding: 40px; font-size: 18px;">📭 Nenhuma avaliação registrada ainda.</p>';
-        return;
-      }
+      let todosRegistros = JSON.parse(localStorage.getItem('controleAvaliacoes') || '[]');
 
-      // Filtrar por mês
-      if (mesFiltro) {
-        registros = registros.filter(r => getMesFromRegistro(r) === mesFiltro);
-      }
+      // Populate month filter dynamically
+      const mesesComDados = [...new Set(todosRegistros.map(r => getMesFromRegistro(r)).filter(Boolean))];
+      const selectMes = document.getElementById('dashMes');
+      const valorAtual = selectMes.value;
+      const ordenMeses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+      selectMes.innerHTML = '<option value="">Todos os Meses</option>';
+      mesesComDados.sort((a,b) => ordenMeses.indexOf(a) - ordenMeses.indexOf(b)).forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m; opt.textContent = m;
+        if (m === valorAtual) opt.selected = true;
+        selectMes.appendChild(opt);
+      });
+
+      let registros = todosRegistros;
+      if (mesFiltro) registros = todosRegistros.filter(r => getMesFromRegistro(r) === mesFiltro);
 
       if (registros.length === 0) {
-        container.innerHTML = '<p style="text-align: center; color: #6a7489; padding: 40px; font-size: 18px;">📭 Nenhuma avaliação para este mês.</p>';
+        container.innerHTML = '<p style="text-align:center;color:#6a7489;padding:40px;font-size:18px;">📭 Nenhuma avaliação para este período.</p>';
         return;
       }
 
       const totalMonitorias = registros.length;
       const totalNCs = registros.filter(r => r.nota < 100).length;
       const totalNCGs = registros.filter(r => r.nota === 0).length;
-      const mediaTotal = (registros.reduce((s, r) => s + r.nota, 0) / totalMonitorias).toFixed(1);
+      const mediaTotal = Math.round(registros.reduce((s,r) => s + r.nota, 0) / totalMonitorias);
 
-      // Por ciclo
       const ciclos = {};
-      registros.forEach(r => {
-        const c = getCicloFromRegistro(r);
-        if (!ciclos[c]) ciclos[c] = [];
-        ciclos[c].push(r);
-      });
-
-      // Por caixa
+      registros.forEach(r => { const c = getCicloFromRegistro(r); if (!ciclos[c]) ciclos[c] = []; ciclos[c].push(r); });
       const porCaixa = {};
-      registros.forEach(r => {
-        const k = r.caixa || 'Sem Caixa';
-        if (!porCaixa[k]) porCaixa[k] = [];
-        porCaixa[k].push(r);
-      });
-
-      // Por analista
+      registros.forEach(r => { const k = r.caixa || 'Sem Caixa'; if (!porCaixa[k]) porCaixa[k] = []; porCaixa[k].push(r); });
       const porAnalista = {};
-      registros.forEach(r => {
-        if (!porAnalista[r.analista]) porAnalista[r.analista] = [];
-        porAnalista[r.analista].push(r);
-      });
+      registros.forEach(r => { if (!porAnalista[r.analista]) porAnalista[r.analista] = []; porAnalista[r.analista].push(r); });
 
+      const tituloMes = mesFiltro || 'Todos os Meses';
       let html = '';
 
-      // ---- OVERVIEW CARDS ----
-      const tituloMes = mesFiltro || 'Todos os Meses';
-      html += `
-        <h2 style="color: #e2e8f0; font-size: 20px; margin-bottom: 15px; font-weight: 700;">📊 Overview - ${tituloMes}</h2>
-        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px;">
-          <div style="background: #242b3d; padding: 20px; border-radius: 12px; text-align: center; border-left: 4px solid #00A4E0;">
-            <div style="font-size: 36px; font-weight: 800; color: #00A4E0; font-family: 'Roboto Mono', monospace;">${totalMonitorias}</div>
-            <div style="font-size: 12px; color: #8892a4; font-weight: 600; margin-top: 5px;">TOTAL MONITORIAS</div>
+      // OVERVIEW CARDS
+      html += `<h2 style="color:#e2e8f0;font-size:20px;margin-bottom:15px;font-weight:700;">📊 Overview - ${tituloMes}</h2>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:30px;">
+          <div style="background:#242b3d;padding:20px;border-radius:12px;text-align:center;border-left:4px solid #00A4E0;">
+            <div style="font-size:36px;font-weight:800;color:#00A4E0;font-family:'Roboto Mono',monospace;">${totalMonitorias}</div>
+            <div style="font-size:12px;color:#8892a4;font-weight:600;margin-top:5px;">TOTAL MONITORIAS</div>
           </div>
-          <div style="background: #242b3d; padding: 20px; border-radius: 12px; text-align: center; border-left: 4px solid #FF9F1C;">
-            <div style="font-size: 36px; font-weight: 800; color: #FF9F1C; font-family: 'Roboto Mono', monospace;">${totalNCs}</div>
-            <div style="font-size: 12px; color: #8892a4; font-weight: 600; margin-top: 5px;">NC's</div>
+          <div style="background:#242b3d;padding:20px;border-radius:12px;text-align:center;border-left:4px solid #FF9F1C;">
+            <div style="font-size:36px;font-weight:800;color:#FF9F1C;font-family:'Roboto Mono',monospace;">${totalNCs}</div>
+            <div style="font-size:12px;color:#8892a4;font-weight:600;margin-top:5px;">NC's</div>
           </div>
-          <div style="background: #242b3d; padding: 20px; border-radius: 12px; text-align: center; border-left: 4px solid #dc3545;">
-            <div style="font-size: 36px; font-weight: 800; color: #dc3545; font-family: 'Roboto Mono', monospace;">${totalNCGs}</div>
-            <div style="font-size: 12px; color: #8892a4; font-weight: 600; margin-top: 5px;">NCG's</div>
+          <div style="background:#242b3d;padding:20px;border-radius:12px;text-align:center;border-left:4px solid #dc3545;">
+            <div style="font-size:36px;font-weight:800;color:#dc3545;font-family:'Roboto Mono',monospace;">${totalNCGs}</div>
+            <div style="font-size:12px;color:#8892a4;font-weight:600;margin-top:5px;">NCG's</div>
           </div>
-          <div style="background: #242b3d; padding: 20px; border-radius: 12px; text-align: center; border-left: 4px solid #28a745;">
-            <div style="font-size: 36px; font-weight: 800; color: #28a745; font-family: 'Roboto Mono', monospace;">${mediaTotal}</div>
-            <div style="font-size: 12px; color: #8892a4; font-weight: 600; margin-top: 5px;">% MÉDIA</div>
+          <div style="background:#242b3d;padding:20px;border-radius:12px;text-align:center;border-left:4px solid #28a745;">
+            <div style="font-size:36px;font-weight:800;color:#28a745;font-family:'Roboto Mono',monospace;">${mediaTotal}%</div>
+            <div style="font-size:12px;color:#8892a4;font-weight:600;margin-top:5px;">MÉDIA GERAL</div>
           </div>
-        </div>
-      `;
+        </div>`;
 
-      // ---- QUANTIDADE E MÉDIA POR CICLO ----
-      html += `
-        <h2 style="color: #e2e8f0; font-size: 20px; margin-bottom: 15px; font-weight: 700;">📅 Quantidade e Média por Ciclo</h2>
-        <div style="overflow-x: auto; margin-bottom: 30px; border: 2px solid #3a4256; border-radius: 8px;">
-          <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-              <tr style="background: #242b3d;">
-                <th style="padding: 12px; color: #a0aec0; text-align: center; border-bottom: 2px solid #3a4256;">Ciclo</th>
-                <th style="padding: 12px; color: #a0aec0; text-align: center; border-bottom: 2px solid #3a4256;">Qtd. Monitorias</th>
-                <th style="padding: 12px; color: #a0aec0; text-align: center; border-bottom: 2px solid #3a4256;">NC's</th>
-                <th style="padding: 12px; color: #a0aec0; text-align: center; border-bottom: 2px solid #3a4256;">NCG's</th>
-                <th style="padding: 12px; color: #a0aec0; text-align: center; border-bottom: 2px solid #3a4256;">Média</th>
-              </tr>
-            </thead>
-            <tbody>
-      `;
+      // CHARTS
+      html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:30px;">
+        <div style="background:#242b3d;padding:20px;border-radius:12px;">
+          <h3 style="color:#a0aec0;font-size:14px;margin-bottom:15px;">📅 Monitorias por Ciclo</h3>
+          <canvas id="chartCiclo" height="200"></canvas>
+        </div>
+        <div style="background:#242b3d;padding:20px;border-radius:12px;">
+          <h3 style="color:#a0aec0;font-size:14px;margin-bottom:15px;">📦 Volume por Caixa</h3>
+          <canvas id="chartCaixa" height="200"></canvas>
+        </div>
+      </div>`;
+
+      html += `<div style="background:#242b3d;padding:20px;border-radius:12px;margin-bottom:30px;">
+        <h3 style="color:#a0aec0;font-size:14px;margin-bottom:15px;">👤 Média por Analista</h3>
+        <canvas id="chartAnalista" height="150"></canvas>
+      </div>`;
+
+      // TABLE: Ciclo
+      html += `<h2 style="color:#e2e8f0;font-size:20px;margin-bottom:15px;font-weight:700;">📅 Quantidade e Média por Ciclo</h2>
+        <div style="overflow-x:auto;margin-bottom:30px;border:2px solid #3a4256;border-radius:8px;">
+          <table style="width:100%;border-collapse:collapse;">
+            <thead><tr style="background:#242b3d;">
+              <th style="padding:12px;color:#a0aec0;text-align:center;border-bottom:2px solid #3a4256;">Ciclo</th>
+              <th style="padding:12px;color:#a0aec0;text-align:center;border-bottom:2px solid #3a4256;">Qtd.</th>
+              <th style="padding:12px;color:#a0aec0;text-align:center;border-bottom:2px solid #3a4256;">NC's</th>
+              <th style="padding:12px;color:#a0aec0;text-align:center;border-bottom:2px solid #3a4256;">NCG's</th>
+              <th style="padding:12px;color:#a0aec0;text-align:center;border-bottom:2px solid #3a4256;">Média</th>
+            </tr></thead><tbody>`;
       [1,2,3,4].forEach(c => {
         const regs = ciclos[c] || [];
         const qtd = regs.length;
         const ncs = regs.filter(r => r.nota < 100).length;
         const ncgs = regs.filter(r => r.nota === 0).length;
-        const med = qtd > 0 ? (regs.reduce((s, r) => s + r.nota, 0) / qtd).toFixed(1) : '-';
-        html += `
-          <tr style="border-bottom: 1px solid #3a4256;">
-            <td style="padding: 10px; text-align: center; color: #e2e8f0; font-weight: 700;">${c}° Ciclo</td>
-            <td style="padding: 10px; text-align: center; color: #e2e8f0;">${qtd}</td>
-            <td style="padding: 10px; text-align: center; color: ${ncs > 0 ? '#FF9F1C' : '#e2e8f0'};">${ncs}</td>
-            <td style="padding: 10px; text-align: center; color: ${ncgs > 0 ? '#dc3545' : '#e2e8f0'};">${ncgs}</td>
-            <td style="padding: 10px; text-align: center; color: #28a745; font-weight: 700;">${med}</td>
-          </tr>
-        `;
+        const med = qtd > 0 ? Math.round(regs.reduce((s,r) => s + r.nota, 0) / qtd) : '-';
+        html += `<tr style="border-bottom:1px solid #3a4256;">
+          <td style="padding:10px;text-align:center;color:#e2e8f0;font-weight:700;">${c}° Ciclo</td>
+          <td style="padding:10px;text-align:center;color:#e2e8f0;">${qtd}</td>
+          <td style="padding:10px;text-align:center;color:${ncs>0?'#FF9F1C':'#e2e8f0'};">${ncs}</td>
+          <td style="padding:10px;text-align:center;color:${ncgs>0?'#dc3545':'#e2e8f0'};">${ncgs}</td>
+          <td style="padding:10px;text-align:center;color:#28a745;font-weight:700;">${med}</td>
+        </tr>`;
       });
-      html += `
-          <tr style="background: #1a1f2e; font-weight: 700;">
-            <td style="padding: 12px; text-align: center; color: #00A4E0;">TOTAL</td>
-            <td style="padding: 12px; text-align: center; color: #00A4E0;">${totalMonitorias}</td>
-            <td style="padding: 12px; text-align: center; color: #FF9F1C;">${totalNCs}</td>
-            <td style="padding: 12px; text-align: center; color: #dc3545;">${totalNCGs}</td>
-            <td style="padding: 12px; text-align: center; color: #28a745;">${mediaTotal}</td>
-          </tr>
-            </tbody>
-          </table>
-        </div>
-      `;
+      html += `<tr style="background:#1a1f2e;font-weight:700;">
+        <td style="padding:12px;text-align:center;color:#00A4E0;">TOTAL</td>
+        <td style="padding:12px;text-align:center;color:#00A4E0;">${totalMonitorias}</td>
+        <td style="padding:12px;text-align:center;color:#FF9F1C;">${totalNCs}</td>
+        <td style="padding:12px;text-align:center;color:#dc3545;">${totalNCGs}</td>
+        <td style="padding:12px;text-align:center;color:#28a745;">${mediaTotal}</td>
+      </tr></tbody></table></div>`;
 
-      // ---- VOLUME POR CAIXA ----
-      html += `
-        <h2 style="color: #e2e8f0; font-size: 20px; margin-bottom: 15px; font-weight: 700;">📦 Volume por Caixa</h2>
-        <div style="overflow-x: auto; margin-bottom: 30px; border: 2px solid #3a4256; border-radius: 8px;">
-          <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-              <tr style="background: #242b3d;">
-                <th style="padding: 12px; color: #a0aec0; text-align: left; border-bottom: 2px solid #3a4256;">Caixa</th>
-                <th style="padding: 12px; color: #a0aec0; text-align: center; border-bottom: 2px solid #3a4256;">Qtd.</th>
-                <th style="padding: 12px; color: #a0aec0; text-align: center; border-bottom: 2px solid #3a4256;">Média</th>
-              </tr>
-            </thead>
-            <tbody>
-      `;
+      // TABLE: Volume por Caixa
+      html += `<h2 style="color:#e2e8f0;font-size:20px;margin-bottom:15px;font-weight:700;">📦 Volume por Caixa</h2>
+        <div style="overflow-x:auto;margin-bottom:30px;border:2px solid #3a4256;border-radius:8px;">
+          <table style="width:100%;border-collapse:collapse;">
+            <thead><tr style="background:#242b3d;">
+              <th style="padding:12px;color:#a0aec0;text-align:left;border-bottom:2px solid #3a4256;">Caixa</th>
+              <th style="padding:12px;color:#a0aec0;text-align:center;border-bottom:2px solid #3a4256;">Qtd.</th>
+              <th style="padding:12px;color:#a0aec0;text-align:center;border-bottom:2px solid #3a4256;">Média</th>
+            </tr></thead><tbody>`;
       Object.keys(porCaixa).sort().forEach(caixa => {
         const regs = porCaixa[caixa];
-        const med = (regs.reduce((s, r) => s + r.nota, 0) / regs.length).toFixed(1);
-        html += `
-          <tr style="border-bottom: 1px solid #3a4256;">
-            <td style="padding: 10px; color: #e2e8f0; font-weight: 600;">${caixa}</td>
-            <td style="padding: 10px; text-align: center; color: #e2e8f0;">${regs.length}</td>
-            <td style="padding: 10px; text-align: center; color: #28a745; font-weight: 700;">${med}</td>
-          </tr>
-        `;
+        const med = Math.round(regs.reduce((s,r) => s + r.nota, 0) / regs.length);
+        html += `<tr style="border-bottom:1px solid #3a4256;">
+          <td style="padding:10px;color:#e2e8f0;font-weight:600;">${caixa}</td>
+          <td style="padding:10px;text-align:center;color:#e2e8f0;">${regs.length}</td>
+          <td style="padding:10px;text-align:center;color:#28a745;font-weight:700;">${med}</td>
+        </tr>`;
       });
       html += `</tbody></table></div>`;
 
-      // ---- MÉDIA POR CAIXA POR CICLO ----
-      html += `
-        <h2 style="color: #e2e8f0; font-size: 20px; margin-bottom: 15px; font-weight: 700;">📦 Média por Caixa - Ciclo</h2>
-        <div style="overflow-x: auto; margin-bottom: 30px; border: 2px solid #3a4256; border-radius: 8px;">
-          <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-              <tr style="background: #242b3d;">
-                <th style="padding: 12px; color: #a0aec0; text-align: left; border-bottom: 2px solid #3a4256;">Caixa</th>
-                <th style="padding: 12px; color: #a0aec0; text-align: center; border-bottom: 2px solid #3a4256;">1° Ciclo</th>
-                <th style="padding: 12px; color: #a0aec0; text-align: center; border-bottom: 2px solid #3a4256;">2° Ciclo</th>
-                <th style="padding: 12px; color: #a0aec0; text-align: center; border-bottom: 2px solid #3a4256;">3° Ciclo</th>
-                <th style="padding: 12px; color: #a0aec0; text-align: center; border-bottom: 2px solid #3a4256;">4° Ciclo</th>
-                <th style="padding: 12px; color: #a0aec0; text-align: center; border-bottom: 2px solid #3a4256;">Média Total</th>
-              </tr>
-            </thead>
-            <tbody>
-      `;
+      // TABLE: Média por Caixa por Ciclo
+      html += `<h2 style="color:#e2e8f0;font-size:20px;margin-bottom:15px;font-weight:700;">📦 Média por Caixa - Ciclo</h2>
+        <div style="overflow-x:auto;margin-bottom:30px;border:2px solid #3a4256;border-radius:8px;">
+          <table style="width:100%;border-collapse:collapse;">
+            <thead><tr style="background:#242b3d;">
+              <th style="padding:12px;color:#a0aec0;text-align:left;border-bottom:2px solid #3a4256;">Caixa</th>
+              <th style="padding:12px;color:#a0aec0;text-align:center;border-bottom:2px solid #3a4256;">1° Ciclo</th>
+              <th style="padding:12px;color:#a0aec0;text-align:center;border-bottom:2px solid #3a4256;">2° Ciclo</th>
+              <th style="padding:12px;color:#a0aec0;text-align:center;border-bottom:2px solid #3a4256;">3° Ciclo</th>
+              <th style="padding:12px;color:#a0aec0;text-align:center;border-bottom:2px solid #3a4256;">4° Ciclo</th>
+              <th style="padding:12px;color:#a0aec0;text-align:center;border-bottom:2px solid #3a4256;">Média Total</th>
+            </tr></thead><tbody>`;
       Object.keys(porCaixa).sort().forEach(caixa => {
         const regs = porCaixa[caixa];
-        const medTotal = (regs.reduce((s, r) => s + r.nota, 0) / regs.length).toFixed(1);
-        html += `<tr style="border-bottom: 1px solid #3a4256;">
-          <td style="padding: 10px; color: #e2e8f0; font-weight: 600;">${caixa}</td>`;
+        const medTotal = Math.round(regs.reduce((s,r) => s + r.nota, 0) / regs.length);
+        html += `<tr style="border-bottom:1px solid #3a4256;"><td style="padding:10px;color:#e2e8f0;font-weight:600;">${caixa}</td>`;
         [1,2,3,4].forEach(c => {
           const cr = regs.filter(r => getCicloFromRegistro(r) === c);
-          const med = cr.length > 0 ? (cr.reduce((s, r) => s + r.nota, 0) / cr.length).toFixed(1) : '-';
-          html += `<td style="padding: 10px; text-align: center; color: ${med !== '-' ? '#28a745' : '#6a7489'}; font-weight: 600;">${med}</td>`;
+          const med = cr.length > 0 ? Math.round(cr.reduce((s,r) => s + r.nota, 0) / cr.length) : '-';
+          html += `<td style="padding:10px;text-align:center;color:${med!=='-'?'#28a745':'#6a7489'};font-weight:600;">${med}</td>`;
         });
-        html += `<td style="padding: 10px; text-align: center; color: #00A4E0; font-weight: 700;">${medTotal}</td></tr>`;
+        html += `<td style="padding:10px;text-align:center;color:#00A4E0;font-weight:700;">${medTotal}</td></tr>`;
       });
       html += `</tbody></table></div>`;
 
-      // ---- MONITORIAS POR ANALISTA COM CAIXAS ----
-      html += `
-        <h2 style="color: #e2e8f0; font-size: 20px; margin-bottom: 15px; font-weight: 700;">👤 Monitorias por Analista - Caixas</h2>
-        <div style="overflow-x: auto; margin-bottom: 30px; border: 2px solid #3a4256; border-radius: 8px;">
-          <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-              <tr style="background: #242b3d;">
-                <th style="padding: 12px; color: #a0aec0; text-align: left; border-bottom: 2px solid #3a4256;">Analista</th>
-                <th style="padding: 12px; color: #a0aec0; text-align: left; border-bottom: 2px solid #3a4256;">Caixa</th>
-                <th style="padding: 12px; color: #a0aec0; text-align: center; border-bottom: 2px solid #3a4256;">Qtd.</th>
-                <th style="padding: 12px; color: #a0aec0; text-align: center; border-bottom: 2px solid #3a4256;">1° Ciclo</th>
-                <th style="padding: 12px; color: #a0aec0; text-align: center; border-bottom: 2px solid #3a4256;">2° Ciclo</th>
-                <th style="padding: 12px; color: #a0aec0; text-align: center; border-bottom: 2px solid #3a4256;">3° Ciclo</th>
-                <th style="padding: 12px; color: #a0aec0; text-align: center; border-bottom: 2px solid #3a4256;">4° Ciclo</th>
-                <th style="padding: 12px; color: #a0aec0; text-align: center; border-bottom: 2px solid #3a4256;">Média Total</th>
-              </tr>
-            </thead>
-            <tbody>
-      `;
+      // TABLE: Monitorias por Analista - Caixas
+      html += `<h2 style="color:#e2e8f0;font-size:20px;margin-bottom:15px;font-weight:700;">👤 Monitorias por Analista - Caixas</h2>
+        <div style="overflow-x:auto;margin-bottom:30px;border:2px solid #3a4256;border-radius:8px;">
+          <table style="width:100%;border-collapse:collapse;">
+            <thead><tr style="background:#242b3d;">
+              <th style="padding:12px;color:#a0aec0;text-align:left;border-bottom:2px solid #3a4256;">Analista</th>
+              <th style="padding:12px;color:#a0aec0;text-align:left;border-bottom:2px solid #3a4256;">Caixa</th>
+              <th style="padding:12px;color:#a0aec0;text-align:center;border-bottom:2px solid #3a4256;">Qtd.</th>
+              <th style="padding:12px;color:#a0aec0;text-align:center;border-bottom:2px solid #3a4256;">1° Ciclo</th>
+              <th style="padding:12px;color:#a0aec0;text-align:center;border-bottom:2px solid #3a4256;">2° Ciclo</th>
+              <th style="padding:12px;color:#a0aec0;text-align:center;border-bottom:2px solid #3a4256;">3° Ciclo</th>
+              <th style="padding:12px;color:#a0aec0;text-align:center;border-bottom:2px solid #3a4256;">4° Ciclo</th>
+              <th style="padding:12px;color:#a0aec0;text-align:center;border-bottom:2px solid #3a4256;">Média Total</th>
+            </tr></thead><tbody>`;
       Object.keys(porAnalista).sort().forEach(analista => {
         const regsAn = porAnalista[analista];
         const caixasAn = {};
-        regsAn.forEach(r => {
-          const k = r.caixa || 'Sem Caixa';
-          if (!caixasAn[k]) caixasAn[k] = [];
-          caixasAn[k].push(r);
-        });
+        regsAn.forEach(r => { const k = r.caixa || 'Sem Caixa'; if (!caixasAn[k]) caixasAn[k] = []; caixasAn[k].push(r); });
         let primeiraLinha = true;
         const totalLinhas = Object.keys(caixasAn).length;
         Object.keys(caixasAn).sort().forEach(caixa => {
           const cr = caixasAn[caixa];
-          const medCaixa = (cr.reduce((s, r) => s + r.nota, 0) / cr.length).toFixed(1);
-          html += `<tr style="border-bottom: 1px solid #3a4256;">`;
+          const medCaixa = Math.round(cr.reduce((s,r) => s + r.nota, 0) / cr.length);
+          html += `<tr style="border-bottom:1px solid #3a4256;">`;
           if (primeiraLinha) {
-            html += `<td style="padding: 10px; color: #00A4E0; font-weight: 700; vertical-align: top;" rowspan="${totalLinhas}">${analista}</td>`;
+            html += `<td style="padding:10px;color:#00A4E0;font-weight:700;vertical-align:top;" rowspan="${totalLinhas}">${analista}</td>`;
             primeiraLinha = false;
           }
-          html += `<td style="padding: 10px; color: #e2e8f0; font-weight: 600;">${caixa}</td>
-            <td style="padding: 10px; text-align: center; color: #e2e8f0;">${cr.length}</td>`;
+          html += `<td style="padding:10px;color:#e2e8f0;font-weight:600;">${caixa}</td>
+            <td style="padding:10px;text-align:center;color:#e2e8f0;">${cr.length}</td>`;
           [1,2,3,4].forEach(c => {
             const cicloRegs = cr.filter(r => getCicloFromRegistro(r) === c);
-            const med = cicloRegs.length > 0 ? (cicloRegs.reduce((s, r) => s + r.nota, 0) / cicloRegs.length).toFixed(1) : '-';
-            html += `<td style="padding: 10px; text-align: center; color: ${med !== '-' ? '#28a745' : '#6a7489'}; font-weight: 600;">${med}</td>`;
+            const med = cicloRegs.length > 0 ? Math.round(cicloRegs.reduce((s,r) => s + r.nota, 0) / cicloRegs.length) : '-';
+            html += `<td style="padding:10px;text-align:center;color:${med!=='-'?'#28a745':'#6a7489'};font-weight:600;">${med}</td>`;
           });
-          html += `<td style="padding: 10px; text-align: center; color: #00A4E0; font-weight: 700;">${medCaixa}</td></tr>`;
+          html += `<td style="padding:10px;text-align:center;color:#00A4E0;font-weight:700;">${medCaixa}</td></tr>`;
         });
       });
       html += `</tbody></table></div>`;
 
-      // ---- MÉDIA POR ANALISTA - TOTAL E POR CICLO ----
-      html += `
-        <h2 style="color: #e2e8f0; font-size: 20px; margin-bottom: 15px; font-weight: 700;">👤 Média por Analista - Total</h2>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
-          <div style="border: 2px solid #3a4256; border-radius: 8px; overflow: hidden;">
-            <h3 style="padding: 12px; background: #242b3d; color: #a0aec0; font-size: 14px; margin: 0;">Média Total por Analista</h3>
-            <table style="width: 100%; border-collapse: collapse;">
-              <thead>
-                <tr style="background: #1a1f2e;">
-                  <th style="padding: 10px; color: #a0aec0; text-align: left; border-bottom: 1px solid #3a4256;">Analista</th>
-                  <th style="padding: 10px; color: #a0aec0; text-align: center; border-bottom: 1px solid #3a4256;">Qtd.</th>
-                  <th style="padding: 10px; color: #a0aec0; text-align: center; border-bottom: 1px solid #3a4256;">Média</th>
-                </tr>
-              </thead>
-              <tbody>
-      `;
+      // TABLE: Média por Analista - Total e por Ciclo
+      html += `<h2 style="color:#e2e8f0;font-size:20px;margin-bottom:15px;font-weight:700;">👤 Média por Analista - Total</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:30px;">
+          <div style="border:2px solid #3a4256;border-radius:8px;overflow:hidden;">
+            <h3 style="padding:12px;background:#242b3d;color:#a0aec0;font-size:14px;margin:0;">Média Total por Analista</h3>
+            <table style="width:100%;border-collapse:collapse;">
+              <thead><tr style="background:#1a1f2e;">
+                <th style="padding:10px;color:#a0aec0;text-align:left;border-bottom:1px solid #3a4256;">Analista</th>
+                <th style="padding:10px;color:#a0aec0;text-align:center;border-bottom:1px solid #3a4256;">Qtd.</th>
+                <th style="padding:10px;color:#a0aec0;text-align:center;border-bottom:1px solid #3a4256;">Média</th>
+              </tr></thead><tbody>`;
       Object.keys(porAnalista).sort().forEach(analista => {
         const regsAn = porAnalista[analista];
-        const med = (regsAn.reduce((s, r) => s + r.nota, 0) / regsAn.length).toFixed(1);
-        html += `
-          <tr style="border-bottom: 1px solid #3a4256;">
-            <td style="padding: 10px; color: #e2e8f0; font-weight: 600;">${analista}</td>
-            <td style="padding: 10px; text-align: center; color: #e2e8f0;">${regsAn.length}</td>
-            <td style="padding: 10px; text-align: center; color: #28a745; font-weight: 700;">${med}</td>
-          </tr>
-        `;
+        const med = Math.round(regsAn.reduce((s,r) => s + r.nota, 0) / regsAn.length);
+        html += `<tr style="border-bottom:1px solid #3a4256;">
+          <td style="padding:10px;color:#e2e8f0;font-weight:600;">${analista}</td>
+          <td style="padding:10px;text-align:center;color:#e2e8f0;">${regsAn.length}</td>
+          <td style="padding:10px;text-align:center;color:#28a745;font-weight:700;">${med}</td>
+        </tr>`;
       });
       html += `</tbody></table></div>`;
 
-      // Média por Analista - Ciclo
-      html += `
-          <div style="border: 2px solid #3a4256; border-radius: 8px; overflow: hidden;">
-            <h3 style="padding: 12px; background: #242b3d; color: #a0aec0; font-size: 14px; margin: 0;">Média por Analista - Ciclo</h3>
-            <table style="width: 100%; border-collapse: collapse;">
-              <thead>
-                <tr style="background: #1a1f2e;">
-                  <th style="padding: 10px; color: #a0aec0; text-align: left; border-bottom: 1px solid #3a4256;">Analista</th>
-                  <th style="padding: 10px; color: #a0aec0; text-align: center; border-bottom: 1px solid #3a4256;">1° Ciclo</th>
-                  <th style="padding: 10px; color: #a0aec0; text-align: center; border-bottom: 1px solid #3a4256;">2° Ciclo</th>
-                  <th style="padding: 10px; color: #a0aec0; text-align: center; border-bottom: 1px solid #3a4256;">3° Ciclo</th>
-                  <th style="padding: 10px; color: #a0aec0; text-align: center; border-bottom: 1px solid #3a4256;">4° Ciclo</th>
-                </tr>
-              </thead>
-              <tbody>
-      `;
+      html += `<div style="border:2px solid #3a4256;border-radius:8px;overflow:hidden;">
+        <h3 style="padding:12px;background:#242b3d;color:#a0aec0;font-size:14px;margin:0;">Média por Analista - Ciclo</h3>
+        <table style="width:100%;border-collapse:collapse;">
+          <thead><tr style="background:#1a1f2e;">
+            <th style="padding:10px;color:#a0aec0;text-align:left;border-bottom:1px solid #3a4256;">Analista</th>
+            <th style="padding:10px;color:#a0aec0;text-align:center;border-bottom:1px solid #3a4256;">1° Ciclo</th>
+            <th style="padding:10px;color:#a0aec0;text-align:center;border-bottom:1px solid #3a4256;">2° Ciclo</th>
+            <th style="padding:10px;color:#a0aec0;text-align:center;border-bottom:1px solid #3a4256;">3° Ciclo</th>
+            <th style="padding:10px;color:#a0aec0;text-align:center;border-bottom:1px solid #3a4256;">4° Ciclo</th>
+          </tr></thead><tbody>`;
       Object.keys(porAnalista).sort().forEach(analista => {
         const regsAn = porAnalista[analista];
-        html += `<tr style="border-bottom: 1px solid #3a4256;">
-          <td style="padding: 10px; color: #e2e8f0; font-weight: 600;">${analista}</td>`;
+        html += `<tr style="border-bottom:1px solid #3a4256;">
+          <td style="padding:10px;color:#e2e8f0;font-weight:600;">${analista}</td>`;
         [1,2,3,4].forEach(c => {
           const cr = regsAn.filter(r => getCicloFromRegistro(r) === c);
-          const med = cr.length > 0 ? (cr.reduce((s, r) => s + r.nota, 0) / cr.length).toFixed(1) : '-';
-          html += `<td style="padding: 10px; text-align: center; color: ${med !== '-' ? '#28a745' : '#6a7489'}; font-weight: 600;">${med}</td>`;
+          const med = cr.length > 0 ? Math.round(cr.reduce((s,r) => s + r.nota, 0) / cr.length) : '-';
+          html += `<td style="padding:10px;text-align:center;color:${med!=='-'?'#28a745':'#6a7489'};font-weight:600;">${med}</td>`;
         });
         html += `</tr>`;
       });
       html += `</tbody></table></div></div>`;
 
+      // Export button
+      html += `<div style="text-align:center;margin-top:20px;">
+        <button onclick="exportarRelatorioDash()" style="padding:14px 30px;background:linear-gradient(135deg,#0d7ab5 0%,#0aab50 100%);color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:15px;transition:all 0.3s;">📥 Exportar Relatório CSV</button>
+      </div>`;
+
       container.innerHTML = html;
+
+      // Render charts
+      setTimeout(() => { renderizarCharts(ciclos, porCaixa, porAnalista); }, 100);
+    }
+
+    function renderizarCharts(ciclos, porCaixa, porAnalista) {
+      const ctxCiclo = document.getElementById('chartCiclo');
+      if (ctxCiclo) {
+        new Chart(ctxCiclo, {
+          type: 'bar',
+          data: {
+            labels: ['1° Ciclo', '2° Ciclo', '3° Ciclo', '4° Ciclo'],
+            datasets: [{
+              label: 'Monitorias', data: [1,2,3,4].map(c => (ciclos[c]||[]).length),
+              backgroundColor: '#00A4E0', borderRadius: 6
+            }, {
+              label: 'NC', data: [1,2,3,4].map(c => (ciclos[c]||[]).filter(r=>r.nota<100).length),
+              backgroundColor: '#FF9F1C', borderRadius: 6
+            }, {
+              label: 'NCG', data: [1,2,3,4].map(c => (ciclos[c]||[]).filter(r=>r.nota===0).length),
+              backgroundColor: '#dc3545', borderRadius: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { labels: { color: '#a0aec0' } } },
+            scales: {
+              x: { ticks: { color: '#8892a4' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+              y: { ticks: { color: '#8892a4', stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true }
+            }
+          }
+        });
+      }
+
+      const ctxCaixa = document.getElementById('chartCaixa');
+      if (ctxCaixa) {
+        const caixaLabels = Object.keys(porCaixa).sort();
+        new Chart(ctxCaixa, {
+          type: 'bar',
+          data: {
+            labels: caixaLabels,
+            datasets: [{ label: 'Monitorias', data: caixaLabels.map(c => porCaixa[c].length), backgroundColor: '#00D664', borderRadius: 6 }]
+          },
+          options: {
+            indexAxis: 'y', responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { ticks: { color: '#8892a4', stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true },
+              y: { ticks: { color: '#8892a4', font: { size: 11 } }, grid: { display: false } }
+            }
+          }
+        });
+      }
+
+      const ctxAnalista = document.getElementById('chartAnalista');
+      if (ctxAnalista) {
+        const analistaLabels = Object.keys(porAnalista).sort();
+        const mediasAnalista = analistaLabels.map(a => Math.round(porAnalista[a].reduce((s,r)=>s+r.nota,0)/porAnalista[a].length));
+        new Chart(ctxAnalista, {
+          type: 'bar',
+          data: {
+            labels: analistaLabels.map(n => n.split(' ').slice(0,2).join(' ')),
+            datasets: [{
+              label: 'Média', data: mediasAnalista,
+              backgroundColor: mediasAnalista.map(m => m >= 90 ? '#28a745' : m >= 70 ? '#FF9F1C' : '#dc3545'),
+              borderRadius: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { ticks: { color: '#8892a4', font: { size: 10 } }, grid: { display: false } },
+              y: { ticks: { color: '#8892a4' }, grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true, max: 100 }
+            }
+          }
+        });
+      }
+    }
+
+    function exportarRelatorioDash() {
+      const mesFiltro = document.getElementById('dashMes').value;
+      let registros = JSON.parse(localStorage.getItem('controleAvaliacoes') || '[]');
+      if (mesFiltro) registros = registros.filter(r => getMesFromRegistro(r) === mesFiltro);
+      if (registros.length === 0) { alert('⚠️ Nenhum dado para exportar!'); return; }
+
+      let csv = 'Data,Analista,Caixa,Nota,Ciclo,Mês,Semana\n';
+      registros.forEach(r => {
+        csv += [r.data, r.analista, r.caixa, r.nota, getCicloFromRegistro(r)+'° Ciclo', getMesFromRegistro(r), r.semana||'']
+          .map(f => `"${String(f||'').replace(/"/g,'""')}"`).join(',') + '\n';
+      });
+
+      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `relatorio_${mesFiltro||'completo'}_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
     }
 
   </script>
