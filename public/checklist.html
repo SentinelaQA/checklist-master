@@ -3624,9 +3624,11 @@
 
     function atualizarContadorControle() {
       const registros = JSON.parse(localStorage.getItem('controleAvaliacoes') || '[]');
+      const lastSeen = parseInt(localStorage.getItem('lastSeenControleCount') || '0');
       const badge = document.getElementById('badgeControle');
-      if (registros.length > 0) {
-        badge.textContent = registros.length;
+      const novos = registros.length - lastSeen;
+      if (novos > 0) {
+        badge.textContent = novos;
         badge.style.display = 'inline-block';
       } else {
         badge.style.display = 'none';
