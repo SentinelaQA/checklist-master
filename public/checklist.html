@@ -602,7 +602,8 @@
       const tratadoVia = document.getElementById('tratadoVia').value || '';
 
       if (!analista) { alert('⚠️ Por favor, preencha o nome do analista!'); return; }
-      if (tratadoVia !== 'CRM') {
+      const subCaixaVal = document.getElementById('subCaixa').value || '';
+      if (tratadoVia !== 'CRM' && subCaixaVal !== '5125') {
         if (!assunto) { alert('⚠️ Por favor, preencha o assunto!'); return; }
         if (!ticket) { alert('⚠️ Por favor, preencha o número do ticket!'); return; }
       }
