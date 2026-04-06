@@ -623,12 +623,8 @@
       const anoData = dataObj.getFullYear();
       const semanaFormatada = `W${String(semanaNum).padStart(2, '0')}`;
       const mesData = dataObj.getMonth();
-      const primeiroDiaMes = new Date(anoData, mesData, 1);
-      const primeiraSegundaMes = new Date(primeiroDiaMes);
-      const diaSemMes = primeiraSegundaMes.getDay();
-      if (diaSemMes !== 1) primeiraSegundaMes.setDate(primeiraSegundaMes.getDate() + ((8 - diaSemMes) % 7));
-      const diffDiasCalc = Math.floor((dataObj - primeiraSegundaMes) / (7 * 24 * 60 * 60 * 1000));
-      const cicloNum = Math.max(1, Math.min(4, diffDiasCalc + 1));
+      const diaDoMes = dataObj.getDate();
+      const cicloNum = Math.min(5, Math.ceil(diaDoMes / 7));
       const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
       const mesNome = meses[mesData];
 
@@ -696,23 +692,43 @@
       renderizarTabelas(registrosCache);
     };
 
+    window.toggleDropdown = function(id) {
+      const dd = document.getElementById(id);
+      dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+    };
+    document.addEventListener('click', function(e) {
+      ['dropdownAnalista','dropdownCaixa'].forEach(id => {
+        const dd = document.getElementById(id);
+        if (dd && !dd.parentElement.contains(e.target)) dd.style.display = 'none';
+      });
+    });
+    window.atualizarBtnAnalista = function() {
+      const selecionados = [...document.querySelectorAll('.chkAnalista:checked')].map(c => c.value);
+      const btn = document.getElementById('btnFiltroAnalista');
+      btn.textContent = selecionados.length === 0 ? 'Todos os Analistas ▾' : selecionados.length + ' analista(s) ▾';
+    };
+    window.atualizarBtnCaixa = function() {
+      const selecionados = [...document.querySelectorAll('.chkCaixa:checked')].map(c => c.value);
+      const btn = document.getElementById('btnFiltroCaixa');
+      btn.textContent = selecionados.length === 0 ? 'Todas as Caixas ▾' : selecionados.length + ' caixa(s) ▾';
+    };
     window.filtrarControle = function() {
-      const analistaFiltro = document.getElementById('filtroAnalista').value.trim().toUpperCase();
-      const caixa = document.getElementById('filtroCaixa').value;
-      const semana = document.getElementById('filtroSemana').value;
+      const analistasSelecionados = [...document.querySelectorAll('.chkAnalista:checked')].map(c => c.value.toUpperCase());
+      const caixasSelecionadas = [...document.querySelectorAll('.chkCaixa:checked')].map(c => c.value);
+      const cicloFiltro = document.getElementById('filtroCiclo').value;
 
       let registros = [...registrosCache];
-      if (analistaFiltro) registros = registros.filter(r => r.analista.toUpperCase().includes(analistaFiltro));
-      if (caixa) registros = registros.filter(r => r.caixa === caixa);
-      if (semana) {
-        registros = registros.filter(r => {
-          const data = new Date(r.data + 'T12:00:00');
-          const ano = data.getFullYear();
-          const numSemana = getWeekNumber(data);
-          return `${ano}-W${String(numSemana).padStart(2, '0')}` === semana;
-        });
-      }
+      if (analistasSelecionados.length > 0) registros = registros.filter(r => analistasSelecionados.includes(r.analista.toUpperCase()));
+      if (caixasSelecionadas.length > 0) registros = registros.filter(r => caixasSelecionadas.includes(r.caixa));
+      if (cicloFiltro) registros = registros.filter(r => getCicloFromRegistro(r) === parseInt(cicloFiltro));
       renderizarTabelas(registros);
+    };
+    window.limparFiltros = function() {
+      document.querySelectorAll('.chkAnalista,.chkCaixa').forEach(c => c.checked = false);
+      document.getElementById('filtroCiclo').value = '';
+      document.getElementById('btnFiltroAnalista').textContent = 'Todos os Analistas ▾';
+      document.getElementById('btnFiltroCaixa').textContent = 'Todas as Caixas ▾';
+      renderizarTabelas(registrosCache);
     };
 
     // ===== EXCLUIR REGISTRO =====
@@ -1086,12 +1102,23 @@
       const tvCont = document.getElementById('tratadoViaContainer');
       const pCont = document.getElementById('protocoloContainer');
       const aeCont = document.getElementById('assuntoEmailContainer');
+      const resumoCont = document.getElementById('resumoContainer');
+      const assuntoEl = document.getElementById('assunto');
+      const ticketEl = document.getElementById('ticket');
+      const assuntoPar = assuntoEl ? assuntoEl.closest('.info-item') : null;
+      const ticketPar = ticketEl ? ticketEl.closest('.info-item') : null;
       if (subCaixa === '5125') {
         estCont.style.display = 'flex'; refCont.style.display = 'flex';
         tvCont.style.display = 'none'; pCont.style.display = 'none'; aeCont.style.display = 'none';
+        if (assuntoPar) assuntoPar.style.display = 'none';
+        if (ticketPar) ticketPar.style.display = 'none';
+        if (assuntoEl) assuntoEl.value = '';
+        if (ticketEl) ticketEl.value = '';
       } else {
         estCont.style.display = 'none'; refCont.style.display = 'none';
         tvCont.style.display = 'flex';
+        if (assuntoPar) assuntoPar.style.display = 'flex';
+        if (ticketPar) ticketPar.style.display = 'flex';
       }
     }
 
@@ -1475,11 +1502,8 @@
     function getCicloFromRegistro(r) {
       if (r.ciclo) return r.ciclo;
       const d = new Date(r.data + 'T12:00:00');
-      const mes = d.getMonth(); const ano = d.getFullYear();
-      const p = new Date(ano, mes, 1); const ds = p.getDay();
-      if (ds !== 1) p.setDate(p.getDate() + ((8-ds)%7));
-      const diff = Math.floor((d-p)/(7*24*60*60*1000));
-      return Math.max(1, Math.min(4, diff+1));
+      const diaDoMes = d.getDate();
+      return Math.min(5, Math.ceil(diaDoMes / 7));
     }
 
     function getMesFromRegistro(r) {
