@@ -223,6 +223,12 @@
           localStorage.removeItem('rememberedEmail');
         }
 
+        // Registrar log de acesso
+        const logs = JSON.parse(localStorage.getItem('accessLogs') || '[]');
+        logs.unshift({ email, name, role, date: new Date().toISOString() });
+        if (logs.length > 100) logs.length = 100;
+        localStorage.setItem('accessLogs', JSON.stringify(logs));
+
         showAlert('Login realizado com sucesso! Redirecionando...', 'success');
         setTimeout(() => { window.location.href = '/checklist.html'; }, 1000);
 
