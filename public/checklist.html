@@ -307,49 +307,70 @@
         <div><h1>📊 Controle de Avaliações</h1><p style="opacity:0.9;margin-top:5px;">Acompanhamento e Gestão de Qualidade</p></div>
         <div><button onclick="exportarTodoControle()" class="export-btn">📥 Exportar CSV</button></div>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:15px;margin-bottom:25px;padding:25px;background:#1e2536;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.06);">
+      <div style="margin-bottom:25px;padding:25px;background:#1e2536;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.06);">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:15px;">
         <div>
           <label style="display:block;margin-bottom:8px;font-weight:700;color:#a0aec0;font-size:14px;">📌 Analista:</label>
-          <input list="listaAnalistas" id="filtroAnalista" onchange="filtrarControle()" oninput="filtrarControle()" placeholder="Digite ou selecione..." style="width:100%;padding:12px;border:2px solid #3a4256;border-radius:8px;font-size:14px;background:#1a1f2e;color:#e2e8f0;">
-          <datalist id="listaAnalistas">
-            <option value="FRANK PEREIRA DA SILVA"><option value="GISELE APARECIDA DE ALMEIDA"><option value="ANA PAULA DOS SANTOS"><option value="ROBERT GUSTAVO SANTOS SILVA"><option value="PEDRO ALVES CABRAL NETO"><option value="JULIA OLIVEIRA ONORIO"><option value="KALLYANA KAMILA ALVES"><option value="NATHALI CRISTINE DOS SANTOS"><option value="SILVIA MEIRE DE SOUZA"><option value="DÉBORA MELÃO MACEDO"><option value="FRANCINE VITORIA COSTA"><option value="LARISSA CAMARA"><option value="SINARA DA SILVA NUNES">
-          </datalist>
+          <div style="position:relative;">
+            <button onclick="toggleDropdown('dropdownAnalista')" style="width:100%;padding:12px;border:2px solid #3a4256;border-radius:8px;font-size:14px;background:#1a1f2e;color:#e2e8f0;text-align:left;cursor:pointer;" id="btnFiltroAnalista">Todos os Analistas ▾</button>
+            <div id="dropdownAnalista" style="display:none;position:absolute;top:100%;left:0;right:0;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;max-height:250px;overflow-y:auto;z-index:100;margin-top:4px;">
+              <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="FRANK PEREIRA DA SILVA" onchange="filtrarControle();atualizarBtnAnalista()" style="margin-right:8px;accent-color:#00A4E0;" class="chkAnalista"> FRANK PEREIRA DA SILVA</label>
+              <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="GISELE APARECIDA DE ALMEIDA" onchange="filtrarControle();atualizarBtnAnalista()" style="margin-right:8px;accent-color:#00A4E0;" class="chkAnalista"> GISELE APARECIDA DE ALMEIDA</label>
+              <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="ANA PAULA DOS SANTOS" onchange="filtrarControle();atualizarBtnAnalista()" style="margin-right:8px;accent-color:#00A4E0;" class="chkAnalista"> ANA PAULA DOS SANTOS</label>
+              <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="ROBERT GUSTAVO SANTOS SILVA" onchange="filtrarControle();atualizarBtnAnalista()" style="margin-right:8px;accent-color:#00A4E0;" class="chkAnalista"> ROBERT GUSTAVO SANTOS SILVA</label>
+              <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="PEDRO ALVES CABRAL NETO" onchange="filtrarControle();atualizarBtnAnalista()" style="margin-right:8px;accent-color:#00A4E0;" class="chkAnalista"> PEDRO ALVES CABRAL NETO</label>
+              <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="JULIA OLIVEIRA ONORIO" onchange="filtrarControle();atualizarBtnAnalista()" style="margin-right:8px;accent-color:#00A4E0;" class="chkAnalista"> JULIA OLIVEIRA ONORIO</label>
+              <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="KALLYANA KAMILA ALVES" onchange="filtrarControle();atualizarBtnAnalista()" style="margin-right:8px;accent-color:#00A4E0;" class="chkAnalista"> KALLYANA KAMILA ALVES</label>
+              <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="NATHALI CRISTINE DOS SANTOS" onchange="filtrarControle();atualizarBtnAnalista()" style="margin-right:8px;accent-color:#00A4E0;" class="chkAnalista"> NATHALI CRISTINE DOS SANTOS</label>
+              <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="SILVIA MEIRE DE SOUZA" onchange="filtrarControle();atualizarBtnAnalista()" style="margin-right:8px;accent-color:#00A4E0;" class="chkAnalista"> SILVIA MEIRE DE SOUZA</label>
+              <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="DÉBORA MELÃO MACEDO" onchange="filtrarControle();atualizarBtnAnalista()" style="margin-right:8px;accent-color:#00A4E0;" class="chkAnalista"> DÉBORA MELÃO MACEDO</label>
+              <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="FRANCINE VITORIA COSTA" onchange="filtrarControle();atualizarBtnAnalista()" style="margin-right:8px;accent-color:#00A4E0;" class="chkAnalista"> FRANCINE VITORIA COSTA</label>
+              <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="LARISSA CAMARA" onchange="filtrarControle();atualizarBtnAnalista()" style="margin-right:8px;accent-color:#00A4E0;" class="chkAnalista"> LARISSA CAMARA</label>
+              <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="SINARA DA SILVA NUNES" onchange="filtrarControle();atualizarBtnAnalista()" style="margin-right:8px;accent-color:#00A4E0;" class="chkAnalista"> SINARA DA SILVA NUNES</label>
+            </div>
+          </div>
         </div>
         <div>
           <label style="display:block;margin-bottom:8px;font-weight:700;color:#a0aec0;font-size:14px;">📂 Caixa:</label>
-          <select id="filtroCaixa" onchange="filtrarControle()" style="width:100%;padding:12px;border:2px solid #3a4256;border-radius:8px;font-size:14px;background:#1a1f2e;color:#e2e8f0;">
-            <option value="">Todas as Caixas</option>
-            <optgroup label="Agenda Financeira">
-              <option value="Gestão Aluguel Estornos">Gestão Aluguel Estornos</option>
-              <option value="Gestão Aluguel Incentivos">Gestão Aluguel Incentivos</option>
-              <option value="Saldo de Auditoria">Saldo de Auditoria</option>
-              <option value="Consultoria">Consultoria</option>
-              <option value="Prévia MDR">Prévia MDR</option>
-              <option value="Regularizações Financeiras">Regularizações Financeiras</option>
-            </optgroup>
-            <optgroup label="Cancelamento">
-              <option value="Desfazimento">Desfazimento</option>
-              <option value="Atendimento BackOffice">Atendimento BackOffice</option>
-              <option value="5125">5125</option>
-              <option value="STD - Corporate">STD - Corporate</option>
-              <option value="STD - Aéreo">STD - Aéreo</option>
-            </optgroup>
-            <optgroup label="Outros">
-              <option value="BackOffice Mídias Sociais">BackOffice Mídias Sociais</option>
-              <option value="Processos Ouvidoria BO">Processos Ouvidoria BO</option>
-              <option value="7922">7922 (Evento)</option>
-              <option value="9066">9066 (Evento)</option>
-            </optgroup>
-          </select>
+          <div style="position:relative;">
+            <button onclick="toggleDropdown('dropdownCaixa')" style="width:100%;padding:12px;border:2px solid #3a4256;border-radius:8px;font-size:14px;background:#1a1f2e;color:#e2e8f0;text-align:left;cursor:pointer;" id="btnFiltroCaixa">Todas as Caixas ▾</button>
+            <div id="dropdownCaixa" style="display:none;position:absolute;top:100%;left:0;right:0;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;max-height:300px;overflow-y:auto;z-index:100;margin-top:4px;">
+              <div style="padding:6px 12px;font-size:11px;font-weight:700;color:#00A4E0;text-transform:uppercase;border-bottom:1px solid #2d3548;">Agenda Financeira</div>
+              <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="Gestão Aluguel Estornos" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> Gestão Aluguel Estornos</label>
+              <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="Gestão Aluguel Incentivos" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> Gestão Aluguel Incentivos</label>
+              <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="Saldo de Auditoria" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> Saldo de Auditoria</label>
+              <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="Consultoria" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> Consultoria</label>
+              <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="Prévia MDR" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> Prévia MDR</label>
+              <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="Regularizações Financeiras" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> Regularizações Financeiras</label>
+              <div style="padding:6px 12px;font-size:11px;font-weight:700;color:#FF9F1C;text-transform:uppercase;border-bottom:1px solid #2d3548;">Cancelamento</div>
+              <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="Desfazimento" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> Desfazimento</label>
+              <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="Atendimento BackOffice" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> Atendimento BackOffice</label>
+              <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="5125" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> 5125</label>
+              <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="STD - Corporate" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> STD - Corporate</label>
+              <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="STD - Aéreo" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> STD - Aéreo</label>
+              <div style="padding:6px 12px;font-size:11px;font-weight:700;color:#00D664;text-transform:uppercase;border-bottom:1px solid #2d3548;">Outros</div>
+              <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="BackOffice Mídias Sociais" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> BackOffice Mídias Sociais</label>
+              <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="Processos Ouvidoria BO" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> Processos Ouvidoria BO</label>
+              <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="7922" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> 7922 (Evento)</label>
+              <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="9066" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> 9066 (Evento)</label>
+            </div>
+          </div>
         </div>
         <div>
           <label style="display:block;margin-bottom:8px;font-weight:700;color:#a0aec0;font-size:14px;">📅 Semana:</label>
-          <input type="week" id="filtroSemana" onchange="filtrarControle();atualizarVisualizacaoSemana()" style="width:100%;padding:12px;border:2px solid #3a4256;border-radius:8px;font-size:14px;background:#1a1f2e;color:#e2e8f0;">
-          <div id="visualizacaoSemana" style="margin-top:8px;font-size:13px;color:#8892a4;font-weight:600;text-align:center;padding:6px;background:#242b3d;border-radius:6px;display:none;"></div>
+          <select id="filtroCiclo" onchange="filtrarControle()" style="width:100%;padding:12px;border:2px solid #3a4256;border-radius:8px;font-size:14px;background:#1a1f2e;color:#e2e8f0;">
+            <option value="">Todos os Ciclos</option>
+            <option value="1">1º Ciclo</option>
+            <option value="2">2º Ciclo</option>
+            <option value="3">3º Ciclo</option>
+            <option value="4">4º Ciclo</option>
+            <option value="5">5º Ciclo</option>
+          </select>
         </div>
         <div style="display:flex;align-items:flex-end;gap:10px;">
           <button onclick="limparFiltros()" style="flex:1;padding:12px;background:#3a4256;color:#a0aec0;border:none;border-radius:8px;font-weight:700;cursor:pointer;">🔄 Limpar Filtros</button>
           <button id="btnLimparTudo" onclick="limparControle()" style="flex:1;padding:12px;background:linear-gradient(135deg,#dc3545 0%,#c82333 100%);color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;">🗑️ Limpar Tudo</button>
+        </div>
         </div>
       </div>
       <div id="tabelasControle"></div>
@@ -416,6 +437,10 @@
           <p style="color:#8892a4;">Carregando usuários...</p>
         </div>
         <div id="usuariosTable"></div>
+      </div>
+      <div style="background:#1e2536;padding:30px;border-radius:12px;border:1px solid rgba(255,255,255,0.06);margin:0 30px 30px;">
+        <h2 style="margin-bottom:20px;color:#e2e8f0;font-size:20px;">📋 Log de Acessos</h2>
+        <div id="accessLogsTable"></div>
       </div>
       <div class="copyright-footer"><p>© 2025 Yasmin de Melo Campos - Analista de Qualidade Jr</p></div>
     </div>
