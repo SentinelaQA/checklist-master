@@ -949,12 +949,30 @@
       else badge.style.display = 'none';
     };
 
-    window.limparFiltros = function() {
-      document.getElementById('filtroAnalista').value = '';
-      document.getElementById('filtroCaixa').value = '';
-      document.getElementById('filtroSemana').value = '';
-      document.getElementById('visualizacaoSemana').style.display = 'none';
-      filtrarControle();
+    // Old limparFiltros replaced by new one defined above
+
+    window.renderizarAccessLogs = function() {
+      const container = document.getElementById('accessLogsTable');
+      if (!container) return;
+      const logs = JSON.parse(localStorage.getItem('accessLogs') || '[]');
+      if (logs.length === 0) {
+        container.innerHTML = '<p style="text-align:center;color:#6a7489;padding:40px;font-size:16px;">📭 Nenhum acesso registrado ainda.</p>';
+        return;
+      }
+      let html = '<table style="width:100%;border-collapse:collapse;">';
+      html += '<thead><tr style="border-bottom:2px solid #3a4256;"><th style="padding:12px;text-align:left;color:#a0aec0;">Data/Hora</th><th style="padding:12px;text-align:left;color:#a0aec0;">Usuário</th><th style="padding:12px;text-align:left;color:#a0aec0;">E-mail</th><th style="padding:12px;text-align:left;color:#a0aec0;">Perfil</th></tr></thead><tbody>';
+      logs.forEach(log => {
+        const data = new Date(log.date);
+        const dataFormatada = data.toLocaleDateString('pt-BR') + ' ' + data.toLocaleTimeString('pt-BR');
+        html += `<tr style="border-bottom:1px solid #3a4256;">
+          <td style="padding:10px;color:#e2e8f0;font-size:13px;">${dataFormatada}</td>
+          <td style="padding:10px;color:#e2e8f0;">${log.name || '-'}</td>
+          <td style="padding:10px;color:#8892a4;">${log.email || '-'}</td>
+          <td style="padding:10px;"><span style="padding:4px 10px;border-radius:12px;font-size:11px;font-weight:700;background:${log.role === 'admin' ? 'rgba(0,164,224,0.15);color:#4db8e8' : 'rgba(0,214,100,0.15);color:#5be880'};">${log.role || 'usuario'}</span></td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+      container.innerHTML = html;
     };
 
     // Expor db e funções para uso global
