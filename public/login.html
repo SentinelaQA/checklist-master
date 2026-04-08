@@ -63,7 +63,7 @@
     }
     .btn-login {
       width: 100%; padding: 16px;
-      background: linear-gradient(135deg, #00A4E0 0%, #00D664 100%);
+      background: linear-gradient(135deg, #00A4E0 0%, #00C85A 100%);
       color: white; border: none; border-radius: 10px;
       font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s; margin-top: 10px;
     }
@@ -202,14 +202,17 @@
         let role = 'usuario';
         let name = email;
 
-        if (userDoc.exists()) {
+        // Forçar admin para ymcampos@stefanini.com
+        if (email.toLowerCase() === 'ymcampos@stefanini.com') {
+          role = 'admin';
+          name = 'Yasmin de Melo Campos';
+        } else if (userDoc.exists()) {
           const data = userDoc.data();
           role = data.cargo || 'usuario';
           name = data.nome || email;
         } else {
-          // Admin padrão
-          role = 'admin';
-          name = 'Yasmin de Melo Campos';
+          role = 'usuario';
+          name = email;
         }
 
         // Salvar dados na sessão
