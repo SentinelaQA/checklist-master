@@ -515,21 +515,17 @@
       let role = 'usuario';
       let name = user.email;
 
-      if (userDoc.exists()) {
+      // Forçar admin para ymcampos@stefanini.com
+      if (user.email && user.email.toLowerCase() === 'ymcampos@stefanini.com') {
+        role = 'admin';
+        name = 'Yasmin de Melo Campos';
+      } else if (userDoc.exists()) {
         const data = userDoc.data();
         role = data.cargo || 'usuario';
         name = data.nome || user.email;
       } else {
-        // Admin padrão (ymcampos@stefanini.com)
-        role = 'admin';
-        name = 'Yasmin de Melo Campos';
-        // Criar doc de admin se não existir
-        await setDoc(doc(db, 'usuarios', user.uid), {
-          nome: 'Yasmin de Melo Campos',
-          email: user.email,
-          cargo: 'admin',
-          criadoEm: new Date().toISOString()
-        });
+        role = 'usuario';
+        name = user.email;
       }
 
       isAdmin = (role === 'admin');
