@@ -483,15 +483,16 @@
     import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
     import { getFirestore, collection, addDoc, getDocs, doc, getDoc, setDoc, deleteDoc, updateDoc, query, orderBy, where } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBX4XujRUkKLHLbOCamAtuxixyLJ4D4gio",
-      authDomain: "checklist-qualidade-7bdf3.firebaseapp.com",
-      projectId: "checklist-qualidade-7bdf3",
-      storageBucket: "checklist-qualidade-7bdf3.firebasestorage.app",
-      messagingSenderId: "154335831153",
-      appId: "1:154335831153:web:52c8260fe05e022ed827d0",
-      measurementId: "G-4K7D8HTQXF"
-    };
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyAGJRM0Zq_U1uaQV25eJQsLZueITMjDbIA",
+  authDomain: "checklist-qualidade-7bdf3.firebaseapp.com",
+  projectId: "checklist-qualidade-7bdf3",
+  storageBucket: "checklist-qualidade-7bdf3.firebasestorage.app",
+  messagingSenderId: "154335831153",
+  appId: "1:154335831153:web:52c8260fe05e022ed827d0",
+  measurementId: "G-4K7D8HTQXF"
+};
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
