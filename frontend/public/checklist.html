@@ -87,6 +87,8 @@
     .alert-ncg { background: rgba(255,107,107,0.1); border: 2px solid #FF6B6B; border-radius: 10px; padding: 15px; margin: 20px 30px; display: none; align-items: center; gap: 15px; }
     .alert-ncg.show { display: flex; animation: slideDown 0.5s; }
     @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideInRight { from { opacity: 0; transform: translateX(80px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes slideOutRight { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(80px); } }
     .export-btn { position: fixed; bottom: 30px; right: 30px; background: linear-gradient(135deg, #0d7ab5 0%, #0aab50 100%); color: white; border: none; padding: 15px 30px; border-radius: 50px; font-weight: 700; cursor: pointer; box-shadow: 0 5px 20px rgba(13,122,181,0.4); transition: all 0.3s; font-size: 14px; }
     .reset-btn { position: fixed; bottom: 90px; right: 30px; background: #3a4256; color: #a0aec0; border: none; padding: 12px 25px; border-radius: 50px; font-weight: 600; cursor: pointer; box-shadow: 0 5px 20px rgba(0,0,0,0.3); transition: all 0.3s; font-size: 13px; }
     .score-notification { position: fixed; bottom: 150px; right: 30px; background: linear-gradient(135deg, #0d7ab5 0%, #0aab50 100%); color: white; padding: 15px 22px; border-radius: 12px; box-shadow: 0 5px 20px rgba(13,122,181,0.4); z-index: 1500; text-align: center; transition: all 0.3s ease; min-width: 110px; min-height: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transform: translateY(20px); pointer-events: none; }
@@ -474,21 +476,24 @@
     </div>
   </div>
 
-  <!-- Modal Confirmar Reset -->
-  <div class="confirm-overlay" id="confirmResetar">
+  <!-- Modal Confirm (dinâmico) -->
+  <div class="confirm-overlay" id="confirmModal">
     <div class="confirm-box">
-      <div class="confirm-icon">⚠️</div>
-      <div class="confirm-title">TEM CERTEZA QUE DESEJA RESETAR?</div>
-      <div class="confirm-message">Todos os itens marcados e observações serão apagados permanentemente.<br><br><strong>Esta ação não pode ser desfeita!</strong></div>
+      <div class="confirm-icon" id="confirmModalIcon">⚠️</div>
+      <div class="confirm-title" id="confirmModalTitle">Tem certeza?</div>
+      <div class="confirm-message" id="confirmModalMessage"></div>
       <div class="confirm-buttons">
-        <button class="confirm-btn confirm-btn-cancel" onclick="cancelarResetar()">❌ Cancelar</button>
-        <button class="confirm-btn confirm-btn-ok" onclick="confirmarResetar()">✅ Sim, Resetar Tudo</button>
+        <button class="confirm-btn confirm-btn-cancel" id="confirmModalCancel">Cancelar</button>
+        <button class="confirm-btn confirm-btn-ok" id="confirmModalOk">Confirmar</button>
       </div>
     </div>
   </div>
 
-  <button class="reset-btn" onclick="resetarChecklist()">🔄 Resetar</button>
-  <button class="export-btn" onclick="exportarResultado()">📊 Exportar Resultado</button>
+  <!-- Toast container -->
+  <div id="toastContainer" style="position:fixed;top:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:10px;pointer-events:none;"></div>
+
+  <button id="btnResetar" class="reset-btn" onclick="resetarChecklist()">🔄 Resetar</button>
+  <button id="btnExportarResultado" class="export-btn" onclick="exportarResultado()">📊 Exportar Resultado</button>
   <button id="btnExportarControle" onclick="exportarParaControle()" style="position:fixed;bottom:30px;right:30px;padding:16px 24px;background:linear-gradient(135deg,#9B59B6 0%,#8E44AD 100%);color:white;border:none;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(155,89,182,0.4);z-index:999;transition:all 0.3s;display:flex;align-items:center;gap:8px;">📋 Exportar para Controle</button>
   <div class="score-notification" id="scoreNotification">
     <div class="score-notification-title">Pontuação Atual</div>
@@ -615,11 +620,11 @@ const firebaseConfig = {
       const dataAvaliacao = document.getElementById('dataAvaliacao').value || '';
       const tratadoVia = document.getElementById('tratadoVia').value || '';
 
-      if (!analista) { alert('⚠️ Por favor, preencha o nome do analista!'); return; }
+      if (!analista) { showToast('Preencha o nome do analista!', 'warning'); return; }
       const subCaixaVal = document.getElementById('subCaixa').value || '';
       if (tratadoVia !== 'CRM' && subCaixaVal !== '5125') {
-        if (!assunto) { alert('⚠️ Por favor, preencha o assunto!'); return; }
-        if (!ticket) { alert('⚠️ Por favor, preencha o número do ticket!'); return; }
+        if (!assunto) { showToast('Preencha o assunto!', 'warning'); return; }
+        if (!ticket) { showToast('Preencha o número do ticket!', 'warning'); return; }
       }
 
       let categoria = '', caixaFinal = '';
@@ -694,10 +699,10 @@ const firebaseConfig = {
         document.getElementById('scoreNotification').classList.remove('score-notification-ncg');
 
         trocarAba('controle');
-        alert('✅ Avaliação salva com sucesso!');
+        showToast('Avaliação salva com sucesso!', 'success');
       } catch (e) {
         console.error('Erro ao salvar:', e);
-        alert('❌ Erro ao salvar. Verifique sua conexão.');
+        showToast('Erro ao salvar. Verifique sua conexão.', 'error');
       }
     };
 
@@ -802,6 +807,7 @@ const firebaseConfig = {
         document.getElementById('visSemanaControle').style.display = 'none';
       }
       renderizarTabelas(registros);
+      window._registrosFiltrados = registros;
       atualizarTagsAtivos();
     };
     window.limparFiltros = function() {
@@ -891,30 +897,95 @@ const firebaseConfig = {
     };
 
     // ===== EXCLUIR REGISTRO =====
-    window.excluirRegistro = async function(id) {
-      if (!confirm('⚠️ Deseja realmente excluir este registro?')) return;
-      const reg = registrosCache.find(r => r.id === id);
-      if (reg && reg.firestoreId) {
-        await deleteDoc(doc(db, 'controleAvaliacoes', reg.firestoreId));
+    window.excluirRegistro = function(id) {
+      showConfirm('Excluir Registro', 'Deseja realmente excluir este registro?<br><br>Esta ação não pode ser desfeita.', '🗑️', 'danger', async () => {
+        const reg = registrosCache.find(r => r.id === id);
+        if (reg && reg.firestoreId) await deleteDoc(doc(db, 'controleAvaliacoes', reg.firestoreId));
+        registrosCache = registrosCache.filter(r => r.id !== id);
+        window._registros = registrosCache;
+        window._registrosFiltrados = (window._registrosFiltrados||[]).filter(r => r.id !== id);
+        renderizarTabelas(registrosCache);
+        atualizarContadorControle();
+        showToast('Registro excluído!', 'success');
+      });
+    };
+
+    // ===== SISTEMA DE TOAST =====
+    window.showToast = function(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const styles = {
+        success: { bg: 'rgba(0,180,80,0.12)', border: '#00C864', color: '#3ddc70', icon: '✅' },
+        error:   { bg: 'rgba(255,107,107,0.12)', border: '#FF6B6B', color: '#ff8a8a', icon: '❌' },
+        warning: { bg: 'rgba(255,159,28,0.12)', border: '#FF9F1C', color: '#ffc15e', icon: '⚠️' },
+        info:    { bg: 'rgba(0,164,224,0.12)', border: '#00A4E0', color: '#4db8e8', icon: 'ℹ️' },
+      };
+      const s = styles[type] || styles.info;
+      const toast = document.createElement('div');
+      toast.style.cssText = `pointer-events:auto;background:${s.bg};border:1px solid ${s.border};border-radius:12px;padding:14px 20px;color:${s.color};font-weight:600;font-size:14px;max-width:380px;box-shadow:0 8px 30px rgba(0,0,0,0.5);backdrop-filter:blur(8px);animation:slideInRight 0.3s ease;display:flex;align-items:center;gap:10px;line-height:1.4;`;
+      toast.innerHTML = `<span style="font-size:18px;">${s.icon}</span><span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.animation = 'slideOutRight 0.3s ease forwards';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    };
+
+    // ===== SISTEMA DE CONFIRM MODAL =====
+    window.showConfirm = function(title, message, icon, type, onConfirm) {
+      const modal = document.getElementById('confirmModal');
+      document.getElementById('confirmModalIcon').textContent = icon || '⚠️';
+      document.getElementById('confirmModalTitle').textContent = title;
+      document.getElementById('confirmModalMessage').innerHTML = message;
+      const titleEl = document.getElementById('confirmModalTitle');
+      const okBtn = document.getElementById('confirmModalOk');
+      const cancelBtn = document.getElementById('confirmModalCancel');
+      if (type === 'danger') {
+        titleEl.style.color = '#FF6B6B';
+        okBtn.style.background = 'linear-gradient(135deg,#c82333,#dc3545)';
+        okBtn.style.color = 'white';
+        okBtn.textContent = 'Sim, confirmar';
+        cancelBtn.textContent = 'Cancelar';
+      } else if (type === 'success') {
+        titleEl.style.color = '#3ddc70';
+        okBtn.style.background = 'linear-gradient(135deg,#0d7ab5,#0aab50)';
+        okBtn.style.color = 'white';
+        okBtn.textContent = 'Confirmar';
+        cancelBtn.textContent = 'Cancelar';
+      } else {
+        titleEl.style.color = '#4db8e8';
+        okBtn.style.background = 'linear-gradient(135deg,#0d7ab5,#0aab50)';
+        okBtn.style.color = 'white';
+        okBtn.textContent = 'Confirmar';
+        cancelBtn.textContent = 'Cancelar';
       }
-      registrosCache = registrosCache.filter(r => r.id !== id);
-      window._registros = registrosCache;
-      renderizarTabelas(registrosCache);
-      atualizarContadorControle();
-      alert('✅ Registro excluído!');
+      modal.classList.add('show');
+      okBtn.onclick = () => { modal.classList.remove('show'); onConfirm(); };
+      cancelBtn.onclick = () => modal.classList.remove('show');
+      modal.onclick = (e) => { if (e.target === modal) modal.classList.remove('show'); };
     };
 
     // ===== LIMPAR TUDO =====
-    window.limparControle = async function() {
-      if (!confirm('⚠️ ATENÇÃO! Isso irá apagar TODAS as avaliações. Deseja continuar?')) return;
-      if (!confirm('⚠️ Tem certeza absoluta? Esta ação não pode ser desfeita!')) return;
-      const snap = await getDocs(collection(db, 'controleAvaliacoes'));
-      for (const d of snap.docs) await deleteDoc(d.ref);
-      registrosCache = [];
-      window._registros = [];
-      renderizarTabelas([]);
-      atualizarContadorControle();
-      alert('✅ Todos os registros foram apagados!');
+    window.limparControle = function() {
+      showConfirm(
+        'Limpar Todas as Avaliações',
+        'Isso irá apagar <strong>TODOS</strong> os registros permanentemente.<br><br>Esta ação <strong>não pode ser desfeita!</strong>',
+        '🗑️', 'danger',
+        async () => {
+          try {
+            const snap = await getDocs(collection(db, 'controleAvaliacoes'));
+            for (const d of snap.docs) await deleteDoc(d.ref);
+            registrosCache = [];
+            window._registros = [];
+            window._registrosFiltrados = [];
+            renderizarTabelas([]);
+            atualizarContadorControle();
+            atualizarTagsAtivos();
+            showToast('Todos os registros foram apagados!', 'success');
+          } catch(e) {
+            showToast('Erro ao limpar registros. Verifique sua conexão.', 'error');
+          }
+        }
+      );
     };
 
     // ===== SALVAR TAG =====
@@ -930,7 +1001,7 @@ const firebaseConfig = {
         }
       }
       window._registros = registrosCache;
-      alert('✅ TAG salva para ' + analista + '!');
+      showToast('TAG salva para ' + analista + '!', 'success');
     };
 
     // ===== CADASTRO DE USUÁRIOS (Firebase Auth + Firestore) =====
@@ -1006,27 +1077,22 @@ const firebaseConfig = {
       }
     };
 
-    window.excluirUsuario = async function(uid) {
-      if (!confirm('⚠️ Deseja excluir este usuário do sistema?')) return;
-      await deleteDoc(doc(db, 'usuarios', uid));
-      carregarUsuarios();
+    window.excluirUsuario = function(uid) {
+      showConfirm('Excluir Usuário', 'Deseja excluir este usuário do sistema?<br><br>O acesso será revogado imediatamente.', '👤', 'danger', async () => {
+        await deleteDoc(doc(db, 'usuarios', uid));
+        carregarUsuarios();
+        showToast('Usuário removido do sistema.', 'success');
+      });
     };
 
     function showAlertCadastro(message, type) {
-      const alertBox = document.getElementById('alertCadastro');
-      if (!alertBox) return;
-      alertBox.textContent = message;
-      alertBox.style.display = 'block';
-      alertBox.style.background = type === 'success' ? 'rgba(40,167,69,0.15)' : 'rgba(220,53,69,0.15)';
-      alertBox.style.color = type === 'success' ? '#5be880' : '#ff6b7a';
-      alertBox.style.border = type === 'success' ? '2px solid rgba(40,167,69,0.4)' : '2px solid rgba(220,53,69,0.4)';
-      setTimeout(() => { alertBox.style.display = 'none'; }, 5000);
+      showToast(message.replace(/^[✅❌⚠️]\s?/, ''), type === 'success' ? 'success' : 'error');
     }
 
     // ===== SALVAR FEEDBACK =====
     window.salvarFeedback = async function() {
       const feedback = document.getElementById('feedback').value;
-      if (!feedback.trim()) { alert('⚠️ Por favor, digite um feedback antes de salvar!'); return; }
+      if (!feedback.trim()) { showToast('Digite um feedback antes de salvar!', 'warning'); return; }
       const analista = document.getElementById('analistaNome').value || 'Não informado';
       const dataAvaliacao = document.getElementById('dataAvaliacao').value || new Date().toISOString().split('T')[0];
       await addDoc(collection(db, 'feedbacks'), {
@@ -1034,14 +1100,16 @@ const firebaseConfig = {
         pontuacao: window._state.score,
         timestamp: new Date().toISOString()
       });
-      alert('✅ Feedback salvo com sucesso!');
+      showToast('Feedback salvo com sucesso!', 'success');
     };
 
     // ===== EXPORTAR CSV =====
     window.exportarTodoControle = function() {
-      if (registrosCache.length === 0) { alert('⚠️ Nenhum registro para exportar!'); return; }
+      const dados = (window._registrosFiltrados && window._registrosFiltrados.length > 0)
+        ? window._registrosFiltrados : registrosCache;
+      if (!dados || dados.length === 0) { showToast('Nenhum registro para exportar!', 'warning'); return; }
       let csv = 'Categoria,Nível,Analista,Caixa,Assunto,Protocolo/Email,Observação,Desvio,Nota,Data\n';
-      registrosCache.forEach(r => {
+      dados.forEach(r => {
         const linha = [r.categoria,r.nivel,r.analista,r.caixa,r.assunto,r.protocoloOuEmail||'',r.observacao||'',r.desvio,r.nota,r.data]
           .map(f => `"${String(f||'').replace(/"/g,'""')}"`).join(',');
         csv += linha + '\n';
@@ -1050,9 +1118,9 @@ const firebaseConfig = {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `controle_completo_${new Date().toISOString().split('T')[0]}.csv`;
+      a.download = `controle_${new Date().toISOString().split('T')[0]}.csv`;
       a.click();
-      alert('✅ Controle completo exportado!');
+      showToast(`${dados.length} registro(s) exportado(s)!`, 'success');
     };
 
     // ===== TROCAR ABA =====
@@ -1068,12 +1136,20 @@ const firebaseConfig = {
 
       const btnExportar = document.getElementById('btnExportarControle');
       const scoreNotification = document.getElementById('scoreNotification');
+      const btnResetar = document.getElementById('btnResetar');
+      const btnExpRes = document.getElementById('btnExportarResultado');
+
+      // Oculta botões flutuantes em todas as abas por padrão
+      if (btnResetar) btnResetar.style.display = 'none';
+      if (btnExpRes) btnExpRes.style.display = 'none';
 
       if (aba === 'formularios') {
         document.getElementById('viewFormularios').style.display = 'block';
         document.getElementById('tabFormularios').classList.add('tab-active');
         if (btnExportar) btnExportar.style.display = 'flex';
         if (scoreNotification) scoreNotification.style.display = 'flex';
+        if (btnResetar) btnResetar.style.display = 'block';
+        if (btnExpRes) btnExpRes.style.display = 'block';
       } else if (aba === 'controle') {
         document.getElementById('viewControle').style.display = 'block';
         document.getElementById('tabControle').classList.add('tab-active');
@@ -1508,17 +1584,16 @@ const firebaseConfig = {
       renderChecklist();
     }
 
-    function resetarChecklist() { document.getElementById('confirmResetar').classList.add('show'); }
-    function cancelarResetar() { document.getElementById('confirmResetar').classList.remove('show'); }
-    function confirmarResetar() {
-      state.score = 100; state.nc = 0; state.ncg = 0; state.total = 0;
-      state.items = {}; state.observations = {}; state.ncgDetected = false;
-      document.getElementById('alertNCG').classList.remove('show');
-      document.getElementById('confirmResetar').classList.remove('show');
-      updateUI();
-      document.getElementById('scoreNotificationValue').textContent = '100';
-      document.getElementById('scoreNotification').classList.remove('score-notification-ncg');
-      alert('✅ Checklist resetado com sucesso!');
+    function resetarChecklist() {
+      showConfirm('Resetar Checklist', 'Todos os itens marcados e observações serão apagados.<br><br>Esta ação não pode ser desfeita!', '🔄', 'danger', () => {
+        state.score = 100; state.nc = 0; state.ncg = 0; state.total = 0;
+        state.items = {}; state.observations = {}; state.ncgDetected = false;
+        document.getElementById('alertNCG').classList.remove('show');
+        updateUI();
+        document.getElementById('scoreNotificationValue').textContent = '100';
+        document.getElementById('scoreNotification').classList.remove('score-notification-ncg');
+        showToast('Checklist resetado com sucesso!', 'success');
+      });
     }
 
     function limparCamposFormulario() {
@@ -1539,7 +1614,7 @@ const firebaseConfig = {
       a.href = url;
       a.download = `checklist_${analista.replace(/\s+/g,'_')}_${dataAvaliacao}.json`;
       a.click();
-      alert('✅ Resultado exportado!');
+      showToast('Resultado exportado com sucesso!', 'success');
     }
 
     function getWeekNumber(date) {
@@ -1753,7 +1828,7 @@ const firebaseConfig = {
       const mesFiltro = document.getElementById('dashMes').value;
       let registros = window._registros || [];
       if (mesFiltro) registros = registros.filter(r => getMesFromRegistro(r) === mesFiltro);
-      if (registros.length === 0) { alert('⚠️ Nenhum dado para exportar!'); return; }
+      if (registros.length === 0) { showToast('Nenhum dado para exportar!', 'warning'); return; }
       let csv = 'Data,Analista,Caixa,Nota,Ciclo,Mês,Semana\n';
       registros.forEach(r => {
         csv += [r.data,r.analista,r.caixa,r.nota,getCicloFromRegistro(r)+'° Ciclo',getMesFromRegistro(r),r.semana||'']
