@@ -706,8 +706,32 @@ const firebaseConfig = {
     window.atualizarBtnCaixa = function() {
       const selecionados = [...document.querySelectorAll('.chkCaixa:checked')].map(c => c.value);
       const btn = document.getElementById('btnFiltroCaixa');
-      btn.textContent = selecionados.length === 0 ? 'Todas as Caixas ▾' : selecionados.length + ' caixa(s) ▾';
+      if (selecionados.length === 0) {
+        btn.textContent = 'Todas as Caixas ▾';
+      } else if (selecionados.length <= 2) {
+        const texto = selecionados.join(', ');
+        btn.textContent = (texto.length > 32 ? texto.slice(0, 30) + '…' : texto) + ' ▾';
+      } else {
+        const texto = selecionados.slice(0, 2).join(', ');
+        btn.textContent = (texto.length > 26 ? texto.slice(0, 24) + '…' : texto) + ` +${selecionados.length - 2} ▾`;
+      }
     };
+    // Helper: retorna a segunda-feira de início de uma ISO week
+    function getISOWeekStart(year, week) {
+      const jan4 = new Date(year, 0, 4);
+      const dow = jan4.getDay() || 7; // 1=Seg … 7=Dom
+      const week1Monday = new Date(jan4);
+      week1Monday.setDate(jan4.getDate() - (dow - 1));
+      const start = new Date(week1Monday);
+      start.setDate(week1Monday.getDate() + (week - 1) * 7);
+      return start;
+    }
+
+    // Helper: ciclo por dia do mês (01-07=1, 08-14=2, 15-21=3, 22+=4)
+    function getCicloPorDia(diaDoMes) {
+      return Math.min(4, Math.ceil(diaDoMes / 7));
+    }
+
     window.filtrarControle = function() {
       const analistasSelecionados = [...document.querySelectorAll('.chkAnalista:checked')].map(c => c.value.toUpperCase());
       const caixasSelecionadas = [...document.querySelectorAll('.chkCaixa:checked')].map(c => c.value);
@@ -716,22 +740,30 @@ const firebaseConfig = {
       let registros = [...registrosCache];
       if (analistasSelecionados.length > 0) registros = registros.filter(r => analistasSelecionados.includes(r.analista.toUpperCase()));
       if (caixasSelecionadas.length > 0) registros = registros.filter(r => caixasSelecionadas.includes(r.caixa));
+
       const semanaControle = document.getElementById('filtroSemanaControle').value;
       if (semanaControle) {
         const [ano, sem] = semanaControle.split('-W');
         const semNum = parseInt(sem);
+
+        // Filtrar registros pela semana
         registros = registros.filter(r => {
           if (!r.semana) return false;
-          const rSem = parseInt(r.semana.replace('W',''));
-          return rSem === semNum;
+          return parseInt(r.semana.replace('W', '')) === semNum;
         });
-        // Show cycle info
-        const d = new Date(ano, 0, 1 + (semNum - 1) * 7);
-        const diaDoMes = d.getDate();
-        const ciclo = Math.min(4, Math.ceil(diaDoMes / 7));
+
+        // Calcular início e fim da semana ISO
+        const inicioSemana = getISOWeekStart(parseInt(ano), semNum);
+        const fimSemana = new Date(inicioSemana);
+        fimSemana.setDate(inicioSemana.getDate() + 6);
+        const fmt = d => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+
+        // Ciclo: baseado no dia do mês do início da semana
+        const ciclo = getCicloPorDia(inicioSemana.getDate());
         const cicloTexto = `${ciclo}º Ciclo`;
+
         const vis = document.getElementById('visSemanaControle');
-        vis.innerHTML = `<span style="color:#00A4E0;">${cicloTexto}</span>`;
+        vis.innerHTML = `<strong>W${String(semNum).padStart(2,'0')}</strong> — ${fmt(inicioSemana)} à ${fmt(fimSemana)} | <span style="color:#00A4E0;font-weight:700;">${cicloTexto}</span>`;
         vis.style.display = 'block';
       } else {
         document.getElementById('visSemanaControle').style.display = 'none';
@@ -1413,23 +1445,18 @@ const firebaseConfig = {
       if (semanaInput) {
         const [ano, semana] = semanaInput.split('-W');
         const semanaNum = parseInt(semana);
-        const primeiroDiaAno = new Date(ano, 0, 1);
-        const diasParaPrimeiraSegunda = (8 - primeiroDiaAno.getDay()) % 7;
-        const primeiraSegunda = new Date(ano, 0, 1 + diasParaPrimeiraSegunda);
-        const inicioSemana = new Date(primeiraSegunda);
-        inicioSemana.setDate(primeiraSegunda.getDate() + (semanaNum - 1) * 7);
+
+        // Início e fim da ISO week
+        const inicioSemana = getISOWeekStart(parseInt(ano), semanaNum);
         const fimSemana = new Date(inicioSemana);
         fimSemana.setDate(inicioSemana.getDate() + 6);
-        const fmt = (d) => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
-        const mesInicio = inicioSemana.getMonth();
-        const anoInicio = inicioSemana.getFullYear();
-        const p = new Date(anoInicio, mesInicio, 1);
-        const ds = p.getDay();
-        if (ds !== 1) p.setDate(p.getDate() + ((8 - ds) % 7));
-        const diff = Math.floor((inicioSemana - p) / (7*24*60*60*1000));
-        const ciclo = Math.max(1, Math.min(4, diff + 1));
-        const cicloTexto = ciclo === 1 ? '1º Ciclo' : ciclo === 2 ? '2º Ciclo' : ciclo === 3 ? '3º Ciclo' : '4º Ciclo';
-        vis.innerHTML = `<strong>W${semana}</strong> - ${fmt(inicioSemana)} à ${fmt(fimSemana)} | <span style="color:#00A4E0;">${cicloTexto}</span>`;
+        const fmt = d => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+
+        // Ciclo: dia 01-07=1º, 08-14=2º, 15-21=3º, 22+=4º
+        const ciclo = getCicloPorDia(inicioSemana.getDate());
+        const cicloTexto = `${ciclo}º Ciclo`;
+
+        vis.innerHTML = `<strong>W${semana}</strong> — ${fmt(inicioSemana)} à ${fmt(fimSemana)} | <span style="color:#00A4E0;font-weight:700;">${cicloTexto}</span>`;
         vis.style.display = 'block';
       } else { vis.style.display = 'none'; }
     }
