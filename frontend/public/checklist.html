@@ -313,7 +313,11 @@
           <label style="display:block;margin-bottom:8px;font-weight:700;color:#a0aec0;font-size:14px;">📌 Analista:</label>
           <div style="position:relative;">
             <button onclick="toggleDropdown('dropdownAnalista')" style="width:100%;padding:12px;border:2px solid #3a4256;border-radius:8px;font-size:14px;background:#1a1f2e;color:#e2e8f0;text-align:left;cursor:pointer;" id="btnFiltroAnalista">Todos os Analistas ▾</button>
-            <div id="dropdownAnalista" style="display:none;position:absolute;top:100%;left:0;right:0;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;max-height:250px;overflow-y:auto;z-index:100;margin-top:4px;">
+            <div id="dropdownAnalista" style="display:none;position:absolute;top:100%;left:0;right:0;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;max-height:300px;overflow-y:auto;z-index:100;margin-top:4px;">
+              <div style="padding:8px;border-bottom:1px solid #2d3548;position:sticky;top:0;background:#1a1f2e;z-index:2;">
+                <input type="text" id="buscaAnalista" placeholder="🔍 Buscar analista..." oninput="buscarOpcoes('analista')" style="width:100%;padding:8px 10px;background:#0d1117;border:1px solid #3a4256;border-radius:6px;color:#e2e8f0;font-size:13px;outline:none;box-sizing:border-box;">
+              </div>
+              <div id="listaAnalistas">
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="FRANK PEREIRA DA SILVA" onchange="filtrarControle();atualizarBtnAnalista()" style="margin-right:8px;accent-color:#00A4E0;" class="chkAnalista"> FRANK PEREIRA DA SILVA</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="GISELE APARECIDA DE ALMEIDA" onchange="filtrarControle();atualizarBtnAnalista()" style="margin-right:8px;accent-color:#00A4E0;" class="chkAnalista"> GISELE APARECIDA DE ALMEIDA</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="ANA PAULA DOS SANTOS" onchange="filtrarControle();atualizarBtnAnalista()" style="margin-right:8px;accent-color:#00A4E0;" class="chkAnalista"> ANA PAULA DOS SANTOS</label>
@@ -327,6 +331,7 @@
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="FRANCINE VITORIA COSTA" onchange="filtrarControle();atualizarBtnAnalista()" style="margin-right:8px;accent-color:#00A4E0;" class="chkAnalista"> FRANCINE VITORIA COSTA</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="LARISSA CAMARA" onchange="filtrarControle();atualizarBtnAnalista()" style="margin-right:8px;accent-color:#00A4E0;" class="chkAnalista"> LARISSA CAMARA</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="SINARA DA SILVA NUNES" onchange="filtrarControle();atualizarBtnAnalista()" style="margin-right:8px;accent-color:#00A4E0;" class="chkAnalista"> SINARA DA SILVA NUNES</label>
+              </div>
             </div>
           </div>
         </div>
@@ -334,25 +339,30 @@
           <label style="display:block;margin-bottom:8px;font-weight:700;color:#a0aec0;font-size:14px;">📂 Caixa:</label>
           <div style="position:relative;">
             <button onclick="toggleDropdown('dropdownCaixa')" style="width:100%;padding:12px;border:2px solid #3a4256;border-radius:8px;font-size:14px;background:#1a1f2e;color:#e2e8f0;text-align:left;cursor:pointer;" id="btnFiltroCaixa">Todas as Caixas ▾</button>
-            <div id="dropdownCaixa" style="display:none;position:absolute;top:100%;left:0;right:0;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;max-height:300px;overflow-y:auto;z-index:100;margin-top:4px;">
-              <div style="padding:6px 12px;font-size:11px;font-weight:700;color:#00A4E0;text-transform:uppercase;border-bottom:1px solid #2d3548;">Agenda Financeira</div>
+            <div id="dropdownCaixa" style="display:none;position:absolute;top:100%;left:0;right:0;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;max-height:320px;overflow-y:auto;z-index:100;margin-top:4px;">
+              <div style="padding:8px;border-bottom:1px solid #2d3548;position:sticky;top:0;background:#1a1f2e;z-index:2;">
+                <input type="text" id="buscaCaixa" placeholder="🔍 Buscar caixa..." oninput="buscarOpcoes('caixa')" style="width:100%;padding:8px 10px;background:#0d1117;border:1px solid #3a4256;border-radius:6px;color:#e2e8f0;font-size:13px;outline:none;box-sizing:border-box;">
+              </div>
+              <div id="listaCaixas">
+              <div data-grupo="agenda" style="padding:6px 12px;font-size:11px;font-weight:700;color:#00A4E0;text-transform:uppercase;border-bottom:1px solid #2d3548;">Agenda Financeira</div>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="Gestão Aluguel Estornos" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> Gestão Aluguel Estornos</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="Gestão Aluguel Incentivos" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> Gestão Aluguel Incentivos</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="Saldo de Auditoria" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> Saldo de Auditoria</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="Consultoria" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> Consultoria</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="Prévia MDR" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> Prévia MDR</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="Regularizações Financeiras" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> Regularizações Financeiras</label>
-              <div style="padding:6px 12px;font-size:11px;font-weight:700;color:#FF9F1C;text-transform:uppercase;border-bottom:1px solid #2d3548;">Cancelamento</div>
+              <div data-grupo="cancelamento" style="padding:6px 12px;font-size:11px;font-weight:700;color:#FF9F1C;text-transform:uppercase;border-bottom:1px solid #2d3548;">Cancelamento</div>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="Desfazimento" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> Desfazimento</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="Atendimento BackOffice" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> Atendimento BackOffice</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="5125" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> 5125</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="STD - Corporate" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> STD - Corporate</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="STD - Aéreo" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> STD - Aéreo</label>
-              <div style="padding:6px 12px;font-size:11px;font-weight:700;color:#00D664;text-transform:uppercase;border-bottom:1px solid #2d3548;">Outros</div>
+              <div data-grupo="outros" style="padding:6px 12px;font-size:11px;font-weight:700;color:#00D664;text-transform:uppercase;border-bottom:1px solid #2d3548;">Outros</div>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="BackOffice Mídias Sociais" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> BackOffice Mídias Sociais</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="Processos Ouvidoria BO" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> Processos Ouvidoria BO</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="7922" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> 7922 (Evento)</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="9066" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> 9066 (Evento)</label>
+              </div>
             </div>
           </div>
         </div>
@@ -367,6 +377,15 @@
         </div>
         </div>
       </div>
+
+      <!-- Barra de Filtros Ativos -->
+      <div id="filtrosAtivosBar" style="display:none;margin-bottom:20px;padding:14px 20px;background:#1a1f2e;border-radius:10px;border:1px solid #2d3548;">
+        <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+          <span style="color:#6a7489;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;">Filtros ativos:</span>
+          <div id="tagsAtivos" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+        </div>
+      </div>
+
       <div id="tabelasControle"></div>
       <div class="copyright-footer"><p>© 2025 Yasmin de Melo Campos - Analista de Qualidade Jr</p></div>
     </div>
@@ -690,7 +709,14 @@ const firebaseConfig = {
 
     window.toggleDropdown = function(id) {
       const dd = document.getElementById(id);
-      dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+      const abrindo = dd.style.display === 'none';
+      dd.style.display = abrindo ? 'block' : 'none';
+      if (abrindo) {
+        const tipo = id === 'dropdownAnalista' ? 'analista' : 'caixa';
+        const searchId = tipo === 'analista' ? 'buscaAnalista' : 'buscaCaixa';
+        const input = document.getElementById(searchId);
+        if (input) { input.value = ''; buscarOpcoes(tipo); setTimeout(() => input.focus(), 50); }
+      }
     };
     document.addEventListener('click', function(e) {
       ['dropdownAnalista','dropdownCaixa'].forEach(id => {
@@ -701,7 +727,13 @@ const firebaseConfig = {
     window.atualizarBtnAnalista = function() {
       const selecionados = [...document.querySelectorAll('.chkAnalista:checked')].map(c => c.value);
       const btn = document.getElementById('btnFiltroAnalista');
-      btn.textContent = selecionados.length === 0 ? 'Todos os Analistas ▾' : selecionados.length + ' analista(s) ▾';
+      if (selecionados.length === 0) {
+        btn.textContent = 'Todos os Analistas ▾';
+      } else {
+        const primeiroNome = selecionados[0].split(' ')[0];
+        btn.textContent = selecionados.length === 1 ? `${primeiroNome} ▾` : `${primeiroNome} +${selecionados.length - 1} ▾`;
+      }
+      atualizarTagsAtivos();
     };
     window.atualizarBtnCaixa = function() {
       const selecionados = [...document.querySelectorAll('.chkCaixa:checked')].map(c => c.value);
@@ -715,6 +747,7 @@ const firebaseConfig = {
         const texto = selecionados.slice(0, 2).join(', ');
         btn.textContent = (texto.length > 26 ? texto.slice(0, 24) + '…' : texto) + ` +${selecionados.length - 2} ▾`;
       }
+      atualizarTagsAtivos();
     };
     // Helper: retorna a segunda-feira de início de uma ISO week
     function getISOWeekStart(year, week) {
@@ -769,6 +802,7 @@ const firebaseConfig = {
         document.getElementById('visSemanaControle').style.display = 'none';
       }
       renderizarTabelas(registros);
+      atualizarTagsAtivos();
     };
     window.limparFiltros = function() {
       document.querySelectorAll('.chkAnalista,.chkCaixa').forEach(c => c.checked = false);
@@ -776,7 +810,84 @@ const firebaseConfig = {
       document.getElementById('visSemanaControle').style.display = 'none';
       document.getElementById('btnFiltroAnalista').textContent = 'Todos os Analistas ▾';
       document.getElementById('btnFiltroCaixa').textContent = 'Todas as Caixas ▾';
+      // Limpar buscas
+      const ba = document.getElementById('buscaAnalista'); if (ba) ba.value = '';
+      const bc = document.getElementById('buscaCaixa'); if (bc) bc.value = '';
+      buscarOpcoes('analista'); buscarOpcoes('caixa');
       renderizarTabelas(registrosCache);
+      atualizarTagsAtivos();
+    };
+
+    // ===== BUSCA NOS DROPDOWNS =====
+    window.buscarOpcoes = function(tipo) {
+      if (tipo === 'analista') {
+        const busca = (document.getElementById('buscaAnalista').value || '').toLowerCase();
+        document.querySelectorAll('#listaAnalistas label').forEach(label => {
+          label.style.display = label.textContent.trim().toLowerCase().includes(busca) ? 'flex' : 'none';
+        });
+      } else {
+        const busca = (document.getElementById('buscaCaixa').value || '').toLowerCase();
+        document.querySelectorAll('#listaCaixas label').forEach(label => {
+          label.style.display = label.textContent.trim().toLowerCase().includes(busca) ? 'flex' : 'none';
+        });
+        document.querySelectorAll('#listaCaixas [data-grupo]').forEach(grupoDiv => {
+          let next = grupoDiv.nextElementSibling;
+          let anyVisible = false;
+          while (next && !next.hasAttribute('data-grupo')) {
+            if (next.tagName === 'LABEL' && next.style.display !== 'none') anyVisible = true;
+            next = next.nextElementSibling;
+          }
+          grupoDiv.style.display = anyVisible ? 'block' : 'none';
+        });
+      }
+    };
+
+    // ===== TAGS DE FILTROS ATIVOS =====
+    function atualizarTagsAtivos() {
+      const analistas = [...document.querySelectorAll('.chkAnalista:checked')].map(c => c.value);
+      const caixas = [...document.querySelectorAll('.chkCaixa:checked')].map(c => c.value);
+      const semana = document.getElementById('filtroSemanaControle').value;
+      const bar = document.getElementById('filtrosAtivosBar');
+      const tagsEl = document.getElementById('tagsAtivos');
+      if (analistas.length === 0 && caixas.length === 0 && !semana) {
+        bar.style.display = 'none'; return;
+      }
+      bar.style.display = 'block';
+      let html = '';
+      analistas.forEach(a => {
+        const safe = a.replace(/'/g, "\\'");
+        html += `<span style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,164,224,0.12);border:1px solid #00A4E0;color:#4db8e8;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;">👤 ${a}<button onclick="removerFiltroTag('analista','${safe}')" style="background:none;border:none;color:#4db8e8;cursor:pointer;font-size:15px;line-height:1;padding:0;">×</button></span>`;
+      });
+      caixas.forEach(c => {
+        const safe = c.replace(/'/g, "\\'");
+        html += `<span style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,214,100,0.1);border:1px solid #00D664;color:#00D664;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;">📂 ${c}<button onclick="removerFiltroTag('caixa','${safe}')" style="background:none;border:none;color:#00D664;cursor:pointer;font-size:15px;line-height:1;padding:0;">×</button></span>`;
+      });
+      if (semana) {
+        const [ano, sem] = semana.split('-W');
+        const semNum = parseInt(sem);
+        const ini = getISOWeekStart(parseInt(ano), semNum);
+        const fim = new Date(ini); fim.setDate(ini.getDate() + 6);
+        const fmt = d => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+        const ciclo = getCicloPorDia(ini.getDate());
+        html += `<span style="display:inline-flex;align-items:center;gap:5px;background:rgba(255,159,28,0.1);border:1px solid #FF9F1C;color:#FF9F1C;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;">📅 W${String(semNum).padStart(2,'0')} · ${fmt(ini)}–${fmt(fim)} · ${ciclo}º Ciclo<button onclick="removerFiltroTag('semana','')" style="background:none;border:none;color:#FF9F1C;cursor:pointer;font-size:15px;line-height:1;padding:0;">×</button></span>`;
+      }
+      tagsEl.innerHTML = html;
+    }
+
+    window.removerFiltroTag = function(tipo, valor) {
+      if (tipo === 'analista') {
+        const chk = [...document.querySelectorAll('.chkAnalista')].find(c => c.value === valor);
+        if (chk) chk.checked = false;
+        atualizarBtnAnalista();
+      } else if (tipo === 'caixa') {
+        const chk = [...document.querySelectorAll('.chkCaixa')].find(c => c.value === valor);
+        if (chk) chk.checked = false;
+        atualizarBtnCaixa();
+      } else if (tipo === 'semana') {
+        document.getElementById('filtroSemanaControle').value = '';
+        document.getElementById('visSemanaControle').style.display = 'none';
+      }
+      filtrarControle();
     };
 
     // ===== EXCLUIR REGISTRO =====
