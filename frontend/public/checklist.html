@@ -768,7 +768,7 @@ const firebaseConfig = {
     window.filtrarControle = function() {
       const analistasSelecionados = [...document.querySelectorAll('.chkAnalista:checked')].map(c => c.value.toUpperCase());
       const caixasSelecionadas = [...document.querySelectorAll('.chkCaixa:checked')].map(c => c.value);
-      const cicloFiltro = document.getElementById('filtroCiclo').value;
+      const cicloFiltro = document.getElementById('filtroCiclo')?.value || '';
 
       let registros = [...registrosCache];
       if (analistasSelecionados.length > 0) registros = registros.filter(r => analistasSelecionados.includes(r.analista.toUpperCase()));
