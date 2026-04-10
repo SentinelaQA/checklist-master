@@ -42,7 +42,11 @@
     .item-observation label { display: block; font-size: 11px; font-weight: 600; color: #8892a4; margin-bottom: 5px; text-transform: uppercase; }
     .item-observation textarea { width: 100%; padding: 10px; border: 2px solid #3a4256; border-radius: 8px; font-size: 13px; font-family: 'Inter', sans-serif; resize: vertical; min-height: 60px; transition: border-color 0.3s; background: #1a1f2e; color: #e2e8f0; }
     .item-observation textarea:focus { outline: none; border-color: #00A4E0; }
-    .observation-preview { margin-top: 10px; padding: 12px; background: rgba(0,214,100,0.08); border-left: 4px solid #00D664; border-radius: 8px; display: none; }
+    .obs-truncado { overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; max-height:3em; line-height:1.5em; word-break:break-word; cursor:help; }
+    .obs-tooltip-wrap { position:relative; }
+    .obs-tooltip-wrap:hover .obs-tooltip-box { display:block; }
+    .obs-tooltip-box { display:none; position:absolute; top:calc(100% + 6px); left:0; background:#1a1f2e; border:1px solid #3a4256; border-radius:10px; padding:12px 14px; font-size:12px; color:#e2e8f0; max-width:320px; min-width:180px; z-index:200; box-shadow:0 8px 30px rgba(0,0,0,0.6); white-space:pre-wrap; line-height:1.6; pointer-events:none; }
+    .obs-ver-mais { color:#4db8e8; font-size:11px; font-weight:600; margin-top:2px; display:block; }
     .observation-preview.show { display: block; animation: slideDown 0.3s; }
     .observation-preview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
     .observation-preview-label { font-size: 11px; font-weight: 700; color: #4db8e8; text-transform: uppercase; }
@@ -87,6 +91,8 @@
     .alert-ncg { background: rgba(255,107,107,0.1); border: 2px solid #FF6B6B; border-radius: 10px; padding: 15px; margin: 20px 30px; display: none; align-items: center; gap: 15px; }
     .alert-ncg.show { display: flex; animation: slideDown 0.5s; }
     @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideInRight { from { opacity: 0; transform: translateX(80px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes slideOutRight { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(80px); } }
     .export-btn { position: fixed; bottom: 30px; right: 30px; background: linear-gradient(135deg, #0d7ab5 0%, #0aab50 100%); color: white; border: none; padding: 15px 30px; border-radius: 50px; font-weight: 700; cursor: pointer; box-shadow: 0 5px 20px rgba(13,122,181,0.4); transition: all 0.3s; font-size: 14px; }
     .reset-btn { position: fixed; bottom: 90px; right: 30px; background: #3a4256; color: #a0aec0; border: none; padding: 12px 25px; border-radius: 50px; font-weight: 600; cursor: pointer; box-shadow: 0 5px 20px rgba(0,0,0,0.3); transition: all 0.3s; font-size: 13px; }
     .score-notification { position: fixed; bottom: 150px; right: 30px; background: linear-gradient(135deg, #0d7ab5 0%, #0aab50 100%); color: white; padding: 15px 22px; border-radius: 12px; box-shadow: 0 5px 20px rgba(13,122,181,0.4); z-index: 1500; text-align: center; transition: all 0.3s ease; min-width: 110px; min-height: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transform: translateY(20px); pointer-events: none; }
@@ -191,6 +197,14 @@
       </div>
     </div>
 
+    <!-- Assunto — visível logo após identificação inicial -->
+    <div class="info-bar" id="assuntoBarInicial">
+      <div class="info-item" style="grid-column:1 / -1;">
+        <label style="font-weight:700;color:#e2e8f0;">Assunto <span style="color:#FF6B6B;">*</span></label>
+        <input type="text" id="assunto" placeholder="Digite o assunto da interação..." style="font-size:14px;">
+      </div>
+    </div>
+
     <div class="info-bar" id="camposCondicionais" style="display:none;">
       <div class="info-item" id="subFormularioContainer" style="display:none;">
         <label>Tipo de Evento</label>
@@ -262,10 +276,6 @@
 
     <div class="info-bar" id="resumoContainer" style="display:none;border-top:2px solid #0d7ab5;">
       <div class="info-item">
-        <label>Assunto</label>
-        <input type="text" id="assunto" placeholder="Digite o assunto">
-      </div>
-      <div class="info-item">
         <label>Ticket</label>
         <input type="text" id="ticket" placeholder="Digite o número do ticket">
       </div>
@@ -313,7 +323,11 @@
           <label style="display:block;margin-bottom:8px;font-weight:700;color:#a0aec0;font-size:14px;">📌 Analista:</label>
           <div style="position:relative;">
             <button onclick="toggleDropdown('dropdownAnalista')" style="width:100%;padding:12px;border:2px solid #3a4256;border-radius:8px;font-size:14px;background:#1a1f2e;color:#e2e8f0;text-align:left;cursor:pointer;" id="btnFiltroAnalista">Todos os Analistas ▾</button>
-            <div id="dropdownAnalista" style="display:none;position:absolute;top:100%;left:0;right:0;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;max-height:250px;overflow-y:auto;z-index:100;margin-top:4px;">
+            <div id="dropdownAnalista" style="display:none;position:absolute;top:100%;left:0;right:0;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;max-height:300px;overflow-y:auto;z-index:100;margin-top:4px;">
+              <div style="padding:8px;border-bottom:1px solid #2d3548;position:sticky;top:0;background:#1a1f2e;z-index:2;">
+                <input type="text" id="buscaAnalista" placeholder="🔍 Buscar analista..." oninput="buscarOpcoes('analista')" style="width:100%;padding:8px 10px;background:#0d1117;border:1px solid #3a4256;border-radius:6px;color:#e2e8f0;font-size:13px;outline:none;box-sizing:border-box;">
+              </div>
+              <div id="listaAnalistas">
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="FRANK PEREIRA DA SILVA" onchange="filtrarControle();atualizarBtnAnalista()" style="margin-right:8px;accent-color:#00A4E0;" class="chkAnalista"> FRANK PEREIRA DA SILVA</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="GISELE APARECIDA DE ALMEIDA" onchange="filtrarControle();atualizarBtnAnalista()" style="margin-right:8px;accent-color:#00A4E0;" class="chkAnalista"> GISELE APARECIDA DE ALMEIDA</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="ANA PAULA DOS SANTOS" onchange="filtrarControle();atualizarBtnAnalista()" style="margin-right:8px;accent-color:#00A4E0;" class="chkAnalista"> ANA PAULA DOS SANTOS</label>
@@ -327,6 +341,7 @@
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="FRANCINE VITORIA COSTA" onchange="filtrarControle();atualizarBtnAnalista()" style="margin-right:8px;accent-color:#00A4E0;" class="chkAnalista"> FRANCINE VITORIA COSTA</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="LARISSA CAMARA" onchange="filtrarControle();atualizarBtnAnalista()" style="margin-right:8px;accent-color:#00A4E0;" class="chkAnalista"> LARISSA CAMARA</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="SINARA DA SILVA NUNES" onchange="filtrarControle();atualizarBtnAnalista()" style="margin-right:8px;accent-color:#00A4E0;" class="chkAnalista"> SINARA DA SILVA NUNES</label>
+              </div>
             </div>
           </div>
         </div>
@@ -334,25 +349,30 @@
           <label style="display:block;margin-bottom:8px;font-weight:700;color:#a0aec0;font-size:14px;">📂 Caixa:</label>
           <div style="position:relative;">
             <button onclick="toggleDropdown('dropdownCaixa')" style="width:100%;padding:12px;border:2px solid #3a4256;border-radius:8px;font-size:14px;background:#1a1f2e;color:#e2e8f0;text-align:left;cursor:pointer;" id="btnFiltroCaixa">Todas as Caixas ▾</button>
-            <div id="dropdownCaixa" style="display:none;position:absolute;top:100%;left:0;right:0;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;max-height:300px;overflow-y:auto;z-index:100;margin-top:4px;">
-              <div style="padding:6px 12px;font-size:11px;font-weight:700;color:#00A4E0;text-transform:uppercase;border-bottom:1px solid #2d3548;">Agenda Financeira</div>
+            <div id="dropdownCaixa" style="display:none;position:absolute;top:100%;left:0;right:0;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;max-height:320px;overflow-y:auto;z-index:100;margin-top:4px;">
+              <div style="padding:8px;border-bottom:1px solid #2d3548;position:sticky;top:0;background:#1a1f2e;z-index:2;">
+                <input type="text" id="buscaCaixa" placeholder="🔍 Buscar caixa..." oninput="buscarOpcoes('caixa')" style="width:100%;padding:8px 10px;background:#0d1117;border:1px solid #3a4256;border-radius:6px;color:#e2e8f0;font-size:13px;outline:none;box-sizing:border-box;">
+              </div>
+              <div id="listaCaixas">
+              <div data-grupo="agenda" style="padding:6px 12px;font-size:11px;font-weight:700;color:#00A4E0;text-transform:uppercase;border-bottom:1px solid #2d3548;">Agenda Financeira</div>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="Gestão Aluguel Estornos" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> Gestão Aluguel Estornos</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="Gestão Aluguel Incentivos" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> Gestão Aluguel Incentivos</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="Saldo de Auditoria" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> Saldo de Auditoria</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="Consultoria" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> Consultoria</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="Prévia MDR" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> Prévia MDR</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="Regularizações Financeiras" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> Regularizações Financeiras</label>
-              <div style="padding:6px 12px;font-size:11px;font-weight:700;color:#FF9F1C;text-transform:uppercase;border-bottom:1px solid #2d3548;">Cancelamento</div>
+              <div data-grupo="cancelamento" style="padding:6px 12px;font-size:11px;font-weight:700;color:#FF9F1C;text-transform:uppercase;border-bottom:1px solid #2d3548;">Cancelamento</div>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="Desfazimento" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> Desfazimento</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="Atendimento BackOffice" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> Atendimento BackOffice</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="5125" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> 5125</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="STD - Corporate" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> STD - Corporate</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="STD - Aéreo" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> STD - Aéreo</label>
-              <div style="padding:6px 12px;font-size:11px;font-weight:700;color:#00D664;text-transform:uppercase;border-bottom:1px solid #2d3548;">Outros</div>
+              <div data-grupo="outros" style="padding:6px 12px;font-size:11px;font-weight:700;color:#00D664;text-transform:uppercase;border-bottom:1px solid #2d3548;">Outros</div>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="BackOffice Mídias Sociais" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> BackOffice Mídias Sociais</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="Processos Ouvidoria BO" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> Processos Ouvidoria BO</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="7922" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> 7922 (Evento)</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="9066" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> 9066 (Evento)</label>
+              </div>
             </div>
           </div>
         </div>
@@ -367,6 +387,15 @@
         </div>
         </div>
       </div>
+
+      <!-- Barra de Filtros Ativos -->
+      <div id="filtrosAtivosBar" style="display:none;margin-bottom:20px;padding:14px 20px;background:#1a1f2e;border-radius:10px;border:1px solid #2d3548;">
+        <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+          <span style="color:#6a7489;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;">Filtros ativos:</span>
+          <div id="tagsAtivos" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+        </div>
+      </div>
+
       <div id="tabelasControle"></div>
       <div class="copyright-footer"><p>© 2025 Yasmin de Melo Campos - Analista de Qualidade Jr</p></div>
     </div>
@@ -455,21 +484,24 @@
     </div>
   </div>
 
-  <!-- Modal Confirmar Reset -->
-  <div class="confirm-overlay" id="confirmResetar">
+  <!-- Modal Confirm (dinâmico) -->
+  <div class="confirm-overlay" id="confirmModal">
     <div class="confirm-box">
-      <div class="confirm-icon">⚠️</div>
-      <div class="confirm-title">TEM CERTEZA QUE DESEJA RESETAR?</div>
-      <div class="confirm-message">Todos os itens marcados e observações serão apagados permanentemente.<br><br><strong>Esta ação não pode ser desfeita!</strong></div>
+      <div class="confirm-icon" id="confirmModalIcon">⚠️</div>
+      <div class="confirm-title" id="confirmModalTitle">Tem certeza?</div>
+      <div class="confirm-message" id="confirmModalMessage"></div>
       <div class="confirm-buttons">
-        <button class="confirm-btn confirm-btn-cancel" onclick="cancelarResetar()">❌ Cancelar</button>
-        <button class="confirm-btn confirm-btn-ok" onclick="confirmarResetar()">✅ Sim, Resetar Tudo</button>
+        <button class="confirm-btn confirm-btn-cancel" id="confirmModalCancel">Cancelar</button>
+        <button class="confirm-btn confirm-btn-ok" id="confirmModalOk">Confirmar</button>
       </div>
     </div>
   </div>
 
-  <button class="reset-btn" onclick="resetarChecklist()">🔄 Resetar</button>
-  <button class="export-btn" onclick="exportarResultado()">📊 Exportar Resultado</button>
+  <!-- Toast container -->
+  <div id="toastContainer" style="position:fixed;top:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:10px;pointer-events:none;"></div>
+
+  <button id="btnResetar" class="reset-btn" onclick="resetarChecklist()">🔄 Resetar</button>
+  <button id="btnExportarResultado" class="export-btn" onclick="exportarResultado()">📊 Exportar Resultado</button>
   <button id="btnExportarControle" onclick="exportarParaControle()" style="position:fixed;bottom:30px;right:30px;padding:16px 24px;background:linear-gradient(135deg,#9B59B6 0%,#8E44AD 100%);color:white;border:none;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(155,89,182,0.4);z-index:999;transition:all 0.3s;display:flex;align-items:center;gap:8px;">📋 Exportar para Controle</button>
   <div class="score-notification" id="scoreNotification">
     <div class="score-notification-title">Pontuação Atual</div>
@@ -497,6 +529,10 @@ const firebaseConfig = {
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+
+    // App secundário para criar usuários SEM deslogar o admin
+    const secondaryApp = initializeApp(firebaseConfig, 'Secondary');
+    const secondaryAuth = getAuth(secondaryApp);
 
     // ===== ESTADO GLOBAL =====
     let currentUser = null;
@@ -592,11 +628,11 @@ const firebaseConfig = {
       const dataAvaliacao = document.getElementById('dataAvaliacao').value || '';
       const tratadoVia = document.getElementById('tratadoVia').value || '';
 
-      if (!analista) { alert('⚠️ Por favor, preencha o nome do analista!'); return; }
+      if (!analista) { showToast('Preencha o nome do analista!', 'warning'); return; }
       const subCaixaVal = document.getElementById('subCaixa').value || '';
       if (tratadoVia !== 'CRM' && subCaixaVal !== '5125') {
-        if (!assunto) { alert('⚠️ Por favor, preencha o assunto!'); return; }
-        if (!ticket) { alert('⚠️ Por favor, preencha o número do ticket!'); return; }
+        if (!assunto) { showToast('Preencha o assunto!', 'warning'); return; }
+        if (!ticket) { showToast('Preencha o número do ticket!', 'warning'); return; }
       }
 
       let categoria = '', caixaFinal = '';
@@ -671,10 +707,10 @@ const firebaseConfig = {
         document.getElementById('scoreNotification').classList.remove('score-notification-ncg');
 
         trocarAba('controle');
-        alert('✅ Avaliação salva com sucesso!');
+        showToast('Avaliação salva com sucesso!', 'success');
       } catch (e) {
         console.error('Erro ao salvar:', e);
-        alert('❌ Erro ao salvar. Verifique sua conexão.');
+        showToast('Erro ao salvar. Verifique sua conexão.', 'error');
       }
     };
 
@@ -686,7 +722,14 @@ const firebaseConfig = {
 
     window.toggleDropdown = function(id) {
       const dd = document.getElementById(id);
-      dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+      const abrindo = dd.style.display === 'none';
+      dd.style.display = abrindo ? 'block' : 'none';
+      if (abrindo) {
+        const tipo = id === 'dropdownAnalista' ? 'analista' : 'caixa';
+        const searchId = tipo === 'analista' ? 'buscaAnalista' : 'buscaCaixa';
+        const input = document.getElementById(searchId);
+        if (input) { input.value = ''; buscarOpcoes(tipo); setTimeout(() => input.focus(), 50); }
+      }
     };
     document.addEventListener('click', function(e) {
       ['dropdownAnalista','dropdownCaixa'].forEach(id => {
@@ -697,42 +740,83 @@ const firebaseConfig = {
     window.atualizarBtnAnalista = function() {
       const selecionados = [...document.querySelectorAll('.chkAnalista:checked')].map(c => c.value);
       const btn = document.getElementById('btnFiltroAnalista');
-      btn.textContent = selecionados.length === 0 ? 'Todos os Analistas ▾' : selecionados.length + ' analista(s) ▾';
+      if (selecionados.length === 0) {
+        btn.textContent = 'Todos os Analistas ▾';
+      } else {
+        const primeiroNome = selecionados[0].split(' ')[0];
+        btn.textContent = selecionados.length === 1 ? `${primeiroNome} ▾` : `${primeiroNome} +${selecionados.length - 1} ▾`;
+      }
+      atualizarTagsAtivos();
     };
     window.atualizarBtnCaixa = function() {
       const selecionados = [...document.querySelectorAll('.chkCaixa:checked')].map(c => c.value);
       const btn = document.getElementById('btnFiltroCaixa');
-      btn.textContent = selecionados.length === 0 ? 'Todas as Caixas ▾' : selecionados.length + ' caixa(s) ▾';
+      if (selecionados.length === 0) {
+        btn.textContent = 'Todas as Caixas ▾';
+      } else if (selecionados.length <= 2) {
+        const texto = selecionados.join(', ');
+        btn.textContent = (texto.length > 32 ? texto.slice(0, 30) + '…' : texto) + ' ▾';
+      } else {
+        const texto = selecionados.slice(0, 2).join(', ');
+        btn.textContent = (texto.length > 26 ? texto.slice(0, 24) + '…' : texto) + ` +${selecionados.length - 2} ▾`;
+      }
+      atualizarTagsAtivos();
     };
+    // Helper: retorna a segunda-feira de início de uma ISO week
+    function getISOWeekStart(year, week) {
+      const jan4 = new Date(year, 0, 4);
+      const dow = jan4.getDay() || 7; // 1=Seg … 7=Dom
+      const week1Monday = new Date(jan4);
+      week1Monday.setDate(jan4.getDate() - (dow - 1));
+      const start = new Date(week1Monday);
+      start.setDate(week1Monday.getDate() + (week - 1) * 7);
+      return start;
+    }
+
+    // Helper: ciclo por dia do mês (01-07=1, 08-14=2, 15-21=3, 22+=4)
+    function getCicloPorDia(diaDoMes) {
+      return Math.min(4, Math.ceil(diaDoMes / 7));
+    }
+
     window.filtrarControle = function() {
       const analistasSelecionados = [...document.querySelectorAll('.chkAnalista:checked')].map(c => c.value.toUpperCase());
       const caixasSelecionadas = [...document.querySelectorAll('.chkCaixa:checked')].map(c => c.value);
-      const cicloFiltro = document.getElementById('filtroCiclo').value;
+      const cicloFiltro = document.getElementById('filtroCiclo')?.value || '';
 
       let registros = [...registrosCache];
       if (analistasSelecionados.length > 0) registros = registros.filter(r => analistasSelecionados.includes(r.analista.toUpperCase()));
       if (caixasSelecionadas.length > 0) registros = registros.filter(r => caixasSelecionadas.includes(r.caixa));
+
       const semanaControle = document.getElementById('filtroSemanaControle').value;
       if (semanaControle) {
         const [ano, sem] = semanaControle.split('-W');
         const semNum = parseInt(sem);
+
+        // Filtrar registros pela semana
         registros = registros.filter(r => {
           if (!r.semana) return false;
-          const rSem = parseInt(r.semana.replace('W',''));
-          return rSem === semNum;
+          return parseInt(r.semana.replace('W', '')) === semNum;
         });
-        // Show cycle info
-        const d = new Date(ano, 0, 1 + (semNum - 1) * 7);
-        const diaDoMes = d.getDate();
-        const ciclo = Math.min(4, Math.ceil(diaDoMes / 7));
+
+        // Calcular início e fim da semana ISO
+        const inicioSemana = getISOWeekStart(parseInt(ano), semNum);
+        const fimSemana = new Date(inicioSemana);
+        fimSemana.setDate(inicioSemana.getDate() + 6);
+        const fmt = d => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+
+        // Ciclo: baseado no dia do mês do início da semana
+        const ciclo = getCicloPorDia(inicioSemana.getDate());
         const cicloTexto = `${ciclo}º Ciclo`;
+
         const vis = document.getElementById('visSemanaControle');
-        vis.innerHTML = `<span style="color:#00A4E0;">${cicloTexto}</span>`;
+        vis.innerHTML = `<strong>W${String(semNum).padStart(2,'0')}</strong> — ${fmt(inicioSemana)} à ${fmt(fimSemana)} | <span style="color:#00A4E0;font-weight:700;">${cicloTexto}</span>`;
         vis.style.display = 'block';
       } else {
         document.getElementById('visSemanaControle').style.display = 'none';
       }
       renderizarTabelas(registros);
+      window._registrosFiltrados = registros;
+      atualizarTagsAtivos();
     };
     window.limparFiltros = function() {
       document.querySelectorAll('.chkAnalista,.chkCaixa').forEach(c => c.checked = false);
@@ -740,34 +824,176 @@ const firebaseConfig = {
       document.getElementById('visSemanaControle').style.display = 'none';
       document.getElementById('btnFiltroAnalista').textContent = 'Todos os Analistas ▾';
       document.getElementById('btnFiltroCaixa').textContent = 'Todas as Caixas ▾';
+      // Limpar buscas
+      const ba = document.getElementById('buscaAnalista'); if (ba) ba.value = '';
+      const bc = document.getElementById('buscaCaixa'); if (bc) bc.value = '';
+      buscarOpcoes('analista'); buscarOpcoes('caixa');
       renderizarTabelas(registrosCache);
+      atualizarTagsAtivos();
+    };
+
+    // ===== BUSCA NOS DROPDOWNS =====
+    window.buscarOpcoes = function(tipo) {
+      if (tipo === 'analista') {
+        const busca = (document.getElementById('buscaAnalista').value || '').toLowerCase();
+        document.querySelectorAll('#listaAnalistas label').forEach(label => {
+          label.style.display = label.textContent.trim().toLowerCase().includes(busca) ? 'flex' : 'none';
+        });
+      } else {
+        const busca = (document.getElementById('buscaCaixa').value || '').toLowerCase();
+        document.querySelectorAll('#listaCaixas label').forEach(label => {
+          label.style.display = label.textContent.trim().toLowerCase().includes(busca) ? 'flex' : 'none';
+        });
+        document.querySelectorAll('#listaCaixas [data-grupo]').forEach(grupoDiv => {
+          let next = grupoDiv.nextElementSibling;
+          let anyVisible = false;
+          while (next && !next.hasAttribute('data-grupo')) {
+            if (next.tagName === 'LABEL' && next.style.display !== 'none') anyVisible = true;
+            next = next.nextElementSibling;
+          }
+          grupoDiv.style.display = anyVisible ? 'block' : 'none';
+        });
+      }
+    };
+
+    // ===== TAGS DE FILTROS ATIVOS =====
+    function atualizarTagsAtivos() {
+      const analistas = [...document.querySelectorAll('.chkAnalista:checked')].map(c => c.value);
+      const caixas = [...document.querySelectorAll('.chkCaixa:checked')].map(c => c.value);
+      const semana = document.getElementById('filtroSemanaControle').value;
+      const bar = document.getElementById('filtrosAtivosBar');
+      const tagsEl = document.getElementById('tagsAtivos');
+      if (analistas.length === 0 && caixas.length === 0 && !semana) {
+        bar.style.display = 'none'; return;
+      }
+      bar.style.display = 'block';
+      let html = '';
+      analistas.forEach(a => {
+        const safe = a.replace(/'/g, "\\'");
+        html += `<span style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,164,224,0.12);border:1px solid #00A4E0;color:#4db8e8;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;">👤 ${a}<button onclick="removerFiltroTag('analista','${safe}')" style="background:none;border:none;color:#4db8e8;cursor:pointer;font-size:15px;line-height:1;padding:0;">×</button></span>`;
+      });
+      caixas.forEach(c => {
+        const safe = c.replace(/'/g, "\\'");
+        html += `<span style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,214,100,0.1);border:1px solid #00D664;color:#00D664;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;">📂 ${c}<button onclick="removerFiltroTag('caixa','${safe}')" style="background:none;border:none;color:#00D664;cursor:pointer;font-size:15px;line-height:1;padding:0;">×</button></span>`;
+      });
+      if (semana) {
+        const [ano, sem] = semana.split('-W');
+        const semNum = parseInt(sem);
+        const ini = getISOWeekStart(parseInt(ano), semNum);
+        const fim = new Date(ini); fim.setDate(ini.getDate() + 6);
+        const fmt = d => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+        const ciclo = getCicloPorDia(ini.getDate());
+        html += `<span style="display:inline-flex;align-items:center;gap:5px;background:rgba(255,159,28,0.1);border:1px solid #FF9F1C;color:#FF9F1C;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;">📅 W${String(semNum).padStart(2,'0')} · ${fmt(ini)}–${fmt(fim)} · ${ciclo}º Ciclo<button onclick="removerFiltroTag('semana','')" style="background:none;border:none;color:#FF9F1C;cursor:pointer;font-size:15px;line-height:1;padding:0;">×</button></span>`;
+      }
+      tagsEl.innerHTML = html;
+    }
+
+    window.removerFiltroTag = function(tipo, valor) {
+      if (tipo === 'analista') {
+        const chk = [...document.querySelectorAll('.chkAnalista')].find(c => c.value === valor);
+        if (chk) chk.checked = false;
+        atualizarBtnAnalista();
+      } else if (tipo === 'caixa') {
+        const chk = [...document.querySelectorAll('.chkCaixa')].find(c => c.value === valor);
+        if (chk) chk.checked = false;
+        atualizarBtnCaixa();
+      } else if (tipo === 'semana') {
+        document.getElementById('filtroSemanaControle').value = '';
+        document.getElementById('visSemanaControle').style.display = 'none';
+      }
+      filtrarControle();
     };
 
     // ===== EXCLUIR REGISTRO =====
-    window.excluirRegistro = async function(id) {
-      if (!confirm('⚠️ Deseja realmente excluir este registro?')) return;
-      const reg = registrosCache.find(r => r.id === id);
-      if (reg && reg.firestoreId) {
-        await deleteDoc(doc(db, 'controleAvaliacoes', reg.firestoreId));
+    window.excluirRegistro = function(id) {
+      showConfirm('Excluir Registro', 'Deseja realmente excluir este registro?<br><br>Esta ação não pode ser desfeita.', '🗑️', 'danger', async () => {
+        const reg = registrosCache.find(r => r.id === id);
+        if (reg && reg.firestoreId) await deleteDoc(doc(db, 'controleAvaliacoes', reg.firestoreId));
+        registrosCache = registrosCache.filter(r => r.id !== id);
+        window._registros = registrosCache;
+        window._registrosFiltrados = (window._registrosFiltrados||[]).filter(r => r.id !== id);
+        renderizarTabelas(registrosCache);
+        atualizarContadorControle();
+        showToast('Registro excluído!', 'success');
+      });
+    };
+
+    // ===== SISTEMA DE TOAST =====
+    window.showToast = function(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const styles = {
+        success: { bg: 'rgba(0,180,80,0.12)', border: '#00C864', color: '#3ddc70', icon: '✅' },
+        error:   { bg: 'rgba(255,107,107,0.12)', border: '#FF6B6B', color: '#ff8a8a', icon: '❌' },
+        warning: { bg: 'rgba(255,159,28,0.12)', border: '#FF9F1C', color: '#ffc15e', icon: '⚠️' },
+        info:    { bg: 'rgba(0,164,224,0.12)', border: '#00A4E0', color: '#4db8e8', icon: 'ℹ️' },
+      };
+      const s = styles[type] || styles.info;
+      const toast = document.createElement('div');
+      toast.style.cssText = `pointer-events:auto;background:${s.bg};border:1px solid ${s.border};border-radius:12px;padding:14px 20px;color:${s.color};font-weight:600;font-size:14px;max-width:380px;box-shadow:0 8px 30px rgba(0,0,0,0.5);backdrop-filter:blur(8px);animation:slideInRight 0.3s ease;display:flex;align-items:center;gap:10px;line-height:1.4;`;
+      toast.innerHTML = `<span style="font-size:18px;">${s.icon}</span><span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.animation = 'slideOutRight 0.3s ease forwards';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    };
+
+    // ===== SISTEMA DE CONFIRM MODAL =====
+    window.showConfirm = function(title, message, icon, type, onConfirm) {
+      const modal = document.getElementById('confirmModal');
+      document.getElementById('confirmModalIcon').textContent = icon || '⚠️';
+      document.getElementById('confirmModalTitle').textContent = title;
+      document.getElementById('confirmModalMessage').innerHTML = message;
+      const titleEl = document.getElementById('confirmModalTitle');
+      const okBtn = document.getElementById('confirmModalOk');
+      const cancelBtn = document.getElementById('confirmModalCancel');
+      if (type === 'danger') {
+        titleEl.style.color = '#FF6B6B';
+        okBtn.style.background = 'linear-gradient(135deg,#c82333,#dc3545)';
+        okBtn.style.color = 'white';
+        okBtn.textContent = 'Sim, confirmar';
+        cancelBtn.textContent = 'Cancelar';
+      } else if (type === 'success') {
+        titleEl.style.color = '#3ddc70';
+        okBtn.style.background = 'linear-gradient(135deg,#0d7ab5,#0aab50)';
+        okBtn.style.color = 'white';
+        okBtn.textContent = 'Confirmar';
+        cancelBtn.textContent = 'Cancelar';
+      } else {
+        titleEl.style.color = '#4db8e8';
+        okBtn.style.background = 'linear-gradient(135deg,#0d7ab5,#0aab50)';
+        okBtn.style.color = 'white';
+        okBtn.textContent = 'Confirmar';
+        cancelBtn.textContent = 'Cancelar';
       }
-      registrosCache = registrosCache.filter(r => r.id !== id);
-      window._registros = registrosCache;
-      renderizarTabelas(registrosCache);
-      atualizarContadorControle();
-      alert('✅ Registro excluído!');
+      modal.classList.add('show');
+      okBtn.onclick = () => { modal.classList.remove('show'); onConfirm(); };
+      cancelBtn.onclick = () => modal.classList.remove('show');
+      modal.onclick = (e) => { if (e.target === modal) modal.classList.remove('show'); };
     };
 
     // ===== LIMPAR TUDO =====
-    window.limparControle = async function() {
-      if (!confirm('⚠️ ATENÇÃO! Isso irá apagar TODAS as avaliações. Deseja continuar?')) return;
-      if (!confirm('⚠️ Tem certeza absoluta? Esta ação não pode ser desfeita!')) return;
-      const snap = await getDocs(collection(db, 'controleAvaliacoes'));
-      for (const d of snap.docs) await deleteDoc(d.ref);
-      registrosCache = [];
-      window._registros = [];
-      renderizarTabelas([]);
-      atualizarContadorControle();
-      alert('✅ Todos os registros foram apagados!');
+    window.limparControle = function() {
+      showConfirm(
+        'Limpar Todas as Avaliações',
+        'Isso irá apagar <strong>TODOS</strong> os registros permanentemente.<br><br>Esta ação <strong>não pode ser desfeita!</strong>',
+        '🗑️', 'danger',
+        async () => {
+          try {
+            const snap = await getDocs(collection(db, 'controleAvaliacoes'));
+            for (const d of snap.docs) await deleteDoc(d.ref);
+            registrosCache = [];
+            window._registros = [];
+            window._registrosFiltrados = [];
+            renderizarTabelas([]);
+            atualizarContadorControle();
+            atualizarTagsAtivos();
+            showToast('Todos os registros foram apagados!', 'success');
+          } catch(e) {
+            showToast('Erro ao limpar registros. Verifique sua conexão.', 'error');
+          }
+        }
+      );
     };
 
     // ===== SALVAR TAG =====
@@ -783,7 +1009,7 @@ const firebaseConfig = {
         }
       }
       window._registros = registrosCache;
-      alert('✅ TAG salva para ' + analista + '!');
+      showToast('TAG salva para ' + analista + '!', 'success');
     };
 
     // ===== CADASTRO DE USUÁRIOS (Firebase Auth + Firestore) =====
@@ -797,14 +1023,16 @@ const firebaseConfig = {
       if (senha.length < 6) { showAlertCadastro('⚠️ A senha deve ter no mínimo 6 caracteres!', 'error'); return; }
 
       try {
-        // Criar usuário no Firebase Auth
-        const userCred = await createUserWithEmailAndPassword(auth, email, senha);
+        // Criar usuário via app SECUNDÁRIO para não deslogar o admin
+        const userCred = await createUserWithEmailAndPassword(secondaryAuth, email, senha);
         // Salvar dados no Firestore
         await setDoc(doc(db, 'usuarios', userCred.user.uid), {
           nome, email, cargo,
           criadoEm: new Date().toISOString(),
           criadoPor: currentUser ? currentUser.uid : 'admin'
         });
+        // Deslogar o app secundário para não manter sessão desnecessária
+        await signOut(secondaryAuth);
 
         document.getElementById('cadastroNome').value = '';
         document.getElementById('cadastroEmail').value = '';
@@ -857,27 +1085,22 @@ const firebaseConfig = {
       }
     };
 
-    window.excluirUsuario = async function(uid) {
-      if (!confirm('⚠️ Deseja excluir este usuário do sistema?')) return;
-      await deleteDoc(doc(db, 'usuarios', uid));
-      carregarUsuarios();
+    window.excluirUsuario = function(uid) {
+      showConfirm('Excluir Usuário', 'Deseja excluir este usuário do sistema?<br><br>O acesso será revogado imediatamente.', '👤', 'danger', async () => {
+        await deleteDoc(doc(db, 'usuarios', uid));
+        carregarUsuarios();
+        showToast('Usuário removido do sistema.', 'success');
+      });
     };
 
     function showAlertCadastro(message, type) {
-      const alertBox = document.getElementById('alertCadastro');
-      if (!alertBox) return;
-      alertBox.textContent = message;
-      alertBox.style.display = 'block';
-      alertBox.style.background = type === 'success' ? 'rgba(40,167,69,0.15)' : 'rgba(220,53,69,0.15)';
-      alertBox.style.color = type === 'success' ? '#5be880' : '#ff6b7a';
-      alertBox.style.border = type === 'success' ? '2px solid rgba(40,167,69,0.4)' : '2px solid rgba(220,53,69,0.4)';
-      setTimeout(() => { alertBox.style.display = 'none'; }, 5000);
+      showToast(message.replace(/^[✅❌⚠️]\s?/, ''), type === 'success' ? 'success' : 'error');
     }
 
     // ===== SALVAR FEEDBACK =====
     window.salvarFeedback = async function() {
       const feedback = document.getElementById('feedback').value;
-      if (!feedback.trim()) { alert('⚠️ Por favor, digite um feedback antes de salvar!'); return; }
+      if (!feedback.trim()) { showToast('Digite um feedback antes de salvar!', 'warning'); return; }
       const analista = document.getElementById('analistaNome').value || 'Não informado';
       const dataAvaliacao = document.getElementById('dataAvaliacao').value || new Date().toISOString().split('T')[0];
       await addDoc(collection(db, 'feedbacks'), {
@@ -885,14 +1108,16 @@ const firebaseConfig = {
         pontuacao: window._state.score,
         timestamp: new Date().toISOString()
       });
-      alert('✅ Feedback salvo com sucesso!');
+      showToast('Feedback salvo com sucesso!', 'success');
     };
 
     // ===== EXPORTAR CSV =====
     window.exportarTodoControle = function() {
-      if (registrosCache.length === 0) { alert('⚠️ Nenhum registro para exportar!'); return; }
+      const dados = (window._registrosFiltrados && window._registrosFiltrados.length > 0)
+        ? window._registrosFiltrados : registrosCache;
+      if (!dados || dados.length === 0) { showToast('Nenhum registro para exportar!', 'warning'); return; }
       let csv = 'Categoria,Nível,Analista,Caixa,Assunto,Protocolo/Email,Observação,Desvio,Nota,Data\n';
-      registrosCache.forEach(r => {
+      dados.forEach(r => {
         const linha = [r.categoria,r.nivel,r.analista,r.caixa,r.assunto,r.protocoloOuEmail||'',r.observacao||'',r.desvio,r.nota,r.data]
           .map(f => `"${String(f||'').replace(/"/g,'""')}"`).join(',');
         csv += linha + '\n';
@@ -901,9 +1126,9 @@ const firebaseConfig = {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `controle_completo_${new Date().toISOString().split('T')[0]}.csv`;
+      a.download = `controle_${new Date().toISOString().split('T')[0]}.csv`;
       a.click();
-      alert('✅ Controle completo exportado!');
+      showToast(`${dados.length} registro(s) exportado(s)!`, 'success');
     };
 
     // ===== TROCAR ABA =====
@@ -919,12 +1144,20 @@ const firebaseConfig = {
 
       const btnExportar = document.getElementById('btnExportarControle');
       const scoreNotification = document.getElementById('scoreNotification');
+      const btnResetar = document.getElementById('btnResetar');
+      const btnExpRes = document.getElementById('btnExportarResultado');
+
+      // Oculta botões flutuantes em todas as abas por padrão
+      if (btnResetar) btnResetar.style.display = 'none';
+      if (btnExpRes) btnExpRes.style.display = 'none';
 
       if (aba === 'formularios') {
         document.getElementById('viewFormularios').style.display = 'block';
         document.getElementById('tabFormularios').classList.add('tab-active');
         if (btnExportar) btnExportar.style.display = 'flex';
         if (scoreNotification) scoreNotification.style.display = 'flex';
+        if (btnResetar) btnResetar.style.display = 'block';
+        if (btnExpRes) btnExpRes.style.display = 'block';
       } else if (aba === 'controle') {
         document.getElementById('viewControle').style.display = 'block';
         document.getElementById('tabControle').classList.add('tab-active');
@@ -1359,17 +1592,16 @@ const firebaseConfig = {
       renderChecklist();
     }
 
-    function resetarChecklist() { document.getElementById('confirmResetar').classList.add('show'); }
-    function cancelarResetar() { document.getElementById('confirmResetar').classList.remove('show'); }
-    function confirmarResetar() {
-      state.score = 100; state.nc = 0; state.ncg = 0; state.total = 0;
-      state.items = {}; state.observations = {}; state.ncgDetected = false;
-      document.getElementById('alertNCG').classList.remove('show');
-      document.getElementById('confirmResetar').classList.remove('show');
-      updateUI();
-      document.getElementById('scoreNotificationValue').textContent = '100';
-      document.getElementById('scoreNotification').classList.remove('score-notification-ncg');
-      alert('✅ Checklist resetado com sucesso!');
+    function resetarChecklist() {
+      showConfirm('Resetar Checklist', 'Todos os itens marcados e observações serão apagados.<br><br>Esta ação não pode ser desfeita!', '🔄', 'danger', () => {
+        state.score = 100; state.nc = 0; state.ncg = 0; state.total = 0;
+        state.items = {}; state.observations = {}; state.ncgDetected = false;
+        document.getElementById('alertNCG').classList.remove('show');
+        updateUI();
+        document.getElementById('scoreNotificationValue').textContent = '100';
+        document.getElementById('scoreNotification').classList.remove('score-notification-ncg');
+        showToast('Checklist resetado com sucesso!', 'success');
+      });
     }
 
     function limparCamposFormulario() {
@@ -1390,7 +1622,7 @@ const firebaseConfig = {
       a.href = url;
       a.download = `checklist_${analista.replace(/\s+/g,'_')}_${dataAvaliacao}.json`;
       a.click();
-      alert('✅ Resultado exportado!');
+      showToast('Resultado exportado com sucesso!', 'success');
     }
 
     function getWeekNumber(date) {
@@ -1407,23 +1639,18 @@ const firebaseConfig = {
       if (semanaInput) {
         const [ano, semana] = semanaInput.split('-W');
         const semanaNum = parseInt(semana);
-        const primeiroDiaAno = new Date(ano, 0, 1);
-        const diasParaPrimeiraSegunda = (8 - primeiroDiaAno.getDay()) % 7;
-        const primeiraSegunda = new Date(ano, 0, 1 + diasParaPrimeiraSegunda);
-        const inicioSemana = new Date(primeiraSegunda);
-        inicioSemana.setDate(primeiraSegunda.getDate() + (semanaNum - 1) * 7);
+
+        // Início e fim da ISO week
+        const inicioSemana = getISOWeekStart(parseInt(ano), semanaNum);
         const fimSemana = new Date(inicioSemana);
         fimSemana.setDate(inicioSemana.getDate() + 6);
-        const fmt = (d) => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
-        const mesInicio = inicioSemana.getMonth();
-        const anoInicio = inicioSemana.getFullYear();
-        const p = new Date(anoInicio, mesInicio, 1);
-        const ds = p.getDay();
-        if (ds !== 1) p.setDate(p.getDate() + ((8 - ds) % 7));
-        const diff = Math.floor((inicioSemana - p) / (7*24*60*60*1000));
-        const ciclo = Math.max(1, Math.min(4, diff + 1));
-        const cicloTexto = ciclo === 1 ? '1º Ciclo' : ciclo === 2 ? '2º Ciclo' : ciclo === 3 ? '3º Ciclo' : '4º Ciclo';
-        vis.innerHTML = `<strong>W${semana}</strong> - ${fmt(inicioSemana)} à ${fmt(fimSemana)} | <span style="color:#00A4E0;">${cicloTexto}</span>`;
+        const fmt = d => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+
+        // Ciclo: dia 01-07=1º, 08-14=2º, 15-21=3º, 22+=4º
+        const ciclo = getCicloPorDia(inicioSemana.getDate());
+        const cicloTexto = `${ciclo}º Ciclo`;
+
+        vis.innerHTML = `<strong>W${semana}</strong> — ${fmt(inicioSemana)} à ${fmt(fimSemana)} | <span style="color:#00A4E0;font-weight:700;">${cicloTexto}</span>`;
         vis.style.display = 'block';
       } else { vis.style.display = 'none'; }
     }
@@ -1504,7 +1731,17 @@ const firebaseConfig = {
             html += `<td style="padding:10px;vertical-align:top;font-weight:600;">${caixa}</td>`;
             if (hasAssunto) html += `<td style="padding:10px;vertical-align:top;font-size:13px;">${r.assunto || '-'}</td>`;
             if (hasProtocolo) html += `<td style="padding:10px;vertical-align:top;font-size:12px;max-width:200px;word-wrap:break-word;">${r.protocoloOuEmail || '-'}</td>`;
-            if (hasObservacao) html += `<td style="padding:10px;vertical-align:top;font-size:12px;max-width:250px;word-wrap:break-word;">${r.observacao || '-'}</td>`;
+            if (hasObservacao) {
+              const obsText = r.observacao || '-';
+              const longa = obsText.length > 80;
+              html += `<td style="padding:10px;vertical-align:top;max-width:240px;min-width:120px;">
+                <div class="obs-tooltip-wrap">
+                  <div class="obs-truncado">${obsText}</div>
+                  ${longa ? `<span class="obs-ver-mais">ver mais...</span>
+                  <div class="obs-tooltip-box">${obsText.replace(/</g,'&lt;')}</div>` : ''}
+                </div>
+              </td>`;
+            }
             if (hasDesvio) html += `<td style="padding:10px;vertical-align:top;font-size:12px;max-width:150px;word-wrap:break-word;">${r.desvio || '-'}</td>`;
             html += `<td style="padding:10px;text-align:center;font-weight:700;color:${r.nota < 70 ? '#dc3545' : r.nota < 90 ? '#FF9F1C' : '#28a745'};">${r.nota}</td>`;
             if (primeiraLinhaAnalista) {
@@ -1609,7 +1846,7 @@ const firebaseConfig = {
       const mesFiltro = document.getElementById('dashMes').value;
       let registros = window._registros || [];
       if (mesFiltro) registros = registros.filter(r => getMesFromRegistro(r) === mesFiltro);
-      if (registros.length === 0) { alert('⚠️ Nenhum dado para exportar!'); return; }
+      if (registros.length === 0) { showToast('Nenhum dado para exportar!', 'warning'); return; }
       let csv = 'Data,Analista,Caixa,Nota,Ciclo,Mês,Semana\n';
       registros.forEach(r => {
         csv += [r.data,r.analista,r.caixa,r.nota,getCicloFromRegistro(r)+'° Ciclo',getMesFromRegistro(r),r.semana||'']
