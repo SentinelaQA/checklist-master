@@ -42,7 +42,11 @@
     .item-observation label { display: block; font-size: 11px; font-weight: 600; color: #8892a4; margin-bottom: 5px; text-transform: uppercase; }
     .item-observation textarea { width: 100%; padding: 10px; border: 2px solid #3a4256; border-radius: 8px; font-size: 13px; font-family: 'Inter', sans-serif; resize: vertical; min-height: 60px; transition: border-color 0.3s; background: #1a1f2e; color: #e2e8f0; }
     .item-observation textarea:focus { outline: none; border-color: #00A4E0; }
-    .observation-preview { margin-top: 10px; padding: 12px; background: rgba(0,214,100,0.08); border-left: 4px solid #00D664; border-radius: 8px; display: none; }
+    .obs-truncado { overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; max-height:3em; line-height:1.5em; word-break:break-word; cursor:help; }
+    .obs-tooltip-wrap { position:relative; }
+    .obs-tooltip-wrap:hover .obs-tooltip-box { display:block; }
+    .obs-tooltip-box { display:none; position:absolute; top:calc(100% + 6px); left:0; background:#1a1f2e; border:1px solid #3a4256; border-radius:10px; padding:12px 14px; font-size:12px; color:#e2e8f0; max-width:320px; min-width:180px; z-index:200; box-shadow:0 8px 30px rgba(0,0,0,0.6); white-space:pre-wrap; line-height:1.6; pointer-events:none; }
+    .obs-ver-mais { color:#4db8e8; font-size:11px; font-weight:600; margin-top:2px; display:block; }
     .observation-preview.show { display: block; animation: slideDown 0.3s; }
     .observation-preview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
     .observation-preview-label { font-size: 11px; font-weight: 700; color: #4db8e8; text-transform: uppercase; }
@@ -193,6 +197,14 @@
       </div>
     </div>
 
+    <!-- Assunto — visível logo após identificação inicial -->
+    <div class="info-bar" id="assuntoBarInicial">
+      <div class="info-item" style="grid-column:1 / -1;">
+        <label style="font-weight:700;color:#e2e8f0;">Assunto <span style="color:#FF6B6B;">*</span></label>
+        <input type="text" id="assunto" placeholder="Digite o assunto da interação..." style="font-size:14px;">
+      </div>
+    </div>
+
     <div class="info-bar" id="camposCondicionais" style="display:none;">
       <div class="info-item" id="subFormularioContainer" style="display:none;">
         <label>Tipo de Evento</label>
@@ -263,10 +275,6 @@
     </div>
 
     <div class="info-bar" id="resumoContainer" style="display:none;border-top:2px solid #0d7ab5;">
-      <div class="info-item">
-        <label>Assunto</label>
-        <input type="text" id="assunto" placeholder="Digite o assunto">
-      </div>
       <div class="info-item">
         <label>Ticket</label>
         <input type="text" id="ticket" placeholder="Digite o número do ticket">
@@ -1723,7 +1731,17 @@ const firebaseConfig = {
             html += `<td style="padding:10px;vertical-align:top;font-weight:600;">${caixa}</td>`;
             if (hasAssunto) html += `<td style="padding:10px;vertical-align:top;font-size:13px;">${r.assunto || '-'}</td>`;
             if (hasProtocolo) html += `<td style="padding:10px;vertical-align:top;font-size:12px;max-width:200px;word-wrap:break-word;">${r.protocoloOuEmail || '-'}</td>`;
-            if (hasObservacao) html += `<td style="padding:10px;vertical-align:top;font-size:12px;max-width:250px;word-wrap:break-word;">${r.observacao || '-'}</td>`;
+            if (hasObservacao) {
+              const obsText = r.observacao || '-';
+              const longa = obsText.length > 80;
+              html += `<td style="padding:10px;vertical-align:top;max-width:240px;min-width:120px;">
+                <div class="obs-tooltip-wrap">
+                  <div class="obs-truncado">${obsText}</div>
+                  ${longa ? `<span class="obs-ver-mais">ver mais...</span>
+                  <div class="obs-tooltip-box">${obsText.replace(/</g,'&lt;')}</div>` : ''}
+                </div>
+              </td>`;
+            }
             if (hasDesvio) html += `<td style="padding:10px;vertical-align:top;font-size:12px;max-width:150px;word-wrap:break-word;">${r.desvio || '-'}</td>`;
             html += `<td style="padding:10px;text-align:center;font-weight:700;color:${r.nota < 70 ? '#dc3545' : r.nota < 90 ? '#FF9F1C' : '#28a745'};">${r.nota}</td>`;
             if (primeiraLinhaAnalista) {
