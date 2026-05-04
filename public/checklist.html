@@ -1142,7 +1142,6 @@ const firebaseConfig = {
 
     async function carregarAnalistasFirestore() {
       try {
-        const { getDocs, collection, query, orderBy, addDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
         const snap = await getDocs(query(collection(db, 'analistas'), orderBy('nome')));
         analistasCache = snap.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
 
@@ -1318,7 +1317,6 @@ const firebaseConfig = {
       const motivoOutro = status === 'Outro' ? document.getElementById('editAnalistaMotivo').value.trim() : '';
       if (!nome) { showToast('Preencha o nome do analista!', 'warning'); return; }
       try {
-        const { doc, addDoc, updateDoc, collection } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
         if (id) {
           await updateDoc(doc(db, 'analistas', id), { nome, status, motivoOutro });
           const idx = analistasCache.findIndex(a => a.firestoreId === id);
@@ -1338,7 +1336,6 @@ const firebaseConfig = {
     window.excluirAnalista = function(id) {
       showConfirm('Excluir Analista', 'Deseja excluir este analista? As ausências registradas também serão removidas.', '🗑️', 'danger', async () => {
         try {
-          const { doc, deleteDoc, getDocs, query, where, collection } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
           await deleteDoc(doc(db, 'analistas', id));
           const snapAus = await getDocs(query(collection(db, 'ausencias'), where('analistaId', '==', id)));
           for (const d of snapAus.docs) await deleteDoc(doc(db, 'ausencias', d.id));
@@ -1381,11 +1378,9 @@ const firebaseConfig = {
       const observacao = document.getElementById('ausenciaObs').value.trim();
       if (!inicio) { showToast('Preencha a data de início!', 'warning'); return; }
       try {
-        const { addDoc, updateDoc, doc, collection } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
         const dados = { analistaId, motivo, motivoOutro, inicio, fim, observacao, criadoEm: new Date().toISOString() };
         const ref = await addDoc(collection(db, 'ausencias'), dados);
         ausenciasCache.unshift({ firestoreId: ref.id, ...dados });
-        // Atualiza status do analista automaticamente
         await updateDoc(doc(db, 'analistas', analistaId), { status: motivo, motivoOutro });
         const a = analistasCache.find(x => x.firestoreId === analistaId);
         if (a) { a.status = motivo; a.motivoOutro = motivoOutro; }
@@ -1399,7 +1394,6 @@ const firebaseConfig = {
     window.excluirAusencia = function(id) {
       showConfirm('Excluir Ausência', 'Deseja remover este registro de ausência?', '🗑️', 'danger', async () => {
         try {
-          const { doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
           await deleteDoc(doc(db, 'ausencias', id));
           ausenciasCache = ausenciasCache.filter(a => a.firestoreId !== id);
           filtrarAnalistas(filtroStatusAtual);
