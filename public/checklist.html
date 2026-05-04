@@ -121,6 +121,7 @@
       <button id="tabFormularios" onclick="trocarAba('formularios')" class="tab-button tab-active">📋 Formulários de Avaliação</button>
       <button id="tabControle" onclick="trocarAba('controle')" class="tab-button">📊 Controle de Avaliações <span id="badgeControle" class="badge-count" style="display:none;">0</span></button>
       <button id="tabAnalise" onclick="trocarAba('analise')" class="tab-button">📈 Análise e Relatórios</button>
+      <button id="tabAnalistas" onclick="trocarAba('analistas')" class="tab-button" style="display:none;">👤 Gestão de Analistas</button>
       <button id="tabCadastro" onclick="trocarAba('cadastro')" class="tab-button" style="display:none;">👥 Gerenciar Usuários</button>
       <button onclick="fazerLogout()" style="padding:10px 20px;background:rgba(220,53,69,0.15);color:#ff6b7a;border:none;border-left:1px solid rgba(255,255,255,0.06);font-size:14px;font-weight:700;cursor:pointer;transition:all 0.3s;white-space:nowrap;" onmouseover="this.style.background='rgba(220,53,69,0.3)'" onmouseout="this.style.background='rgba(220,53,69,0.15)'">🚪 Sair</button>
     </div>
@@ -397,6 +398,37 @@
   </div>
 
   <!-- Visão 3: Análise -->
+  <!-- ABA GESTÃO DE ANALISTAS -->
+  <div id="viewAnalistas" style="display:none;">
+    <div class="container">
+      <div class="header">
+        <div><h1>👤 Gestão de Analistas</h1><p style="opacity:0.9;margin-top:5px;">Controle de status, ausências e períodos</p></div>
+        <button onclick="abrirModalNovoAnalista()" style="padding:10px 20px;background:linear-gradient(135deg,#00A4E0,#0d7ab5);color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:14px;">+ Novo Analista</button>
+      </div>
+      <div style="padding:20px;">
+
+        <!-- Filtro de status -->
+        <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+          <button onclick="filtrarAnalistas('todos')" id="btnFiltroTodos" style="padding:8px 18px;border-radius:20px;border:2px solid #00A4E0;background:#00A4E020;color:#4db8e8;font-weight:700;cursor:pointer;font-size:13px;">Todos</button>
+          <button onclick="filtrarAnalistas('Ativo')" id="btnFiltroAtivo" style="padding:8px 18px;border-radius:20px;border:2px solid #28a745;background:#28a74520;color:#5dd879;font-weight:700;cursor:pointer;font-size:13px;">✅ Ativos</button>
+          <button onclick="filtrarAnalistas('Férias')" id="btnFiltroFerias" style="padding:8px 18px;border-radius:20px;border:2px solid #FF9F1C;background:#FF9F1C20;color:#ffc15e;font-weight:700;cursor:pointer;font-size:13px;">🏖️ Férias</button>
+          <button onclick="filtrarAnalistas('Afastado')" id="btnFiltroAfastado" style="padding:8px 18px;border-radius:20px;border:2px solid #dc3545;background:#dc354520;color:#ff6b6b;font-weight:700;cursor:pointer;font-size:13px;">🚫 Afastados</button>
+          <button onclick="filtrarAnalistas('Licença')" id="btnFiltroLicenca" style="padding:8px 18px;border-radius:20px;border:2px solid #9B59B6;background:#9B59B620;color:#c39bd3;font-weight:700;cursor:pointer;font-size:13px;">📋 Licença</button>
+          <button onclick="filtrarAnalistas('Desligado')" id="btnFiltroDesligado" style="padding:8px 18px;border-radius:20px;border:2px solid #6a7489;background:#6a748920;color:#a0aec0;font-weight:700;cursor:pointer;font-size:13px;">❌ Desligados</button>
+          <button onclick="filtrarAnalistas('Outro')" id="btnFiltroOutro" style="padding:8px 18px;border-radius:20px;border:2px solid #e2e8f0;background:#e2e8f010;color:#e2e8f0;font-weight:700;cursor:pointer;font-size:13px;">📌 Outro</button>
+        </div>
+
+        <!-- Tabela de analistas -->
+        <div id="tabelaAnalistas" style="background:#1e2536;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);"></div>
+
+        <!-- Relatório de ausências -->
+        <div id="relatorioAusencias" style="margin-top:30px;"></div>
+
+      </div>
+      <div class="copyright-footer"><p>© 2025 Yasmin de Melo Campos - Analista de Qualidade Jr</p></div>
+    </div>
+  </div>
+
   <div id="viewAnalise" style="display:none;">
     <div class="container">
       <div class="header">
@@ -475,6 +507,94 @@
       <div class="modal-footer">
         <button class="modal-btn modal-btn-cancel" onclick="fecharObservacao()">Cancelar</button>
         <button class="modal-btn modal-btn-save" onclick="salvarObservacaoModal()">💾 Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Novo/Editar Analista -->
+  <div class="modal-overlay" id="modalAnalista">
+    <div class="modal-content" style="max-width:500px;">
+      <div class="modal-header">
+        <h3 id="modalAnalistaTitulo">👤 Novo Analista</h3>
+        <button class="modal-close" onclick="fecharModalAnalista()">×</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editAnalistaId">
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div>
+            <label style="display:block;color:#a0aec0;font-size:12px;font-weight:700;margin-bottom:6px;text-transform:uppercase;">Nome completo</label>
+            <input id="editAnalistaNome" type="text" placeholder="Ex: JOÃO DA SILVA" style="width:100%;padding:10px;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;color:#e2e8f0;font-size:14px;box-sizing:border-box;">
+          </div>
+          <div>
+            <label style="display:block;color:#a0aec0;font-size:12px;font-weight:700;margin-bottom:6px;text-transform:uppercase;">Status atual</label>
+            <select id="editAnalistaStatus" style="width:100%;padding:10px;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;color:#e2e8f0;font-size:14px;box-sizing:border-box;">
+              <option value="Ativo">✅ Ativo</option>
+              <option value="Férias">🏖️ Férias</option>
+              <option value="Afastado">🚫 Afastado</option>
+              <option value="Licença">📋 Licença</option>
+              <option value="Desligado">❌ Desligado</option>
+              <option value="Outro">📌 Outro motivo</option>
+            </select>
+          </div>
+          <div id="campoMotivoOutro" style="display:none;">
+            <label style="display:block;color:#a0aec0;font-size:12px;font-weight:700;margin-bottom:6px;text-transform:uppercase;">Descreva o motivo</label>
+            <input id="editAnalistaMotivo" type="text" placeholder="Ex: Processo seletivo interno" style="width:100%;padding:10px;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;color:#e2e8f0;font-size:14px;box-sizing:border-box;">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn modal-btn-cancel" onclick="fecharModalAnalista()">Cancelar</button>
+        <button class="modal-btn modal-btn-save" onclick="salvarAnalista()">💾 Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Registrar Ausência -->
+  <div class="modal-overlay" id="modalAusencia">
+    <div class="modal-content" style="max-width:500px;">
+      <div class="modal-header">
+        <h3>📅 Registrar Ausência</h3>
+        <button class="modal-close" onclick="fecharModalAusencia()">×</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="ausenciaAnalistaId">
+        <div style="background:#1a1f2e;padding:10px 14px;border-radius:8px;margin-bottom:14px;border-left:4px solid #00A4E0;">
+          <span id="ausenciaAnalistaNome" style="color:#4db8e8;font-weight:700;font-size:14px;"></span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div>
+            <label style="display:block;color:#a0aec0;font-size:12px;font-weight:700;margin-bottom:6px;text-transform:uppercase;">Motivo</label>
+            <select id="ausenciaMotivo" onchange="toggleMotivoOutroAusencia()" style="width:100%;padding:10px;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;color:#e2e8f0;font-size:14px;box-sizing:border-box;">
+              <option value="Férias">🏖️ Férias</option>
+              <option value="Afastado">🚫 Afastado</option>
+              <option value="Licença">📋 Licença</option>
+              <option value="Desligado">❌ Desligado</option>
+              <option value="Outro">📌 Outro motivo</option>
+            </select>
+          </div>
+          <div id="campoMotivoOutroAusencia" style="display:none;">
+            <label style="display:block;color:#a0aec0;font-size:12px;font-weight:700;margin-bottom:6px;text-transform:uppercase;">Descreva o motivo</label>
+            <input id="ausenciaMotivoOutro" type="text" placeholder="Ex: Processo seletivo" style="width:100%;padding:10px;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;color:#e2e8f0;font-size:14px;box-sizing:border-box;">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+              <label style="display:block;color:#a0aec0;font-size:12px;font-weight:700;margin-bottom:6px;text-transform:uppercase;">Data início</label>
+              <input id="ausenciaInicio" type="date" style="width:100%;padding:10px;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;color:#e2e8f0;font-size:14px;box-sizing:border-box;">
+            </div>
+            <div>
+              <label style="display:block;color:#a0aec0;font-size:12px;font-weight:700;margin-bottom:6px;text-transform:uppercase;">Data fim <span style="color:#6a7489;font-size:11px;">(opcional)</span></label>
+              <input id="ausenciaFim" type="date" style="width:100%;padding:10px;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;color:#e2e8f0;font-size:14px;box-sizing:border-box;">
+            </div>
+          </div>
+          <div>
+            <label style="display:block;color:#a0aec0;font-size:12px;font-weight:700;margin-bottom:6px;text-transform:uppercase;">Observação <span style="color:#6a7489;font-size:11px;">(opcional)</span></label>
+            <textarea id="ausenciaObs" rows="2" placeholder="Detalhes adicionais..." style="width:100%;padding:10px;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;color:#e2e8f0;font-size:14px;resize:vertical;box-sizing:border-box;font-family:'Inter',sans-serif;"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn modal-btn-cancel" onclick="fecharModalAusencia()">Cancelar</button>
+        <button class="modal-btn modal-btn-save" onclick="salvarAusencia()">💾 Registrar</button>
       </div>
     </div>
   </div>
@@ -652,6 +772,8 @@ const firebaseConfig = {
       // Controlar visibilidade das abas
       const tabCadastro = document.getElementById('tabCadastro');
       if (tabCadastro) tabCadastro.style.display = isAdmin ? 'flex' : 'none';
+      const tabAnalistas = document.getElementById('tabAnalistas');
+      if (tabAnalistas) tabAnalistas.style.display = isAdmin ? 'flex' : 'none';
 
       if (!isAdmin) {
         document.getElementById('tabFormularios').style.display = 'none';
@@ -984,6 +1106,286 @@ const firebaseConfig = {
       filtrarControle();
     };
 
+    // ===== GESTÃO DE ANALISTAS =====
+    const STATUS_CORES = {
+      'Ativo':      { bg:'#28a74520', border:'#28a745', color:'#5dd879', emoji:'✅' },
+      'Férias':     { bg:'#FF9F1C20', border:'#FF9F1C', color:'#ffc15e', emoji:'🏖️' },
+      'Afastado':   { bg:'#dc354520', border:'#dc3545', color:'#ff6b6b', emoji:'🚫' },
+      'Licença':    { bg:'#9B59B620', border:'#9B59B6', color:'#c39bd3', emoji:'📋' },
+      'Desligado':  { bg:'#6a748920', border:'#6a7489', color:'#a0aec0', emoji:'❌' },
+      'Outro':      { bg:'#e2e8f010', border:'#e2e8f0', color:'#e2e8f0', emoji:'📌' },
+    };
+
+    function getWeekNumber(d) {
+      d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+      d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    }
+
+    function calcularCiclosAusencia(inicio, fim) {
+      if (!inicio) return '-';
+      const d1 = new Date(inicio + 'T12:00:00');
+      const d2 = fim ? new Date(fim + 'T12:00:00') : new Date();
+      const dias = Math.max(1, Math.round((d2 - d1) / 86400000) + 1);
+      const ciclos = Math.ceil(dias / 7);
+      return ciclos;
+    }
+
+    function formatarData(str) {
+      if (!str) return '—';
+      const [y, m, d] = str.split('-');
+      return `${d}/${m}/${y}`;
+    }
+
+    let analistasCache = [];
+    let ausenciasCache = [];
+    let filtroStatusAtual = 'todos';
+
+    async function carregarAnalistasFirestore() {
+      try {
+        const { getDocs, collection, query, orderBy } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+        const snap = await getDocs(query(collection(db, 'analistas'), orderBy('nome')));
+        analistasCache = snap.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
+        const snapAus = await getDocs(query(collection(db, 'ausencias'), orderBy('inicio', 'desc')));
+        ausenciasCache = snapAus.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
+      } catch(e) {
+        console.error('Erro ao carregar analistas:', e);
+      }
+    }
+
+    function atualizarDatalistAnalistas() {
+      const datalist = document.getElementById('listaAnalistasForm');
+      if (!datalist) return;
+      datalist.innerHTML = '';
+      analistasCache
+        .filter(a => a.status === 'Ativo')
+        .forEach(a => {
+          const opt = document.createElement('option');
+          opt.value = a.nome;
+          datalist.appendChild(opt);
+        });
+
+      // Também atualiza os checkboxes do filtro de controle
+      const listaChk = document.getElementById('listaAnalistas');
+      if (listaChk) {
+        listaChk.innerHTML = '';
+        const ativos = analistasCache.filter(a => a.status === 'Ativo');
+        ativos.forEach((a, i) => {
+          const borderStyle = i < ativos.length - 1 ? 'border-bottom:1px solid #2d3548;' : '';
+          listaChk.innerHTML += `<label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;${borderStyle}" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="${a.nome}" onchange="filtrarControle();atualizarBtnAnalista()" style="margin-right:8px;accent-color:#00A4E0;" class="chkAnalista"> ${a.nome}</label>`;
+        });
+      }
+    }
+
+    function renderizarTabelaAnalistas(lista) {
+      const el = document.getElementById('tabelaAnalistas');
+      if (!lista || lista.length === 0) {
+        el.innerHTML = '<p style="padding:30px;text-align:center;color:#6a7489;">Nenhum analista encontrado.</p>';
+        renderizarRelatorioAusencias([]);
+        return;
+      }
+      let html = `<table style="width:100%;border-collapse:collapse;">
+        <thead><tr style="background:#242b3d;">
+          <th style="padding:14px 16px;text-align:left;color:#a0aec0;font-size:13px;font-weight:700;">Nome</th>
+          <th style="padding:14px 16px;text-align:center;color:#a0aec0;font-size:13px;font-weight:700;">Status</th>
+          <th style="padding:14px 16px;text-align:center;color:#a0aec0;font-size:13px;font-weight:700;">Ausências</th>
+          <th style="padding:14px 16px;text-align:center;color:#a0aec0;font-size:13px;font-weight:700;">Ações</th>
+        </tr></thead><tbody>`;
+      lista.forEach(a => {
+        const cor = STATUS_CORES[a.status] || STATUS_CORES['Outro'];
+        const totalAus = ausenciasCache.filter(x => x.analistaId === a.firestoreId).length;
+        html += `<tr style="border-bottom:1px solid #2d3548;">
+          <td style="padding:14px 16px;font-weight:700;color:#e2e8f0;font-size:14px;">${a.nome}</td>
+          <td style="padding:14px 16px;text-align:center;">
+            <span style="padding:5px 14px;border-radius:20px;background:${cor.bg};border:1px solid ${cor.border};color:${cor.color};font-size:12px;font-weight:700;">${cor.emoji} ${a.status}${a.motivoOutro ? ' — ' + a.motivoOutro : ''}</span>
+          </td>
+          <td style="padding:14px 16px;text-align:center;color:#a0aec0;font-size:13px;">${totalAus > 0 ? `<span style="background:#00A4E020;border:1px solid #00A4E0;color:#4db8e8;padding:3px 10px;border-radius:12px;font-weight:700;">${totalAus} registro${totalAus > 1 ? 's' : ''}</span>` : '—'}</td>
+          <td style="padding:14px 16px;text-align:center;display:flex;gap:6px;justify-content:center;">
+            <button onclick="abrirModalAusencia('${a.firestoreId}','${a.nome.replace(/'/g,"\\'")}','${a.status}')" style="padding:6px 12px;background:#FF9F1C20;border:1px solid #FF9F1C;color:#ffc15e;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">📅 Ausência</button>
+            <button onclick="abrirModalEditarAnalista('${a.firestoreId}')" style="padding:6px 12px;background:#0d7ab520;border:1px solid #0d7ab5;color:#4db8e8;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">✏️ Editar</button>
+            <button onclick="excluirAnalista('${a.firestoreId}')" style="padding:6px 12px;background:#dc354520;border:1px solid #dc3545;color:#ff6b6b;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">🗑️</button>
+          </td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+      el.innerHTML = html;
+      renderizarRelatorioAusencias(lista);
+    }
+
+    function renderizarRelatorioAusencias(analistas) {
+      const el = document.getElementById('relatorioAusencias');
+      const ids = analistas.map(a => a.firestoreId);
+      const ausencias = ausenciasCache.filter(x => ids.includes(x.analistaId));
+      if (ausencias.length === 0) { el.innerHTML = ''; return; }
+      let html = `<div style="background:#1e2536;border-radius:12px;border:1px solid rgba(255,255,255,0.06);overflow:hidden;">
+        <div style="padding:16px 20px;background:#242b3d;border-bottom:1px solid #2d3548;">
+          <h3 style="color:#e2e8f0;font-size:16px;font-weight:700;margin:0;">📊 Relatório de Ausências</h3>
+        </div>
+        <table style="width:100%;border-collapse:collapse;">
+          <thead><tr style="background:#1a1f2e;">
+            <th style="padding:12px 16px;text-align:left;color:#a0aec0;font-size:12px;font-weight:700;">Analista</th>
+            <th style="padding:12px 16px;text-align:center;color:#a0aec0;font-size:12px;font-weight:700;">Motivo</th>
+            <th style="padding:12px 16px;text-align:center;color:#a0aec0;font-size:12px;font-weight:700;">Início</th>
+            <th style="padding:12px 16px;text-align:center;color:#a0aec0;font-size:12px;font-weight:700;">Fim</th>
+            <th style="padding:12px 16px;text-align:center;color:#a0aec0;font-size:12px;font-weight:700;">Ciclos ausente</th>
+            <th style="padding:12px 16px;text-align:left;color:#a0aec0;font-size:12px;font-weight:700;">Observação</th>
+            <th style="padding:12px 16px;text-align:center;color:#a0aec0;font-size:12px;font-weight:700;">Ações</th>
+          </tr></thead><tbody>`;
+      ausencias.forEach(aus => {
+        const analista = analistasCache.find(a => a.firestoreId === aus.analistaId);
+        const nomeAnalista = analista ? analista.nome : aus.analistaId;
+        const cor = STATUS_CORES[aus.motivo] || STATUS_CORES['Outro'];
+        const ciclos = calcularCiclosAusencia(aus.inicio, aus.fim);
+        html += `<tr style="border-bottom:1px solid #2d3548;">
+          <td style="padding:12px 16px;color:#e2e8f0;font-weight:600;font-size:13px;">${nomeAnalista}</td>
+          <td style="padding:12px 16px;text-align:center;"><span style="padding:4px 10px;border-radius:14px;background:${cor.bg};border:1px solid ${cor.border};color:${cor.color};font-size:11px;font-weight:700;">${cor.emoji} ${aus.motivo}${aus.motivoOutro ? ' — ' + aus.motivoOutro : ''}</span></td>
+          <td style="padding:12px 16px;text-align:center;color:#e2e8f0;font-size:13px;">${formatarData(aus.inicio)}</td>
+          <td style="padding:12px 16px;text-align:center;color:#e2e8f0;font-size:13px;">${aus.fim ? formatarData(aus.fim) : '<span style="color:#FF9F1C;font-size:11px;">Em andamento</span>'}</td>
+          <td style="padding:12px 16px;text-align:center;"><span style="background:#9B59B620;border:1px solid #9B59B6;color:#c39bd3;padding:4px 12px;border-radius:12px;font-weight:700;font-size:13px;">${ciclos} ciclo${ciclos > 1 ? 's' : ''}</span></td>
+          <td style="padding:12px 16px;color:#a0aec0;font-size:12px;max-width:180px;word-wrap:break-word;">${aus.observacao || '—'}</td>
+          <td style="padding:12px 16px;text-align:center;">
+            <button onclick="excluirAusencia('${aus.firestoreId}')" style="padding:4px 10px;background:#dc354520;border:1px solid #dc3545;color:#ff6b6b;border-radius:6px;cursor:pointer;font-size:11px;">🗑️</button>
+          </td>
+        </tr>`;
+      });
+      html += '</tbody></table></div>';
+      el.innerHTML = html;
+    }
+
+    window.filtrarAnalistas = function(status) {
+      filtroStatusAtual = status;
+      const lista = status === 'todos' ? analistasCache : analistasCache.filter(a => a.status === status);
+      renderizarTabelaAnalistas(lista);
+    };
+
+    window.abrirModalNovoAnalista = function() {
+      document.getElementById('editAnalistaId').value = '';
+      document.getElementById('editAnalistaNome').value = '';
+      document.getElementById('editAnalistaStatus').value = 'Ativo';
+      document.getElementById('editAnalistaMotivo').value = '';
+      document.getElementById('campoMotivoOutro').style.display = 'none';
+      document.getElementById('modalAnalistaTitulo').textContent = '👤 Novo Analista';
+      document.getElementById('modalAnalista').classList.add('show');
+    };
+
+    window.abrirModalEditarAnalista = function(id) {
+      const a = analistasCache.find(x => x.firestoreId === id);
+      if (!a) return;
+      document.getElementById('editAnalistaId').value = id;
+      document.getElementById('editAnalistaNome').value = a.nome;
+      document.getElementById('editAnalistaStatus').value = a.status || 'Ativo';
+      document.getElementById('editAnalistaMotivo').value = a.motivoOutro || '';
+      document.getElementById('campoMotivoOutro').style.display = a.status === 'Outro' ? 'block' : 'none';
+      document.getElementById('modalAnalistaTitulo').textContent = '✏️ Editar Analista';
+      document.getElementById('modalAnalista').classList.add('show');
+    };
+
+    window.fecharModalAnalista = function() {
+      document.getElementById('modalAnalista').classList.remove('show');
+    };
+
+    document.getElementById('editAnalistaStatus').addEventListener('change', function() {
+      document.getElementById('campoMotivoOutro').style.display = this.value === 'Outro' ? 'block' : 'none';
+    });
+
+    window.salvarAnalista = async function() {
+      const id = document.getElementById('editAnalistaId').value;
+      const nome = document.getElementById('editAnalistaNome').value.trim().toUpperCase();
+      const status = document.getElementById('editAnalistaStatus').value;
+      const motivoOutro = status === 'Outro' ? document.getElementById('editAnalistaMotivo').value.trim() : '';
+      if (!nome) { showToast('Preencha o nome do analista!', 'warning'); return; }
+      try {
+        const { doc, addDoc, updateDoc, collection } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+        if (id) {
+          await updateDoc(doc(db, 'analistas', id), { nome, status, motivoOutro });
+          const idx = analistasCache.findIndex(a => a.firestoreId === id);
+          if (idx >= 0) Object.assign(analistasCache[idx], { nome, status, motivoOutro });
+        } else {
+          const ref = await addDoc(collection(db, 'analistas'), { nome, status, motivoOutro, criadoEm: new Date().toISOString() });
+          analistasCache.push({ firestoreId: ref.id, nome, status, motivoOutro });
+          analistasCache.sort((a, b) => a.nome.localeCompare(b.nome));
+        }
+        atualizarDatalistAnalistas();
+        fecharModalAnalista();
+        filtrarAnalistas(filtroStatusAtual);
+        showToast('Analista salvo com sucesso!', 'success');
+      } catch(e) { console.error(e); showToast('Erro ao salvar analista.', 'error'); }
+    };
+
+    window.excluirAnalista = function(id) {
+      showConfirm('Excluir Analista', 'Deseja excluir este analista? As ausências registradas também serão removidas.', '🗑️', 'danger', async () => {
+        try {
+          const { doc, deleteDoc, getDocs, query, where, collection } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+          await deleteDoc(doc(db, 'analistas', id));
+          const snapAus = await getDocs(query(collection(db, 'ausencias'), where('analistaId', '==', id)));
+          for (const d of snapAus.docs) await deleteDoc(doc(db, 'ausencias', d.id));
+          analistasCache = analistasCache.filter(a => a.firestoreId !== id);
+          ausenciasCache = ausenciasCache.filter(a => a.analistaId !== id);
+          atualizarDatalistAnalistas();
+          filtrarAnalistas(filtroStatusAtual);
+          showToast('Analista excluído!', 'success');
+        } catch(e) { showToast('Erro ao excluir.', 'error'); }
+      });
+    };
+
+    window.abrirModalAusencia = function(analistaId, nome, statusAtual) {
+      document.getElementById('ausenciaAnalistaId').value = analistaId;
+      document.getElementById('ausenciaAnalistaNome').textContent = nome;
+      document.getElementById('ausenciaMotivo').value = statusAtual !== 'Ativo' ? statusAtual : 'Férias';
+      document.getElementById('ausenciaInicio').value = '';
+      document.getElementById('ausenciaFim').value = '';
+      document.getElementById('ausenciaObs').value = '';
+      document.getElementById('ausenciaMotivoOutro').value = '';
+      document.getElementById('campoMotivoOutroAusencia').style.display = 'none';
+      document.getElementById('modalAusencia').classList.add('show');
+    };
+
+    window.fecharModalAusencia = function() {
+      document.getElementById('modalAusencia').classList.remove('show');
+    };
+
+    window.toggleMotivoOutroAusencia = function() {
+      const val = document.getElementById('ausenciaMotivo').value;
+      document.getElementById('campoMotivoOutroAusencia').style.display = val === 'Outro' ? 'block' : 'none';
+    };
+
+    window.salvarAusencia = async function() {
+      const analistaId = document.getElementById('ausenciaAnalistaId').value;
+      const motivo = document.getElementById('ausenciaMotivo').value;
+      const motivoOutro = motivo === 'Outro' ? document.getElementById('ausenciaMotivoOutro').value.trim() : '';
+      const inicio = document.getElementById('ausenciaInicio').value;
+      const fim = document.getElementById('ausenciaFim').value;
+      const observacao = document.getElementById('ausenciaObs').value.trim();
+      if (!inicio) { showToast('Preencha a data de início!', 'warning'); return; }
+      try {
+        const { addDoc, updateDoc, doc, collection } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+        const dados = { analistaId, motivo, motivoOutro, inicio, fim, observacao, criadoEm: new Date().toISOString() };
+        const ref = await addDoc(collection(db, 'ausencias'), dados);
+        ausenciasCache.unshift({ firestoreId: ref.id, ...dados });
+        // Atualiza status do analista automaticamente
+        await updateDoc(doc(db, 'analistas', analistaId), { status: motivo, motivoOutro });
+        const a = analistasCache.find(x => x.firestoreId === analistaId);
+        if (a) { a.status = motivo; a.motivoOutro = motivoOutro; }
+        atualizarDatalistAnalistas();
+        fecharModalAusencia();
+        filtrarAnalistas(filtroStatusAtual);
+        showToast('Ausência registrada!', 'success');
+      } catch(e) { console.error(e); showToast('Erro ao registrar ausência.', 'error'); }
+    };
+
+    window.excluirAusencia = function(id) {
+      showConfirm('Excluir Ausência', 'Deseja remover este registro de ausência?', '🗑️', 'danger', async () => {
+        try {
+          const { doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+          await deleteDoc(doc(db, 'ausencias', id));
+          ausenciasCache = ausenciasCache.filter(a => a.firestoreId !== id);
+          filtrarAnalistas(filtroStatusAtual);
+          showToast('Ausência removida!', 'success');
+        } catch(e) { showToast('Erro ao excluir.', 'error'); }
+      });
+    };
+
     // ===== VER OBSERVAÇÃO COMPLETA =====
     window.abrirObsCompleta = function(texto) {
       document.getElementById('modalVerObservacaoTexto').textContent = texto;
@@ -1273,11 +1675,11 @@ const firebaseConfig = {
 
     // ===== TROCAR ABA =====
     window.trocarAba = async function(aba) {
-      ['viewFormularios','viewControle','viewAnalise','viewCadastro'].forEach(id => {
+      ['viewFormularios','viewControle','viewAnalise','viewCadastro','viewAnalistas'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
       });
-      ['tabFormularios','tabControle','tabAnalise','tabCadastro'].forEach(id => {
+      ['tabFormularios','tabControle','tabAnalise','tabCadastro','tabAnalistas'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.classList.remove('tab-active');
       });
@@ -1313,6 +1715,14 @@ const firebaseConfig = {
         if (scoreNotification) scoreNotification.style.display = 'none';
         await carregarRegistrosFirestore();
         renderizarDashboard();
+      } else if (aba === 'analistas') {
+        document.getElementById('viewAnalistas').style.display = 'block';
+        document.getElementById('tabAnalistas').classList.add('tab-active');
+        if (btnExportar) btnExportar.style.display = 'none';
+        if (scoreNotification) scoreNotification.style.display = 'none';
+        await carregarAnalistasFirestore();
+        atualizarDatalistAnalistas();
+        filtrarAnalistas(filtroStatusAtual);
       } else if (aba === 'cadastro') {
         document.getElementById('viewCadastro').style.display = 'block';
         const tabCadastro = document.getElementById('tabCadastro');
