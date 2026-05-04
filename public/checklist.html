@@ -482,6 +482,75 @@
     </div>
   </div>
 
+  <!-- Modal Editar Monitoria -->
+  <div class="modal-overlay" id="modalEditarMonitoria">
+    <div class="modal-content" style="max-width:680px;">
+      <div class="modal-header">
+        <h3>✏️ Editar Monitoria</h3>
+        <button class="modal-close" onclick="fecharEditarMonitoria()">×</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editId">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div>
+            <label style="display:block;color:#a0aec0;font-size:12px;font-weight:700;margin-bottom:6px;text-transform:uppercase;">Analista</label>
+            <input id="editAnalista" type="text" style="width:100%;padding:10px;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;color:#e2e8f0;font-size:14px;box-sizing:border-box;">
+          </div>
+          <div>
+            <label style="display:block;color:#a0aec0;font-size:12px;font-weight:700;margin-bottom:6px;text-transform:uppercase;">Data</label>
+            <input id="editData" type="date" style="width:100%;padding:10px;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;color:#e2e8f0;font-size:14px;box-sizing:border-box;">
+          </div>
+          <div>
+            <label style="display:block;color:#a0aec0;font-size:12px;font-weight:700;margin-bottom:6px;text-transform:uppercase;">Nível</label>
+            <select id="editNivel" style="width:100%;padding:10px;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;color:#e2e8f0;font-size:14px;box-sizing:border-box;">
+              <option value="Trainee">Trainee</option>
+              <option value="Junior">Junior</option>
+              <option value="Pleno">Pleno</option>
+              <option value="Veterano">Veterano</option>
+              <option value="Sênior">Sênior</option>
+            </select>
+          </div>
+          <div>
+            <label style="display:block;color:#a0aec0;font-size:12px;font-weight:700;margin-bottom:6px;text-transform:uppercase;">Nota</label>
+            <input id="editNota" type="number" min="0" max="100" style="width:100%;padding:10px;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;color:#e2e8f0;font-size:14px;box-sizing:border-box;">
+          </div>
+          <div>
+            <label style="display:block;color:#a0aec0;font-size:12px;font-weight:700;margin-bottom:6px;text-transform:uppercase;">Caixa</label>
+            <input id="editCaixa" type="text" style="width:100%;padding:10px;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;color:#e2e8f0;font-size:14px;box-sizing:border-box;">
+          </div>
+          <div>
+            <label style="display:block;color:#a0aec0;font-size:12px;font-weight:700;margin-bottom:6px;text-transform:uppercase;">Assunto</label>
+            <input id="editAssunto" type="text" style="width:100%;padding:10px;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;color:#e2e8f0;font-size:14px;box-sizing:border-box;">
+          </div>
+          <div>
+            <label style="display:block;color:#a0aec0;font-size:12px;font-weight:700;margin-bottom:6px;text-transform:uppercase;">Ticket</label>
+            <input id="editTicket" type="text" style="width:100%;padding:10px;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;color:#e2e8f0;font-size:14px;box-sizing:border-box;">
+          </div>
+          <div>
+            <label style="display:block;color:#a0aec0;font-size:12px;font-weight:700;margin-bottom:6px;text-transform:uppercase;">Protocolo / Email</label>
+            <input id="editProtocolo" type="text" style="width:100%;padding:10px;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;color:#e2e8f0;font-size:14px;box-sizing:border-box;">
+          </div>
+          <div>
+            <label style="display:block;color:#a0aec0;font-size:12px;font-weight:700;margin-bottom:6px;text-transform:uppercase;">TAG</label>
+            <input id="editTag" type="text" style="width:100%;padding:10px;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;color:#e2e8f0;font-size:14px;box-sizing:border-box;">
+          </div>
+          <div style="grid-column:span 2;">
+            <label style="display:block;color:#a0aec0;font-size:12px;font-weight:700;margin-bottom:6px;text-transform:uppercase;">Desvio</label>
+            <textarea id="editDesvio" rows="2" style="width:100%;padding:10px;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;color:#e2e8f0;font-size:14px;resize:vertical;box-sizing:border-box;font-family:'Inter',sans-serif;"></textarea>
+          </div>
+          <div style="grid-column:span 2;">
+            <label style="display:block;color:#a0aec0;font-size:12px;font-weight:700;margin-bottom:6px;text-transform:uppercase;">Observação</label>
+            <textarea id="editObservacao" rows="2" style="width:100%;padding:10px;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;color:#e2e8f0;font-size:14px;resize:vertical;box-sizing:border-box;font-family:'Inter',sans-serif;"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn modal-btn-cancel" onclick="fecharEditarMonitoria()">Cancelar</button>
+        <button class="modal-btn modal-btn-save" onclick="salvarEdicaoMonitoria()">💾 Salvar Alterações</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal Confirm (dinâmico) -->
   <div class="confirm-overlay" id="confirmModal">
     <div class="confirm-box">
@@ -900,6 +969,57 @@ const firebaseConfig = {
         document.getElementById('visSemanaControle').style.display = 'none';
       }
       filtrarControle();
+    };
+
+    // ===== EDITAR MONITORIA =====
+    window.abrirEditarMonitoria = function(id) {
+      const r = registrosCache.find(x => x.id === id);
+      if (!r) return;
+      document.getElementById('editId').value = id;
+      document.getElementById('editAnalista').value = r.analista || '';
+      document.getElementById('editData').value = r.data || '';
+      document.getElementById('editNivel').value = r.nivel || 'Veterano';
+      document.getElementById('editNota').value = r.nota ?? '';
+      document.getElementById('editCaixa').value = r.caixa || '';
+      document.getElementById('editAssunto').value = r.assunto || '';
+      document.getElementById('editTicket').value = r.ticket || '';
+      document.getElementById('editProtocolo').value = r.protocoloOuEmail || '';
+      document.getElementById('editTag').value = r.tag || '';
+      document.getElementById('editDesvio').value = r.desvio || '';
+      document.getElementById('editObservacao').value = r.observacao || '';
+      document.getElementById('modalEditarMonitoria').classList.add('show');
+    };
+    window.fecharEditarMonitoria = function() {
+      document.getElementById('modalEditarMonitoria').classList.remove('show');
+    };
+    window.salvarEdicaoMonitoria = async function() {
+      const id = Number(document.getElementById('editId').value);
+      const r = registrosCache.find(x => x.id === id);
+      if (!r || !r.firestoreId) { showToast('Registro não encontrado!', 'error'); return; }
+      const updates = {
+        analista:        document.getElementById('editAnalista').value.trim(),
+        data:            document.getElementById('editData').value,
+        nivel:           document.getElementById('editNivel').value,
+        nota:            Number(document.getElementById('editNota').value),
+        caixa:           document.getElementById('editCaixa').value.trim(),
+        assunto:         document.getElementById('editAssunto').value.trim(),
+        ticket:          document.getElementById('editTicket').value.trim(),
+        protocoloOuEmail:document.getElementById('editProtocolo').value.trim(),
+        tag:             document.getElementById('editTag').value.trim(),
+        desvio:          document.getElementById('editDesvio').value.trim(),
+        observacao:      document.getElementById('editObservacao').value.trim(),
+      };
+      try {
+        await updateDoc(doc(db, 'controleAvaliacoes', r.firestoreId), updates);
+        Object.assign(r, updates);
+        window._registros = registrosCache;
+        fecharEditarMonitoria();
+        renderizarTabelas(registrosCache);
+        showToast('Monitoria atualizada com sucesso!', 'success');
+      } catch(e) {
+        console.error(e);
+        showToast('Erro ao salvar. Verifique sua conexão.', 'error');
+      }
     };
 
     // ===== EXCLUIR REGISTRO =====
@@ -1756,7 +1876,7 @@ const firebaseConfig = {
             }
             html += `</td>`;
             if (isAdminUser) {
-              html += `<td style="padding:10px;text-align:center;"><button onclick="excluirRegistro(${r.id})" style="background:#dc3545;color:white;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;font-size:12px;">🗑️</button></td>`;
+              html += `<td style="padding:10px;text-align:center;"><button onclick="abrirEditarMonitoria(${r.id})" style="background:#0d7ab5;color:white;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;font-size:12px;margin-right:4px;">✏️</button><button onclick="excluirRegistro(${r.id})" style="background:#dc3545;color:white;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;font-size:12px;">🗑️</button></td>`;
             }
             html += `</tr>`;
             if (primeiraLinhaAnalista) primeiraLinhaAnalista = false;
