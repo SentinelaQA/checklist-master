@@ -187,9 +187,7 @@
           <option value="">Selecione</option>
           <option value="Agenda Financeira - Eventos">Agenda Financeira - Eventos</option>
           <option value="Agenda Financeira">Agenda Financeira</option>
-          <option value="Vendas">Vendas</option>
-          <option value="Atendimento">Atendimento</option>
-          <option value="Cobrança">Cobrança</option>
+
         </select>
       </div>
       <div class="info-item" style="display:flex;align-items:flex-end;">
@@ -996,20 +994,23 @@ const firebaseConfig = {
       );
     };
 
-    // ===== SALVAR TAG =====
-    window.salvarTagDigitada = async function(id, analista) {
+    // ===== SALVAR TAG (por monitoria individual) =====
+    window.salvarTagMonitoria = async function(id) {
       const input = document.getElementById('tagInput_' + id);
       if (!input) return;
       const valor = input.value.trim();
-      // Atualiza todos os registros do mesmo analista
-      for (const r of registrosCache) {
-        if (r.analista === analista && r.firestoreId) {
-          await updateDoc(doc(db, 'controleAvaliacoes', r.firestoreId), { tag: valor });
-          r.tag = valor;
-        }
+      const registro = registrosCache.find(r => r.id === id);
+      if (registro && registro.firestoreId) {
+        await updateDoc(doc(db, 'controleAvaliacoes', registro.firestoreId), { tag: valor });
+        registro.tag = valor;
       }
       window._registros = registrosCache;
-      showToast('TAG salva para ' + analista + '!', 'success');
+      showToast('TAG salva para a monitoria!', 'success');
+    };
+
+    // ===== SALVAR TAG (legado - mantido por compatibilidade) =====
+    window.salvarTagDigitada = async function(id, analista) {
+      await window.salvarTagMonitoria(id);
     };
 
     // ===== CADASTRO DE USUÁRIOS (Firebase Auth + Firestore) =====
@@ -1717,12 +1718,11 @@ const firebaseConfig = {
         let totalLinhasAnalista = 0;
         Object.values(caixas).forEach(regs => { totalLinhasAnalista += regs.length; });
         const analistaEsc = analista.replace(/'/g, "\\'");
-        // Get tag from any record of this analista
-        const analistaTag = Object.values(caixas).flat().find(r => r.tag && r.tag.trim())?.tag || '';
 
         Object.keys(caixas).sort().forEach(caixa => {
           const regs = caixas[caixa];
           regs.forEach((r, idx) => {
+            const monitoriaTag = r.tag || '';
             html += `<tr style="border-bottom:1px solid #eee;">`;
             if (primeiraLinhaAnalista) {
               html += `<td style="padding:10px;vertical-align:top;font-weight:600;" rowspan="${totalLinhasAnalista}">${r.nivel || 'Veterano'}</td>`;
@@ -1746,17 +1746,17 @@ const firebaseConfig = {
             html += `<td style="padding:10px;text-align:center;font-weight:700;color:${r.nota < 70 ? '#dc3545' : r.nota < 90 ? '#FF9F1C' : '#28a745'};">${r.nota}</td>`;
             if (primeiraLinhaAnalista) {
               html += `<td style="padding:10px;text-align:center;font-weight:700;background:${cor}10;font-size:16px;" rowspan="${totalLinhasAnalista}">${mediaGeralPorAnalista[analista]}</td>`;
-              html += `<td class="tag-cell" style="padding:10px;text-align:center;" rowspan="${totalLinhasAnalista}">`;
-              if (!isAdminUser) {
-                html += `<span style="font-size:13px;font-weight:600;color:#333;">${analistaTag || '-'}</span>`;
-              } else {
-                html += `<div class="tag-display" style="font-weight:600;color:#333;">${analistaTag || '<span style="color:#999;font-style:italic;">—</span>'}</div>`;
-                html += `<div class="tag-edit"><input type="text" value="${analistaTag}" id="tagInput_${r.id}" style="padding:4px 6px;border-radius:4px;border:1px solid #ccc;font-size:12px;width:80px;"><button onclick="salvarTagDigitada(${r.id},'${analistaEsc}')" style="background:#28a745;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:11px;">💾</button></div>`;
-              }
-              html += `</td>`;
-              if (isAdminUser) {
-                html += `<td style="padding:10px;text-align:center;" rowspan="${totalLinhasAnalista}"><button onclick="excluirRegistro(${r.id})" style="background:#dc3545;color:white;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;font-size:12px;">🗑️</button></td>`;
-              }
+            }
+            html += `<td class="tag-cell" style="padding:10px;text-align:center;">`;
+            if (!isAdminUser) {
+              html += `<span style="font-size:13px;font-weight:600;color:#333;">${monitoriaTag || '-'}</span>`;
+            } else {
+              html += `<div class="tag-display" style="font-weight:600;color:#333;">${monitoriaTag || '<span style="color:#999;font-style:italic;">—</span>'}</div>`;
+              html += `<div class="tag-edit"><input type="text" value="${monitoriaTag}" id="tagInput_${r.id}" style="padding:4px 6px;border-radius:4px;border:1px solid #ccc;font-size:12px;width:80px;"><button onclick="salvarTagMonitoria(${r.id})" style="background:#28a745;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:11px;">💾</button></div>`;
+            }
+            html += `</td>`;
+            if (isAdminUser) {
+              html += `<td style="padding:10px;text-align:center;"><button onclick="excluirRegistro(${r.id})" style="background:#dc3545;color:white;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;font-size:12px;">🗑️</button></td>`;
             }
             html += `</tr>`;
             if (primeiraLinhaAnalista) primeiraLinhaAnalista = false;
