@@ -105,10 +105,10 @@
     .tab-button:hover { background: rgba(13,122,181,0.15); }
     .tab-active { background: linear-gradient(135deg, #0d7ab5 0%, #0aab50 100%) !important; color: white !important; }
     .badge-count { position: absolute; top: 8px; right: 8px; background: #dc3545; color: white; border-radius: 12px; padding: 2px 8px; font-size: 11px; font-weight: 700; }
-    .tag-cell .tag-display { display: flex; align-items: center; justify-content: center; min-height: 30px; cursor: default; padding: 4px; border-radius: 4px; font-size: 13px; font-weight: 600; color: #333; }
+    .tag-cell .tag-display { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 30px; padding: 4px; border-radius: 4px; font-size: 13px; font-weight: 600; color: #333; }
     .tag-cell .tag-edit { display: none; align-items: center; gap: 4px; justify-content: center; }
-    .tag-cell:hover .tag-display { display: none !important; }
-    .tag-cell:hover .tag-edit { display: flex !important; }
+    .tag-cell.editing .tag-display { display: none !important; }
+    .tag-cell.editing .tag-edit { display: flex !important; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     @media print { body { background: white; } .export-btn, .reset-btn, .score-notification { display: none; } .btn-descontar { display: none; } .copyright-footer { position: relative; } }
   </style>
@@ -1125,18 +1125,18 @@ const firebaseConfig = {
     // Estrutura de caixas esperadas por analista (baseado na planilha)
     const CAIXAS_POR_ANALISTA = {
       'FRANK PEREIRA DA SILVA':         ['Regularizações Financeiras','Saldo Auditoria','BackOffice Mídias Sociais','Gestão Aluguel Estorno','Gestão Aluguel Incentivo','Processos Ouvidoria BO','9066'],
-      'GISELE APARECIDA DE ALMEIDA':    ['BackOffice Mídias Sociais','Gestão Aluguel Estorno','Gestão Aluguel Incentivo','Processos Ouvidoria BO','9066'],
+      'GISELE APARECIDA DE ALMEIDA':    ['Gestão Aluguel Estorno','9066'],
       'ANA PAULA DOS SANTOS':           ['Regularizações Financeiras','Saldo Auditoria'],
-      'ROBERT GUSTAVO SANTOS SILVA':    ['BackOffice Mídias Sociais','Gestão Aluguel Estorno','Gestão Aluguel Incentivo','Processos Ouvidoria BO','9066'],
+      'ROBERT GUSTAVO SANTOS SILVA':    ['Gestão Aluguel Estorno','9066'],
       'PEDRO ALVES CABRAL NETO':        ['Atendimento Backoffice','Desfazimento','Cancelamento Cia Aerea','Cancelamento Corporate'],
       'JULIA OLIVEIRA ONORIO':          ['5125'],
       'KALLYANA KAMILA ALVES':          ['5125'],
       'NATHALI CRISTINE DOS SANTOS':    ['Atendimento Backoffice','Desfazimento','5125','Cancelamento Cia Aerea','Cancelamento Corporate'],
       'SILVIA MEIRE DE SOUZA':          ['Atendimento Backoffice','Desfazimento','5125','Cancelamento Cia Aerea','Cancelamento Corporate'],
-      'DÉBORA MELÃO MACEDO':            ['7922'],
-      'FRANCINE VITORIA COSTA':         ['7922'],
-      'LARISSA CAMARA':                 ['7922'],
-      'SINARA DA SILVA NUNES':          ['7922'],
+      'DÉBORA MELÃO MACEDO':            ['7922','Consultoria Agenda Financeira','Prévia MDR'],
+      'FRANCINE VITORIA COSTA':         ['7922','Consultoria Agenda Financeira','Prévia MDR'],
+      'LARISSA CAMARA':                 ['7922','Consultoria Agenda Financeira','Prévia MDR'],
+      'SINARA DA SILVA NUNES':          ['7922','Consultoria Agenda Financeira','Prévia MDR'],
     };
 
     async function renderizarControleFaltantes() {
@@ -1560,17 +1560,33 @@ const firebaseConfig = {
       const fim = document.getElementById('ausenciaFim').value;
       const observacao = document.getElementById('ausenciaObs').value.trim();
       if (!inicio) { showToast('Preencha a data de início!', 'warning'); return; }
+
+      // Se tem data de fim e não é Desligado, agenda retorno automático para Ativo
+      const retornaAtivo = fim && motivo !== 'Desligado';
+      const statusFinal = retornaAtivo ? 'Ativo' : motivo;
+
       try {
         const dados = { analistaId, motivo, motivoOutro, inicio, fim, observacao, criadoEm: new Date().toISOString() };
         const ref = await addDoc(collection(db, 'ausencias'), dados);
         ausenciasCache.unshift({ firestoreId: ref.id, ...dados });
-        await updateDoc(doc(db, 'analistas', analistaId), { status: motivo, motivoOutro });
+
+        // Status: se tem data de fim e não é Desligado, já volta como Ativo
+        const hoje = new Date().toISOString().split('T')[0];
+        const statusAtual = (fim && fim <= hoje && motivo !== 'Desligado') ? 'Ativo' : motivo;
+        await updateDoc(doc(db, 'analistas', analistaId), { status: statusAtual, motivoOutro: statusAtual === 'Ativo' ? '' : motivoOutro });
         const a = analistasCache.find(x => x.firestoreId === analistaId);
-        if (a) { a.status = motivo; a.motivoOutro = motivoOutro; }
+        if (a) { a.status = statusAtual; a.motivoOutro = statusAtual === 'Ativo' ? '' : motivoOutro; }
+
         atualizarDatalistAnalistas();
         fecharModalAusencia();
         filtrarAnalistas(filtroStatusAtual);
-        showToast('Ausência registrada!', 'success');
+        if (statusAtual === 'Ativo') {
+          showToast('Ausência registrada! Analista já retornou como Ativo.', 'success');
+        } else if (fim) {
+          showToast(`Ausência registrada! Retorno previsto: ${fim.split('-').reverse().join('/')}`, 'success');
+        } else {
+          showToast('Ausência registrada!', 'success');
+        }
       } catch(e) { console.error(e); showToast('Erro ao registrar ausência.', 'error'); }
     };
 
@@ -1781,6 +1797,17 @@ const firebaseConfig = {
       );
     };
 
+    window.ativarEditTag = function(id) {
+      const cell = document.getElementById('tagCell_' + id);
+      if (cell) cell.classList.add('editing');
+      const input = document.getElementById('tagInput_' + id);
+      if (input) { input.focus(); input.select(); }
+    };
+    window.cancelarEditTag = function(id) {
+      const cell = document.getElementById('tagCell_' + id);
+      if (cell) cell.classList.remove('editing');
+    };
+
     // ===== SALVAR TAG (por monitoria individual) =====
     window.salvarTagMonitoria = async function(id) {
       const input = document.getElementById('tagInput_' + id);
@@ -1792,7 +1819,14 @@ const firebaseConfig = {
         registro.tag = valor;
       }
       window._registros = registrosCache;
-      showToast('TAG salva para a monitoria!', 'success');
+      // Atualiza display sem re-renderizar tudo
+      const cell = document.getElementById('tagCell_' + id);
+      if (cell) {
+        const display = cell.querySelector('.tag-display span:first-child');
+        if (display) display.innerHTML = valor || '<span style="color:#999;font-style:italic;">—</span>';
+        cell.classList.remove('editing');
+      }
+      showToast('TAG salva!', 'success');
     };
 
     // ===== SALVAR TAG (legado - mantido por compatibilidade) =====
@@ -2524,7 +2558,7 @@ const firebaseConfig = {
             html += `<tr style="border-bottom:1px solid #eee;">`;
             if (primeiraLinhaAnalista) {
               html += `<td style="padding:10px;vertical-align:top;font-weight:600;" rowspan="${totalLinhasAnalista}">${r.nivel || 'Veterano'}</td>`;
-              html += `<td style="padding:10px;font-weight:700;vertical-align:top;color:#00A4E0;" rowspan="${totalLinhasAnalista}">${analista}</td>`;
+              html += `<td style="padding:10px;font-weight:700;vertical-align:top;color:#00A4E0;font-size:11px;line-height:1.4;" rowspan="${totalLinhasAnalista}">${analista}</td>`;
             }
             html += `<td style="padding:10px;vertical-align:top;font-weight:600;">${caixa}</td>`;
             html += `<td style="padding:10px;vertical-align:top;font-size:13px;">${r.assunto || '-'}</td>`;
@@ -2547,17 +2581,20 @@ const firebaseConfig = {
             if (primeiraLinhaAnalista) {
               html += `<td style="padding:10px;text-align:center;font-weight:700;background:${cor}10;font-size:16px;" rowspan="${totalLinhasAnalista}">${mediaGeralPorAnalista[analista]}</td>`;
             }
-            html += `<td class="tag-cell" style="padding:10px;text-align:center;">`;
+            html += `<td class="tag-cell" id="tagCell_${r.id}" style="padding:10px;text-align:center;">`;
             if (!isAdminUser) {
               html += `<span style="font-size:13px;font-weight:600;color:#333;">${monitoriaTag || '-'}</span>`;
             } else {
-              html += `<div class="tag-display" style="font-weight:600;color:#333;">${monitoriaTag || '<span style="color:#999;font-style:italic;">—</span>'}</div>`;
-              html += `<div class="tag-edit"><input type="text" value="${monitoriaTag}" id="tagInput_${r.id}" style="padding:4px 6px;border-radius:4px;border:1px solid #ccc;font-size:12px;width:80px;"><button onclick="salvarTagMonitoria(${r.id})" style="background:#28a745;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:11px;">💾</button></div>`;
+              html += `<div class="tag-display">`;
+              html += `<span style="font-weight:600;color:#333;">${monitoriaTag || '<span style="color:#999;font-style:italic;">—</span>'}</span>`;
+              html += `<button onclick="ativarEditTag(${r.id})" style="background:none;border:none;cursor:pointer;font-size:13px;padding:2px 4px;" title="Editar TAG">✏️</button>`;
+              html += `</div>`;
+              html += `<div class="tag-edit"><input type="text" value="${monitoriaTag}" id="tagInput_${r.id}" style="padding:4px 6px;border-radius:4px;border:1px solid #ccc;font-size:12px;width:70px;"><button onclick="salvarTagMonitoria(${r.id})" style="background:#28a745;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:11px;">💾</button><button onclick="cancelarEditTag(${r.id})" style="background:#6a7489;color:white;border:none;padding:4px 6px;border-radius:4px;cursor:pointer;font-size:11px;">✕</button></div>`;
             }
             html += `</td>`;
             html += `<td style="padding:10px;text-align:center;"><button onclick="abrirDetalheMonitoria(${r.id})" style="background:#6c3fc5;color:white;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;font-size:13px;" title="Ver detalhes completos">🔍</button></td>`;
             if (isAdminUser) {
-              html += `<td style="padding:10px;text-align:center;"><button onclick="abrirEditarMonitoria(${r.id})" style="background:#0d7ab5;color:white;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;font-size:12px;margin-right:4px;">✏️</button><button onclick="excluirRegistro(${r.id})" style="background:#dc3545;color:white;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;font-size:12px;">🗑️</button></td>`;
+              html += `<td style="padding:6px;text-align:center;white-space:nowrap;"><button onclick="abrirEditarMonitoria(${r.id})" style="background:#0d7ab5;color:white;border:none;padding:4px 7px;border-radius:4px;cursor:pointer;font-size:12px;margin-right:2px;">✏️</button><button onclick="excluirRegistro(${r.id})" style="background:#dc3545;color:white;border:none;padding:4px 7px;border-radius:4px;cursor:pointer;font-size:12px;">🗑️</button></td>`;
             }
             html += `</tr>`;
             if (primeiraLinhaAnalista) primeiraLinhaAnalista = false;
