@@ -869,9 +869,30 @@ const firebaseConfig = {
       const semanaFormatada = `W${String(semanaNum).padStart(2, '0')}`;
       const mesData = dataObj.getMonth();
       const diaDoMes = dataObj.getDate();
-      const cicloNum = Math.min(4, Math.ceil(diaDoMes / 7));
+      // Ciclos fixos: 1-7 = 1°, 8-14 = 2°, 15-21 = 3°, 22+ = 4° (últimos dias do mês ficam no 4° ciclo)
+      const cicloNum = diaDoMes <= 7 ? 1 : diaDoMes <= 14 ? 2 : diaDoMes <= 21 ? 3 : 4;
       const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
       const mesNome = meses[mesData];
+
+      // Montar lista de descontos com observações por item
+      const descontosDetalhados = [];
+      if (window._state && window._state.items) {
+        Object.keys(window._state.items).forEach(itemId => {
+          const [blockIdx, itemIdx] = itemId.split('-').map(Number);
+          const bloco = checklistData[blockIdx];
+          if (!bloco) return;
+          const item = bloco.items[itemIdx];
+          if (!item) return;
+          descontosDetalhados.push({
+            bloco: bloco.bloco,
+            tipo: bloco.tipo,
+            peso: bloco.peso,
+            item: item.item,
+            subitem: item.subitem,
+            observacao: (window._state.observations && window._state.observations[itemId]) || ''
+          });
+        });
+      }
 
       const registro = {
         id: Date.now(),
@@ -892,7 +913,8 @@ const firebaseConfig = {
         anoRef: anoData,
         tag: '',
         timestamp: new Date().toISOString(),
-        criadoPor: currentUser ? currentUser.uid : 'desconhecido'
+        criadoPor: currentUser ? currentUser.uid : 'desconhecido',
+        descontosDetalhados
       };
 
       try {
@@ -1122,7 +1144,7 @@ const firebaseConfig = {
     };
 
     // ===== CONTROLE DE MONITORIAS FALTANTES =====
-    // Estrutura de caixas esperadas por analista (baseado na planilha)
+    // Estrutura de caixas esperadas por analista (nomes conforme formulário)
     const CAIXAS_POR_ANALISTA = {
       'FRANK PEREIRA DA SILVA':         ['Regularizações Financeiras','Saldo Auditoria','BackOffice Mídias Sociais','Gestão Aluguel Estorno','Gestão Aluguel Incentivo','Processos Ouvidoria BO','9066'],
       'GISELE APARECIDA DE ALMEIDA':    ['Gestão Aluguel Estorno','9066'],
@@ -1133,10 +1155,10 @@ const firebaseConfig = {
       'KALLYANA KAMILA ALVES':          ['5125'],
       'NATHALI CRISTINE DOS SANTOS':    ['Atendimento Backoffice','Desfazimento','5125','Cancelamento Cia Aerea','Cancelamento Corporate'],
       'SILVIA MEIRE DE SOUZA':          ['Atendimento Backoffice','Desfazimento','5125','Cancelamento Cia Aerea','Cancelamento Corporate'],
-      'DÉBORA MELÃO MACEDO':            ['7922','Consultoria Agenda Financeira','Prévia MDR'],
-      'FRANCINE VITORIA COSTA':         ['7922','Consultoria Agenda Financeira','Prévia MDR'],
-      'LARISSA CAMARA':                 ['7922','Consultoria Agenda Financeira','Prévia MDR'],
-      'SINARA DA SILVA NUNES':          ['7922','Consultoria Agenda Financeira','Prévia MDR'],
+      'DÉBORA MELÃO MACEDO':            ['7922','Consultoria','Prévia MDR'],
+      'FRANCINE VITORIA COSTA':         ['7922','Consultoria','Prévia MDR'],
+      'LARISSA CAMARA':                 ['7922','Consultoria','Prévia MDR'],
+      'SINARA DA SILVA NUNES':          ['7922','Consultoria','Prévia MDR'],
     };
 
     async function renderizarControleFaltantes() {
@@ -1606,13 +1628,12 @@ const firebaseConfig = {
       const r = registrosCache.find(x => x.id === id);
       if (!r) return;
       const corNota = r.nota < 70 ? '#dc3545' : r.nota < 90 ? '#FF9F1C' : '#28a745';
-      const campo = (label, valor, destaque) => valor ? `
-        <div style="background:#1a1f2e;border-radius:8px;padding:12px 14px;border-left:3px solid ${destaque || '#3a4256'};">
+      const campo = (label, valor, cor) => valor ? `
+        <div style="background:#1a1f2e;border-radius:8px;padding:12px 14px;border-left:3px solid ${cor||'#3a4256'};">
           <div style="color:#a0aec0;font-size:11px;font-weight:700;text-transform:uppercase;margin-bottom:4px;">${label}</div>
           <div style="color:#e2e8f0;font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:break-word;">${valor}</div>
         </div>` : '';
 
-      // Formatar timestamp
       let dataHora = r.data || '';
       if (r.timestamp) {
         try {
@@ -1621,28 +1642,48 @@ const firebaseConfig = {
         } catch(e) {}
       }
 
+      // Bloco de descontos detalhados
+      let descontosHtml = '';
+      if (r.descontosDetalhados && r.descontosDetalhados.length > 0) {
+        descontosHtml = `<div style="margin-top:14px;">
+          <div style="color:#a0aec0;font-size:11px;font-weight:700;text-transform:uppercase;margin-bottom:8px;">⚠️ Itens Descontados (${r.descontosDetalhados.length})</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">`;
+        r.descontosDetalhados.forEach(d => {
+          const corTipo = d.tipo === 'NCG' ? '#dc3545' : '#FF9F1C';
+          descontosHtml += `<div style="background:#1a1f2e;border-radius:8px;padding:12px 14px;border-left:3px solid ${corTipo};">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+              <span style="color:#e2e8f0;font-size:13px;font-weight:700;">${d.bloco}</span>
+              <span style="padding:2px 10px;border-radius:12px;background:${corTipo}20;border:1px solid ${corTipo};color:${corTipo};font-size:11px;font-weight:700;">${d.tipo} -${d.peso}pts</span>
+            </div>
+            <div style="color:#a0aec0;font-size:12px;margin-bottom:${d.observacao ? '8px' : '0'};">${d.item} — ${d.subitem}</div>
+            ${d.observacao ? `<div style="background:#242b3d;border-radius:6px;padding:8px 10px;color:#ffc15e;font-size:12px;line-height:1.5;"><span style="color:#a0aec0;font-weight:700;">💬 Obs: </span>${d.observacao}</div>` : ''}
+          </div>`;
+        });
+        descontosHtml += '</div></div>';
+      }
+
       const corpo = `
         <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
-          <span style="padding:6px 14px;border-radius:20px;background:#00A4E020;border:1px solid #00A4E0;color:#4db8e8;font-size:12px;font-weight:700;">${r.nivel || 'Veterano'}</span>
-          <span style="padding:6px 14px;border-radius:20px;background:#6c3fc520;border:1px solid #6c3fc5;color:#c39bd3;font-size:12px;font-weight:700;">${r.categoria || ''}</span>
+          <span style="padding:6px 14px;border-radius:20px;background:#00A4E020;border:1px solid #00A4E0;color:#4db8e8;font-size:12px;font-weight:700;">${r.nivel||'Veterano'}</span>
+          <span style="padding:6px 14px;border-radius:20px;background:#6c3fc520;border:1px solid #6c3fc5;color:#c39bd3;font-size:12px;font-weight:700;">${r.categoria||''}</span>
           <span style="padding:6px 14px;border-radius:20px;background:${corNota}20;border:1px solid ${corNota};color:${corNota};font-size:14px;font-weight:800;">Nota: ${r.nota}</span>
           ${r.tag ? `<span style="padding:6px 14px;border-radius:20px;background:#FF9F1C20;border:1px solid #FF9F1C;color:#ffc15e;font-size:12px;font-weight:700;">TAG: ${r.tag}</span>` : ''}
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
           ${campo('Analista', r.analista, '#00A4E0')}
-          ${campo('Data / Horário da Interação', dataHora, '#9B59B6')}
+          ${campo('Data / Horário', dataHora, '#9B59B6')}
           ${campo('Caixa', r.caixa, '#00D664')}
           ${campo('Assunto', r.assunto, '#00D664')}
           ${campo('Ticket / Protocolo', r.protocoloOuEmail || r.ticket, '#FF9F1C')}
           ${campo('Supervisor', r.supervisor, '#6a7489')}
-          ${campo('Formulário', r.formulario, '#6a7489')}
-          ${campo('Tratado Via', r.tratadoVia, '#6a7489')}
         </div>
         <div style="display:flex;flex-direction:column;gap:10px;">
-          ${r.desvio ? campo('⚠️ Desvio', r.desvio, '#FF9F1C') : ''}
-          ${r.observacao ? campo('📝 Observação', r.observacao, '#dc3545') : ''}
+          ${r.desvio ? campo('📋 Desvio Geral', r.desvio, '#FF9F1C') : ''}
+          ${r.observacao ? campo('📝 Observação Geral', r.observacao, '#4db8e8') : ''}
         </div>
-        ${(!r.desvio && !r.observacao) ? `<div style="background:#28a74510;border:1px solid #28a745;border-radius:8px;padding:14px;text-align:center;color:#5dd879;font-weight:700;">✅ Sem desvios ou observações registrados</div>` : ''}
+        ${descontosHtml}
+        ${(!r.desvio && !r.observacao && (!r.descontosDetalhados || r.descontosDetalhados.length === 0)) ?
+          `<div style="background:#28a74510;border:1px solid #28a745;border-radius:8px;padding:14px;text-align:center;color:#5dd879;font-weight:700;">✅ Sem desvios ou observações registrados</div>` : ''}
       `;
       document.getElementById('modalDetalheCorpo').innerHTML = corpo;
       document.getElementById('modalDetalheMonitoria').classList.add('show');
@@ -2557,7 +2598,7 @@ const firebaseConfig = {
             const monitoriaTag = r.tag || '';
             html += `<tr style="border-bottom:1px solid #eee;">`;
             if (primeiraLinhaAnalista) {
-              html += `<td style="padding:10px;vertical-align:top;font-weight:600;" rowspan="${totalLinhasAnalista}">${r.nivel || 'Veterano'}</td>`;
+              html += `<td style="padding:10px;vertical-align:top;font-weight:600;font-size:11px;" rowspan="${totalLinhasAnalista}">${r.nivel || 'Veterano'}</td>`;
               html += `<td style="padding:10px;font-weight:700;vertical-align:top;color:#00A4E0;font-size:11px;line-height:1.4;" rowspan="${totalLinhasAnalista}">${analista}</td>`;
             }
             html += `<td style="padding:10px;vertical-align:top;font-weight:600;">${caixa}</td>`;
@@ -2585,9 +2626,8 @@ const firebaseConfig = {
             if (!isAdminUser) {
               html += `<span style="font-size:13px;font-weight:600;color:#333;">${monitoriaTag || '-'}</span>`;
             } else {
-              html += `<div class="tag-display">`;
-              html += `<span style="font-weight:600;color:#333;">${monitoriaTag || '<span style="color:#999;font-style:italic;">—</span>'}</span>`;
-              html += `<button onclick="ativarEditTag(${r.id})" style="background:none;border:none;cursor:pointer;font-size:13px;padding:2px 4px;" title="Editar TAG">✏️</button>`;
+              html += `<div class="tag-display" onclick="ativarEditTag(${r.id})" title="Clique para editar TAG" style="cursor:pointer;">`;
+              html += `<span style="font-weight:600;color:#333;">${monitoriaTag || '<span style="color:#999;font-style:italic;font-size:11px;">adicionar</span>'}</span>`;
               html += `</div>`;
               html += `<div class="tag-edit"><input type="text" value="${monitoriaTag}" id="tagInput_${r.id}" style="padding:4px 6px;border-radius:4px;border:1px solid #ccc;font-size:12px;width:70px;"><button onclick="salvarTagMonitoria(${r.id})" style="background:#28a745;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:11px;">💾</button><button onclick="cancelarEditTag(${r.id})" style="background:#6a7489;color:white;border:none;padding:4px 6px;border-radius:4px;cursor:pointer;font-size:11px;">✕</button></div>`;
             }
