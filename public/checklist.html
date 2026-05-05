@@ -424,6 +424,9 @@
         <!-- Relatório de ausências -->
         <div id="relatorioAusencias" style="margin-top:30px;"></div>
 
+        <!-- Controle de Monitorias Faltantes -->
+        <div id="controleMonitoriasFaltantes" style="margin-top:30px;"></div>
+
       </div>
       <div class="copyright-footer"><p>© 2025 Yasmin de Melo Campos - Analista de Qualidade Jr</p></div>
     </div>
@@ -595,6 +598,20 @@
       <div class="modal-footer">
         <button class="modal-btn modal-btn-cancel" onclick="fecharModalAusencia()">Cancelar</button>
         <button class="modal-btn modal-btn-save" onclick="salvarAusencia()">💾 Registrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Detalhe Completo da Monitoria -->
+  <div class="modal-overlay" id="modalDetalheMonitoria">
+    <div class="modal-content" style="max-width:680px;">
+      <div class="modal-header">
+        <h3>🔍 Detalhes da Monitoria</h3>
+        <button class="modal-close" onclick="document.getElementById('modalDetalheMonitoria').classList.remove('show')">×</button>
+      </div>
+      <div class="modal-body" id="modalDetalheCorpo"></div>
+      <div class="modal-footer">
+        <button class="modal-btn modal-btn-cancel" onclick="document.getElementById('modalDetalheMonitoria').classList.remove('show')">Fechar</button>
       </div>
     </div>
   </div>
@@ -1104,6 +1121,172 @@ const firebaseConfig = {
       filtrarControle();
     };
 
+    // ===== CONTROLE DE MONITORIAS FALTANTES =====
+    // Estrutura de caixas esperadas por analista (baseado na planilha)
+    const CAIXAS_POR_ANALISTA = {
+      'FRANK PEREIRA DA SILVA':         ['Regularizações Financeiras','Saldo Auditoria','BackOffice Mídias Sociais','Gestão Aluguel Estorno','Gestão Aluguel Incentivo','Processos Ouvidoria BO','9066'],
+      'GISELE APARECIDA DE ALMEIDA':    ['BackOffice Mídias Sociais','Gestão Aluguel Estorno','Gestão Aluguel Incentivo','Processos Ouvidoria BO','9066'],
+      'ANA PAULA DOS SANTOS':           ['Regularizações Financeiras','Saldo Auditoria'],
+      'ROBERT GUSTAVO SANTOS SILVA':    ['BackOffice Mídias Sociais','Gestão Aluguel Estorno','Gestão Aluguel Incentivo','Processos Ouvidoria BO','9066'],
+      'PEDRO ALVES CABRAL NETO':        ['Atendimento Backoffice','Desfazimento','Cancelamento Cia Aerea','Cancelamento Corporate'],
+      'JULIA OLIVEIRA ONORIO':          ['5125'],
+      'KALLYANA KAMILA ALVES':          ['5125'],
+      'NATHALI CRISTINE DOS SANTOS':    ['Atendimento Backoffice','Desfazimento','5125','Cancelamento Cia Aerea','Cancelamento Corporate'],
+      'SILVIA MEIRE DE SOUZA':          ['Atendimento Backoffice','Desfazimento','5125','Cancelamento Cia Aerea','Cancelamento Corporate'],
+      'DÉBORA MELÃO MACEDO':            ['7922'],
+      'FRANCINE VITORIA COSTA':         ['7922'],
+      'LARISSA CAMARA':                 ['7922'],
+      'SINARA DA SILVA NUNES':          ['7922'],
+    };
+
+    async function renderizarControleFaltantes() {
+      const el = document.getElementById('controleMonitoriasFaltantes');
+      if (!el) return;
+
+      // Busca registros lançados
+      let registros = window._registros || [];
+      if (!registros.length) {
+        try {
+          const snap = await getDocs(query(collection(db, 'controleAvaliacoes'), orderBy('data', 'desc')));
+          registros = snap.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
+          window._registros = registros;
+        } catch(e) { console.error(e); }
+      }
+
+      // Ciclo atual (semana atual)
+      const hoje = new Date();
+      const semanaAtual = getWeekNumber(hoje);
+      const anoAtual = hoje.getFullYear();
+
+      // Registros do ciclo atual
+      const regsCicloAtual = registros.filter(r => {
+        if (!r.data) return false;
+        try {
+          const d = new Date(r.data + 'T12:00:00');
+          return getWeekNumber(d) === semanaAtual && d.getFullYear() === anoAtual;
+        } catch(e) { return false; }
+      });
+
+      // Monta mapa: analista -> set de caixas já monitoradas
+      const monitoradasPorAnalista = {};
+      regsCicloAtual.forEach(r => {
+        if (!monitoradasPorAnalista[r.analista]) monitoradasPorAnalista[r.analista] = new Set();
+        monitoradasPorAnalista[r.analista].add(r.caixa);
+      });
+
+      // Busca justificativas salvas
+      let justificativas = {};
+      try {
+        const snap = await getDocs(collection(db, 'justificativasMonitoria'));
+        snap.docs.forEach(d => { justificativas[d.id] = d.data().texto || ''; });
+      } catch(e) {}
+
+      const isAdminUser = window._isAdmin !== false;
+
+      let html = `
+        <div style="background:#1e2536;border-radius:12px;border:1px solid rgba(255,255,255,0.06);overflow:hidden;margin-top:10px;">
+          <div style="padding:16px 20px;background:#242b3d;border-bottom:1px solid #2d3548;display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <h3 style="color:#e2e8f0;font-size:16px;font-weight:700;margin:0;">📋 Controle de Monitorias — Ciclo Atual</h3>
+              <p style="color:#a0aec0;font-size:12px;margin:4px 0 0;">Semana W${String(semanaAtual).padStart(2,'0')} · ${hoje.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'})}</p>
+            </div>
+          </div>
+          <div style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;">
+            <thead><tr style="background:#1a1f2e;">
+              <th style="padding:12px 16px;text-align:left;color:#a0aec0;font-size:12px;font-weight:700;">Analista</th>
+              <th style="padding:12px 16px;text-align:left;color:#a0aec0;font-size:12px;font-weight:700;">Caixa</th>
+              <th style="padding:12px 16px;text-align:center;color:#a0aec0;font-size:12px;font-weight:700;">Status</th>
+              <th style="padding:12px 16px;text-align:left;color:#a0aec0;font-size:12px;font-weight:700;">Justificativa</th>
+              ${isAdminUser ? `<th style="padding:12px 16px;text-align:center;color:#a0aec0;font-size:12px;font-weight:700;">Ação</th>` : ''}
+            </tr></thead><tbody>`;
+
+      let totalFaltando = 0;
+      let totalFeito = 0;
+
+      analistasCache.forEach(a => {
+        const nome = a.nome;
+        const caixasEsperadas = CAIXAS_POR_ANALISTA[nome] || [];
+        if (!caixasEsperadas.length) return;
+
+        const statusAnalista = a.status || 'Ativo';
+        const ausente = statusAnalista !== 'Ativo';
+        const cor = STATUS_CORES[statusAnalista] || STATUS_CORES['Ativo'];
+
+        caixasEsperadas.forEach((caixa, idx) => {
+          const chave = `${nome}__${caixa}__W${semanaAtual}__${anoAtual}`;
+          const feita = monitoradasPorAnalista[nome] && monitoradasPorAnalista[nome].has(caixa);
+          const justif = justificativas[chave] || '';
+          if (feita) totalFeito++; else totalFaltando++;
+
+          html += `<tr style="border-bottom:1px solid #2d3548;${ausente ? 'opacity:0.6;' : ''}">`;
+          if (idx === 0) {
+            html += `<td style="padding:12px 16px;color:#e2e8f0;font-weight:700;font-size:13px;vertical-align:top;" rowspan="${caixasEsperadas.length}">
+              ${nome}
+              ${ausente ? `<br><span style="padding:3px 8px;border-radius:10px;background:${cor.bg};border:1px solid ${cor.border};color:${cor.color};font-size:10px;font-weight:700;">${cor.emoji} ${statusAnalista}</span>` : ''}
+            </td>`;
+          }
+          html += `<td style="padding:10px 16px;color:#e2e8f0;font-size:13px;">${caixa}</td>`;
+          if (feita) {
+            html += `<td style="padding:10px 16px;text-align:center;"><span style="background:#28a74520;border:1px solid #28a745;color:#5dd879;padding:4px 12px;border-radius:12px;font-size:12px;font-weight:700;">✅ Realizada</span></td>`;
+            html += `<td style="padding:10px 16px;color:#6a7489;font-size:12px;font-style:italic;">—</td>`;
+            if (isAdminUser) html += `<td></td>`;
+          } else if (ausente && !justif) {
+            html += `<td style="padding:10px 16px;text-align:center;"><span style="background:${cor.bg};border:1px solid ${cor.border};color:${cor.color};padding:4px 12px;border-radius:12px;font-size:12px;font-weight:700;">${cor.emoji} ${statusAnalista}</span></td>`;
+            html += `<td style="padding:10px 16px;color:#ffc15e;font-size:12px;">${statusAnalista} — sem monitoria prevista</td>`;
+            if (isAdminUser) html += `<td></td>`;
+          } else {
+            html += `<td style="padding:10px 16px;text-align:center;"><span style="background:#dc354520;border:1px solid #dc3545;color:#ff6b6b;padding:4px 12px;border-radius:12px;font-size:12px;font-weight:700;">⚠️ Faltando</span></td>`;
+            html += `<td style="padding:10px 16px;">
+              <div style="color:#a0aec0;font-size:12px;">${justif || '<span style="color:#6a7489;font-style:italic;">Sem justificativa</span>'}</div>
+            </td>`;
+            if (isAdminUser) {
+              html += `<td style="padding:10px 16px;text-align:center;">
+                <button onclick="abrirJustificativa('${chave.replace(/'/g,"\\'")}','${nome.replace(/'/g,"\\'")}','${caixa.replace(/'/g,"\\'")}','${justif.replace(/'/g,"\\'")}')"
+                  style="padding:5px 12px;background:#9B59B620;border:1px solid #9B59B6;color:#c39bd3;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;">
+                  📝 Justificar
+                </button>
+              </td>`;
+            } else {
+              html += `<td></td>`;
+            }
+          }
+          html += `</tr>`;
+        });
+      });
+
+      const pct = totalFeito + totalFaltando > 0 ? Math.round(totalFeito / (totalFeito + totalFaltando) * 100) : 0;
+      const corBarra = pct >= 80 ? '#28a745' : pct >= 50 ? '#FF9F1C' : '#dc3545';
+
+      html += `</tbody></table></div>
+        <div style="padding:16px 20px;background:#1a1f2e;border-top:1px solid #2d3548;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+          <span style="color:#a0aec0;font-size:13px;">✅ <b style="color:#5dd879;">${totalFeito}</b> realizadas</span>
+          <span style="color:#a0aec0;font-size:13px;">⚠️ <b style="color:#ff6b6b;">${totalFaltando}</b> faltando</span>
+          <div style="flex:1;min-width:150px;background:#2d3548;border-radius:10px;height:10px;overflow:hidden;">
+            <div style="width:${pct}%;height:100%;background:${corBarra};border-radius:10px;transition:width 0.5s;"></div>
+          </div>
+          <span style="color:${corBarra};font-weight:700;font-size:14px;">${pct}%</span>
+        </div>
+      </div>`;
+
+      el.innerHTML = html;
+    }
+
+    // Modal de justificativa
+    window.abrirJustificativa = function(chave, analista, caixa, textoAtual) {
+      const texto = prompt(`Justificativa para ${analista} — ${caixa}:\n(Ex: analista de férias, demanda zerada, etc.)`, textoAtual || '');
+      if (texto === null) return;
+      salvarJustificativa(chave, texto);
+    };
+
+    async function salvarJustificativa(chave, texto) {
+      try {
+        await setDoc(doc(db, 'justificativasMonitoria', chave), { texto, atualizadoEm: new Date().toISOString() });
+        showToast('Justificativa salva!', 'success');
+        renderizarControleFaltantes();
+      } catch(e) { showToast('Erro ao salvar justificativa.', 'error'); }
+    }
+
     // ===== GESTÃO DE ANALISTAS =====
     const STATUS_CORES = {
       'Ativo':      { bg:'#28a74520', border:'#28a745', color:'#5dd879', emoji:'✅' },
@@ -1400,6 +1583,53 @@ const firebaseConfig = {
           showToast('Ausência removida!', 'success');
         } catch(e) { showToast('Erro ao excluir.', 'error'); }
       });
+    };
+
+    // ===== DETALHE COMPLETO DA MONITORIA =====
+    window.abrirDetalheMonitoria = function(id) {
+      const r = registrosCache.find(x => x.id === id);
+      if (!r) return;
+      const corNota = r.nota < 70 ? '#dc3545' : r.nota < 90 ? '#FF9F1C' : '#28a745';
+      const campo = (label, valor, destaque) => valor ? `
+        <div style="background:#1a1f2e;border-radius:8px;padding:12px 14px;border-left:3px solid ${destaque || '#3a4256'};">
+          <div style="color:#a0aec0;font-size:11px;font-weight:700;text-transform:uppercase;margin-bottom:4px;">${label}</div>
+          <div style="color:#e2e8f0;font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:break-word;">${valor}</div>
+        </div>` : '';
+
+      // Formatar timestamp
+      let dataHora = r.data || '';
+      if (r.timestamp) {
+        try {
+          const d = r.timestamp.toDate ? r.timestamp.toDate() : new Date(r.timestamp);
+          dataHora = d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+        } catch(e) {}
+      }
+
+      const corpo = `
+        <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+          <span style="padding:6px 14px;border-radius:20px;background:#00A4E020;border:1px solid #00A4E0;color:#4db8e8;font-size:12px;font-weight:700;">${r.nivel || 'Veterano'}</span>
+          <span style="padding:6px 14px;border-radius:20px;background:#6c3fc520;border:1px solid #6c3fc5;color:#c39bd3;font-size:12px;font-weight:700;">${r.categoria || ''}</span>
+          <span style="padding:6px 14px;border-radius:20px;background:${corNota}20;border:1px solid ${corNota};color:${corNota};font-size:14px;font-weight:800;">Nota: ${r.nota}</span>
+          ${r.tag ? `<span style="padding:6px 14px;border-radius:20px;background:#FF9F1C20;border:1px solid #FF9F1C;color:#ffc15e;font-size:12px;font-weight:700;">TAG: ${r.tag}</span>` : ''}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+          ${campo('Analista', r.analista, '#00A4E0')}
+          ${campo('Data / Horário da Interação', dataHora, '#9B59B6')}
+          ${campo('Caixa', r.caixa, '#00D664')}
+          ${campo('Assunto', r.assunto, '#00D664')}
+          ${campo('Ticket / Protocolo', r.protocoloOuEmail || r.ticket, '#FF9F1C')}
+          ${campo('Supervisor', r.supervisor, '#6a7489')}
+          ${campo('Formulário', r.formulario, '#6a7489')}
+          ${campo('Tratado Via', r.tratadoVia, '#6a7489')}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          ${r.desvio ? campo('⚠️ Desvio', r.desvio, '#FF9F1C') : ''}
+          ${r.observacao ? campo('📝 Observação', r.observacao, '#dc3545') : ''}
+        </div>
+        ${(!r.desvio && !r.observacao) ? `<div style="background:#28a74510;border:1px solid #28a745;border-radius:8px;padding:14px;text-align:center;color:#5dd879;font-weight:700;">✅ Sem desvios ou observações registrados</div>` : ''}
+      `;
+      document.getElementById('modalDetalheCorpo').innerHTML = corpo;
+      document.getElementById('modalDetalheMonitoria').classList.add('show');
     };
 
     // ===== VER OBSERVAÇÃO COMPLETA =====
@@ -1741,6 +1971,7 @@ const firebaseConfig = {
         await carregarAnalistasFirestore();
         atualizarDatalistAnalistas();
         filtrarAnalistas(filtroStatusAtual);
+        await renderizarControleFaltantes();
       } else if (aba === 'cadastro') {
         document.getElementById('viewCadastro').style.display = 'block';
         const tabCadastro = document.getElementById('tabCadastro');
@@ -2239,7 +2470,6 @@ const firebaseConfig = {
     }
 
     function gerarTabelaCategoria(titulo, registros, cor) {
-      const hasAssunto = registros.some(r => r.assunto && r.assunto.trim());
       const hasProtocolo = registros.some(r => r.protocoloOuEmail && r.protocoloOuEmail.trim());
       const hasObservacao = registros.some(r => r.observacao && r.observacao.trim());
       const hasDesvio = registros.some(r => r.desvio && r.desvio.trim());
@@ -2269,13 +2499,14 @@ const firebaseConfig = {
                 <th style="padding:12px;text-align:left;border-bottom:2px solid ${cor};font-weight:700;">Nível</th>
                 <th style="padding:12px;text-align:left;border-bottom:2px solid ${cor};font-weight:700;">Analista</th>
                 <th style="padding:12px;text-align:left;border-bottom:2px solid ${cor};font-weight:700;">Caixa</th>
-                ${hasAssunto ? `<th style="padding:12px;text-align:left;border-bottom:2px solid ${cor};font-weight:700;">Assunto</th>` : ''}
+                <th style="padding:12px;text-align:left;border-bottom:2px solid ${cor};font-weight:700;">Assunto</th>
                 ${hasProtocolo ? `<th style="padding:12px;text-align:left;border-bottom:2px solid ${cor};font-weight:700;">Protocolo/Email</th>` : ''}
                 ${hasObservacao ? `<th style="padding:12px;text-align:left;border-bottom:2px solid ${cor};font-weight:700;">Observação</th>` : ''}
                 ${hasDesvio ? `<th style="padding:12px;text-align:left;border-bottom:2px solid ${cor};font-weight:700;">Desvio</th>` : ''}
                 <th style="padding:12px;text-align:center;border-bottom:2px solid ${cor};font-weight:700;">Nota</th>
                 <th style="padding:12px;text-align:center;border-bottom:2px solid ${cor};font-weight:700;">Média</th>
                 <th style="padding:12px;text-align:center;border-bottom:2px solid ${cor};font-weight:700;">TAG</th>
+                <th style="padding:12px;text-align:center;border-bottom:2px solid ${cor};font-weight:700;">🔍</th>
                 ${isAdminUser ? `<th style="padding:12px;text-align:center;border-bottom:2px solid ${cor};font-weight:700;">Ações</th>` : ''}
               </tr></thead><tbody>`;
 
@@ -2296,7 +2527,7 @@ const firebaseConfig = {
               html += `<td style="padding:10px;font-weight:700;vertical-align:top;color:#00A4E0;" rowspan="${totalLinhasAnalista}">${analista}</td>`;
             }
             html += `<td style="padding:10px;vertical-align:top;font-weight:600;">${caixa}</td>`;
-            if (hasAssunto) html += `<td style="padding:10px;vertical-align:top;font-size:13px;">${r.assunto || '-'}</td>`;
+            html += `<td style="padding:10px;vertical-align:top;font-size:13px;">${r.assunto || '-'}</td>`;
             if (hasProtocolo) html += `<td style="padding:10px;vertical-align:top;font-size:12px;max-width:200px;word-wrap:break-word;">${r.protocoloOuEmail || '-'}</td>`;
             if (hasObservacao) {
               const obsText = r.observacao || '-';
@@ -2324,6 +2555,7 @@ const firebaseConfig = {
               html += `<div class="tag-edit"><input type="text" value="${monitoriaTag}" id="tagInput_${r.id}" style="padding:4px 6px;border-radius:4px;border:1px solid #ccc;font-size:12px;width:80px;"><button onclick="salvarTagMonitoria(${r.id})" style="background:#28a745;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:11px;">💾</button></div>`;
             }
             html += `</td>`;
+            html += `<td style="padding:10px;text-align:center;"><button onclick="abrirDetalheMonitoria(${r.id})" style="background:#6c3fc5;color:white;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;font-size:13px;" title="Ver detalhes completos">🔍</button></td>`;
             if (isAdminUser) {
               html += `<td style="padding:10px;text-align:center;"><button onclick="abrirEditarMonitoria(${r.id})" style="background:#0d7ab5;color:white;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;font-size:12px;margin-right:4px;">✏️</button><button onclick="excluirRegistro(${r.id})" style="background:#dc3545;color:white;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;font-size:12px;">🗑️</button></td>`;
             }
