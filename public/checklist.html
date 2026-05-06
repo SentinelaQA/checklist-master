@@ -876,10 +876,11 @@ const firebaseConfig = {
 
       // Montar lista de descontos com observações por item
       const descontosDetalhados = [];
+      const _cData = window._checklistData || [];
       if (window._state && window._state.items) {
         Object.keys(window._state.items).forEach(itemId => {
           const [blockIdx, itemIdx] = itemId.split('-').map(Number);
-          const bloco = checklistData[blockIdx];
+          const bloco = _cData[blockIdx];
           if (!bloco) return;
           const item = bloco.items[itemIdx];
           if (!item) return;
@@ -889,6 +890,7 @@ const firebaseConfig = {
             peso: bloco.peso,
             item: item.item,
             subitem: item.subitem,
+            descricao: item.descricao || '',
             observacao: (window._state.observations && window._state.observations[itemId]) || ''
           });
         });
@@ -1175,17 +1177,49 @@ const firebaseConfig = {
         } catch(e) { console.error(e); }
       }
 
-      // Ciclo atual (semana atual)
-      const hoje = new Date();
-      const semanaAtual = getWeekNumber(hoje);
-      const anoAtual = hoje.getFullYear();
+      // Sistema de ciclos por mês (1-7=1°, 8-14=2°, 15-21=3°, 22+=4°)
+      function getCicloInfo(dateStr) {
+        const d = new Date(dateStr + 'T12:00:00');
+        const dia = d.getDate();
+        const mes = d.getMonth(); // 0-based
+        const ano = d.getFullYear();
+        const ciclo = dia <= 7 ? 1 : dia <= 14 ? 2 : dia <= 21 ? 3 : 4;
+        const inicios = [1, 8, 15, 22];
+        const fimDias = [7, 14, 21, new Date(ano, mes + 1, 0).getDate()];
+        const inicio = new Date(ano, mes, inicios[ciclo - 1]);
+        const fim = new Date(ano, mes, fimDias[ciclo - 1]);
+        const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+        const label = `${inicios[ciclo-1].toString().padStart(2,'0')}/${(mes+1).toString().padStart(2,'0')} – ${fimDias[ciclo-1].toString().padStart(2,'0')}/${(mes+1).toString().padStart(2,'0')}`;
+        return { ciclo, ano, mes, label, inicio, fim };
+      }
 
-      // Registros do ciclo atual
+      // Hoje
+      const hoje = new Date();
+      const hoje_str = hoje.toISOString().split('T')[0];
+      const cicloHoje = getCicloInfo(hoje_str);
+      const anoAtual = cicloHoje.ano;
+      const mesAtual = cicloHoje.mes;
+      const cicloAtual = cicloHoje.ciclo;
+
+      // Buscar feriados via BrasilAPI
+      let feriadosMap = {};
+      let pontosFacultativos = {};
+      try {
+        const resp = await fetch(`https://brasilapi.com.br/api/feriados/v1/${anoAtual}`);
+        if (resp.ok) {
+          const feriados = await resp.json();
+          feriados.forEach(f => {
+            feriadosMap[f.date] = { nome: f.name, tipo: f.type };
+          });
+        }
+      } catch(e) { console.log('Feriados indisponíveis:', e); }
+
+      // Registros do ciclo atual (mesmo mês + mesmo ciclo)
       const regsCicloAtual = registros.filter(r => {
         if (!r.data) return false;
         try {
-          const d = new Date(r.data + 'T12:00:00');
-          return getWeekNumber(d) === semanaAtual && d.getFullYear() === anoAtual;
+          const info = getCicloInfo(r.data);
+          return info.ciclo === cicloAtual && info.mes === mesAtual && info.ano === anoAtual;
         } catch(e) { return false; }
       });
 
@@ -1205,13 +1239,38 @@ const firebaseConfig = {
 
       const isAdminUser = window._isAdmin !== false;
 
+      const mesesNome = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+      // Dias úteis do ciclo atual para verificar feriados
+      const diasCiclo = [];
+      for (let d = new Date(cicloHoje.inicio); d <= cicloHoje.fim; d.setDate(d.getDate() + 1)) {
+        const ds = d.toISOString().split('T')[0];
+        const diaSemana = d.getDay();
+        if (diaSemana !== 0 && diaSemana !== 6) {
+          diasCiclo.push({ data: ds, feriado: feriadosMap[ds] || null });
+        }
+      }
+      const feriadosDoCiclo = diasCiclo.filter(d => d.feriado);
+
+      let feriadoHtml = '';
+      if (feriadosDoCiclo.length > 0) {
+        feriadoHtml = '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">';
+        feriadosDoCiclo.forEach(f => {
+          const isPF = f.feriado.tipo && f.feriado.tipo.toLowerCase().includes('facultativo');
+          const cor = isPF ? '#9B59B6' : '#FF9F1C';
+          const label = isPF ? '📌 P. Facultativo' : '🏛️ Feriado';
+          const [y,m,dd] = f.data.split('-');
+          feriadoHtml += `<span style="padding:3px 10px;border-radius:12px;background:${cor}20;border:1px solid ${cor};color:${cor};font-size:11px;font-weight:700;">${label}: ${f.feriado.nome} (${dd}/${m})</span>`;
+        });
+        feriadoHtml += '</div>';
+      }
+
       let html = `
         <div style="background:#1e2536;border-radius:12px;border:1px solid rgba(255,255,255,0.06);overflow:hidden;margin-top:10px;">
-          <div style="padding:16px 20px;background:#242b3d;border-bottom:1px solid #2d3548;display:flex;justify-content:space-between;align-items:center;">
-            <div>
-              <h3 style="color:#e2e8f0;font-size:16px;font-weight:700;margin:0;">📋 Controle de Monitorias — Ciclo Atual</h3>
-              <p style="color:#a0aec0;font-size:12px;margin:4px 0 0;">Semana W${String(semanaAtual).padStart(2,'0')} · ${hoje.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'})}</p>
-            </div>
+          <div style="padding:16px 20px;background:#242b3d;border-bottom:1px solid #2d3548;">
+            <h3 style="color:#e2e8f0;font-size:16px;font-weight:700;margin:0;">📋 Controle de Monitorias — Ciclo Atual</h3>
+            <p style="color:#a0aec0;font-size:12px;margin:4px 0 0;">${cicloAtual}° Ciclo · ${mesesNome[mesAtual]} ${anoAtual} · ${cicloHoje.label} · ${diasCiclo.length} dia(s) útil(eis)</p>
+            ${feriadoHtml}
           </div>
           <div style="overflow-x:auto;">
           <table style="width:100%;border-collapse:collapse;">
@@ -1236,7 +1295,7 @@ const firebaseConfig = {
         const cor = STATUS_CORES[statusAnalista] || STATUS_CORES['Ativo'];
 
         caixasEsperadas.forEach((caixa, idx) => {
-          const chave = `${nome}__${caixa}__W${semanaAtual}__${anoAtual}`;
+          const chave = `${nome}__${caixa}__C${cicloAtual}__${mesAtual}__${anoAtual}`;
           const feita = monitoradasPorAnalista[nome] && monitoradasPorAnalista[nome].has(caixa);
           const justif = justificativas[chave] || '';
           if (feita) totalFeito++; else totalFaltando++;
@@ -1651,12 +1710,14 @@ const firebaseConfig = {
         r.descontosDetalhados.forEach(d => {
           const corTipo = d.tipo === 'NCG' ? '#dc3545' : '#FF9F1C';
           descontosHtml += `<div style="background:#1a1f2e;border-radius:8px;padding:12px 14px;border-left:3px solid ${corTipo};">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:6px;">
               <span style="color:#e2e8f0;font-size:13px;font-weight:700;">${d.bloco}</span>
-              <span style="padding:2px 10px;border-radius:12px;background:${corTipo}20;border:1px solid ${corTipo};color:${corTipo};font-size:11px;font-weight:700;">${d.tipo} -${d.peso}pts</span>
+              <span style="padding:2px 10px;border-radius:12px;background:${corTipo}20;border:1px solid ${corTipo};color:${corTipo};font-size:11px;font-weight:700;">${d.tipo} · -${d.peso}pts</span>
             </div>
-            <div style="color:#a0aec0;font-size:12px;margin-bottom:${d.observacao ? '8px' : '0'};">${d.item} — ${d.subitem}</div>
-            ${d.observacao ? `<div style="background:#242b3d;border-radius:6px;padding:8px 10px;color:#ffc15e;font-size:12px;line-height:1.5;"><span style="color:#a0aec0;font-weight:700;">💬 Obs: </span>${d.observacao}</div>` : ''}
+            <div style="color:#c39bd3;font-size:12px;font-weight:600;margin-bottom:2px;">📌 ${d.item}</div>
+            <div style="color:#a0aec0;font-size:12px;margin-bottom:${(d.observacao || d.descricao) ? '8px' : '0'};">${d.subitem}</div>
+            ${d.descricao ? `<div style="background:#1a2240;border-radius:6px;padding:7px 10px;color:#8892a4;font-size:11px;line-height:1.5;margin-bottom:${d.observacao ? '6px' : '0'};">📖 ${d.descricao}</div>` : ''}
+            ${d.observacao ? `<div style="background:#2d1f0a;border:1px solid #FF9F1C40;border-radius:6px;padding:8px 10px;color:#ffc15e;font-size:12px;line-height:1.5;"><span style="font-weight:700;">💬 Observação: </span>${d.observacao}</div>` : '<div style="background:#242b3d;border-radius:6px;padding:6px 10px;color:#6a7489;font-size:11px;font-style:italic;">Sem observação registrada</div>'}
           </div>`;
         });
         descontosHtml += '</div></div>';
@@ -2229,6 +2290,7 @@ const firebaseConfig = {
     ];
 
     let checklistData = checklistPadrao;
+    window._checklistData = checklistData;
     let state = { score: 100, nc: 0, ncg: 0, total: 0, items: {}, observations: {}, ncgDetected: false };
     window._state = state;
     let currentObservationItemId = null;
@@ -2293,6 +2355,7 @@ const firebaseConfig = {
       else if (caixa === 'Gestão Aluguel Estornos' || caixa === 'Gestão Aluguel Incentivos') { checklistData = checklistGestaoAluguel; }
       else if (caixa === 'Regularizações Financeiras' || caixa === 'Saldo de Auditoria') { checklistData = checklistRegularizacoes; }
       else if (caixa !== '') { checklistData = checklistPadrao; }
+      window._checklistData = checklistData;
       resetarChecklistState();
       if (caixa === 'Cancelamento') {
         ['Desfazimento','Atendimento BackOffice','5125','STD - Corporate','STD - Aéreo'].forEach(o => { const opt = document.createElement('option'); opt.value = o; opt.textContent = o; subCaixaSelect.appendChild(opt); });
