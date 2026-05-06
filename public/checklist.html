@@ -373,9 +373,26 @@
           </div>
         </div>
         <div>
-          <label style="display:block;margin-bottom:8px;font-weight:700;color:#a0aec0;font-size:14px;">📅 Semana:</label>
-          <input type="week" id="filtroSemanaControle" onchange="filtrarControle()" style="width:100%;padding:12px;border:2px solid #3a4256;border-radius:8px;font-size:14px;background:#1a1f2e;color:#e2e8f0;">
-          <div id="visSemanaControle" style="display:none;margin-top:8px;font-size:13px;color:#a0aec0;"></div>
+          <label style="display:block;margin-bottom:8px;font-weight:700;color:#a0aec0;font-size:14px;">📅 Ciclo / Mês:</label>
+          <div style="display:flex;gap:8px;">
+            <select id="filtroCicloNum" onchange="filtrarControle()" style="flex:1;padding:10px;border:2px solid #3a4256;border-radius:8px;font-size:13px;background:#1a1f2e;color:#e2e8f0;">
+              <option value="">Todos</option>
+              <option value="1">1° Ciclo (01–07)</option>
+              <option value="2">2° Ciclo (08–14)</option>
+              <option value="3">3° Ciclo (15–21)</option>
+              <option value="4">4° Ciclo (22–fim)</option>
+            </select>
+            <select id="filtroMesNum" onchange="filtrarControle()" style="flex:1;padding:10px;border:2px solid #3a4256;border-radius:8px;font-size:13px;background:#1a1f2e;color:#e2e8f0;">
+              <option value="">Todos meses</option>
+              <option value="0">Janeiro</option><option value="1">Fevereiro</option>
+              <option value="2">Março</option><option value="3">Abril</option>
+              <option value="4">Maio</option><option value="5">Junho</option>
+              <option value="6">Julho</option><option value="7">Agosto</option>
+              <option value="8">Setembro</option><option value="9">Outubro</option>
+              <option value="10">Novembro</option><option value="11">Dezembro</option>
+            </select>
+          </div>
+          <div id="visSemanaControle" style="display:none;"></div>
         </div>
         <div style="display:flex;align-items:flex-end;gap:10px;">
           <button onclick="limparFiltros()" style="flex:1;padding:12px;background:#3a4256;color:#a0aec0;border:none;border-radius:8px;font-weight:700;cursor:pointer;">🔄 Limpar Filtros</button>
@@ -1022,46 +1039,34 @@ const firebaseConfig = {
     window.filtrarControle = function() {
       const analistasSelecionados = [...document.querySelectorAll('.chkAnalista:checked')].map(c => c.value.toUpperCase());
       const caixasSelecionadas = [...document.querySelectorAll('.chkCaixa:checked')].map(c => c.value);
-      const cicloFiltro = document.getElementById('filtroCiclo')?.value || '';
+      const cicloFiltro = (document.getElementById('filtroCicloNum') || {}).value || '';
+      const mesFiltroNum = (document.getElementById('filtroMesNum') || {}).value;
 
       let registros = [...registrosCache];
       if (analistasSelecionados.length > 0) registros = registros.filter(r => analistasSelecionados.includes(r.analista.toUpperCase()));
       if (caixasSelecionadas.length > 0) registros = registros.filter(r => caixasSelecionadas.includes(r.caixa));
 
-      const semanaControle = document.getElementById('filtroSemanaControle').value;
-      if (semanaControle) {
-        const [ano, sem] = semanaControle.split('-W');
-        const semNum = parseInt(sem);
-
-        // Filtrar registros pela semana
+      if (cicloFiltro || (mesFiltroNum !== '' && mesFiltroNum !== undefined)) {
         registros = registros.filter(r => {
-          if (!r.semana) return false;
-          return parseInt(r.semana.replace('W', '')) === semNum;
+          if (!r.data) return false;
+          const dObj = new Date(r.data + 'T12:00:00');
+          const dia = dObj.getDate();
+          const mesR = dObj.getMonth();
+          const cicloR = dia <= 7 ? 1 : dia <= 14 ? 2 : dia <= 21 ? 3 : 4;
+          if (cicloFiltro && cicloR !== parseInt(cicloFiltro)) return false;
+          if (mesFiltroNum !== '' && mesFiltroNum !== undefined && mesR !== parseInt(mesFiltroNum)) return false;
+          return true;
         });
-
-        // Calcular início e fim da semana ISO
-        const inicioSemana = getISOWeekStart(parseInt(ano), semNum);
-        const fimSemana = new Date(inicioSemana);
-        fimSemana.setDate(inicioSemana.getDate() + 6);
-        const fmt = d => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
-
-        // Ciclo: baseado no dia do mês do início da semana
-        const ciclo = getCicloPorDia(inicioSemana.getDate());
-        const cicloTexto = `${ciclo}º Ciclo`;
-
-        const vis = document.getElementById('visSemanaControle');
-        vis.innerHTML = `<strong>W${String(semNum).padStart(2,'0')}</strong> — ${fmt(inicioSemana)} à ${fmt(fimSemana)} | <span style="color:#00A4E0;font-weight:700;">${cicloTexto}</span>`;
-        vis.style.display = 'block';
-      } else {
-        document.getElementById('visSemanaControle').style.display = 'none';
       }
+
       renderizarTabelas(registros);
       window._registrosFiltrados = registros;
       atualizarTagsAtivos();
     };
     window.limparFiltros = function() {
       document.querySelectorAll('.chkAnalista,.chkCaixa').forEach(c => c.checked = false);
-      document.getElementById('filtroSemanaControle').value = '';
+      if(document.getElementById('filtroCicloNum')) document.getElementById('filtroCicloNum').value = '';
+      if(document.getElementById('filtroMesNum')) document.getElementById('filtroMesNum').value = '';
       document.getElementById('visSemanaControle').style.display = 'none';
       document.getElementById('btnFiltroAnalista').textContent = 'Todos os Analistas ▾';
       document.getElementById('btnFiltroCaixa').textContent = 'Todas as Caixas ▾';
@@ -1139,7 +1144,8 @@ const firebaseConfig = {
         if (chk) chk.checked = false;
         atualizarBtnCaixa();
       } else if (tipo === 'semana') {
-        document.getElementById('filtroSemanaControle').value = '';
+        if(document.getElementById('filtroCicloNum')) document.getElementById('filtroCicloNum').value = '';
+      if(document.getElementById('filtroMesNum')) document.getElementById('filtroMesNum').value = '';
         document.getElementById('visSemanaControle').style.display = 'none';
       }
       filtrarControle();
@@ -1148,15 +1154,15 @@ const firebaseConfig = {
     // ===== CONTROLE DE MONITORIAS FALTANTES =====
     // Estrutura de caixas esperadas por analista (nomes conforme formulário)
     const CAIXAS_POR_ANALISTA = {
-      'FRANK PEREIRA DA SILVA':         ['Regularizações Financeiras','Saldo Auditoria','BackOffice Mídias Sociais','Gestão Aluguel Estorno','Gestão Aluguel Incentivo','Processos Ouvidoria BO','9066'],
+      'FRANK PEREIRA DA SILVA':         ['Regularizações Financeiras','Saldo de Auditoria','BackOffice Mídias Sociais','Gestão Aluguel Estorno','Gestão Aluguel Incentivo','Processos Ouvidoria BO','9066'],
       'GISELE APARECIDA DE ALMEIDA':    ['Gestão Aluguel Estorno','9066'],
-      'ANA PAULA DOS SANTOS':           ['Regularizações Financeiras','Saldo Auditoria'],
+      'ANA PAULA DOS SANTOS':           ['Regularizações Financeiras','Saldo de Auditoria'],
       'ROBERT GUSTAVO SANTOS SILVA':    ['Gestão Aluguel Estorno','9066'],
-      'PEDRO ALVES CABRAL NETO':        ['Atendimento Backoffice','Desfazimento','Cancelamento Cia Aerea','Cancelamento Corporate'],
+      'PEDRO ALVES CABRAL NETO':        ['Atendimento BackOffice','Desfazimento','Cancelamento Cia Aérea','Cancelamento Corporate'],
       'JULIA OLIVEIRA ONORIO':          ['5125'],
       'KALLYANA KAMILA ALVES':          ['5125'],
-      'NATHALI CRISTINE DOS SANTOS':    ['Atendimento Backoffice','Desfazimento','5125','Cancelamento Cia Aerea','Cancelamento Corporate'],
-      'SILVIA MEIRE DE SOUZA':          ['Atendimento Backoffice','Desfazimento','5125','Cancelamento Cia Aerea','Cancelamento Corporate'],
+      'NATHALI CRISTINE DOS SANTOS':    ['Atendimento BackOffice','Desfazimento','5125','Cancelamento Cia Aérea','Cancelamento Corporate'],
+      'SILVIA MEIRE DE SOUZA':          ['Atendimento BackOffice','Desfazimento','5125','Cancelamento Cia Aérea','Cancelamento Corporate'],
       'DÉBORA MELÃO MACEDO':            ['7922','Consultoria','Prévia MDR'],
       'FRANCINE VITORIA COSTA':         ['7922','Consultoria','Prévia MDR'],
       'LARISSA CAMARA':                 ['7922','Consultoria','Prévia MDR'],
@@ -1434,6 +1440,23 @@ const firebaseConfig = {
 
         const snapAus = await getDocs(query(collection(db, 'ausencias'), orderBy('inicio', 'desc')));
         ausenciasCache = snapAus.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
+
+        // Verificar retorno automático: analistas com ausência cujo fim já passou
+        const hoje = new Date().toISOString().split('T')[0];
+        for (const a of analistasCache) {
+          if (a.status === 'Ativo' || a.status === 'Desligado') continue;
+          // Busca ausência mais recente deste analista com data de fim preenchida
+          const ausenciasDoAnalista = ausenciasCache
+            .filter(au => au.analistaId === a.firestoreId && au.fim && au.fim <= hoje && au.motivo !== 'Desligado')
+            .sort((x, y) => y.fim.localeCompare(x.fim));
+          if (ausenciasDoAnalista.length > 0) {
+            // Retorna para Ativo automaticamente
+            await updateDoc(doc(db, 'analistas', a.firestoreId), { status: 'Ativo', motivoOutro: '' });
+            a.status = 'Ativo';
+            a.motivoOutro = '';
+            console.log(`✅ ${a.nome} retornou automaticamente para Ativo`);
+          }
+        }
       } catch(e) {
         console.error('Erro ao carregar analistas:', e);
       }
@@ -2634,6 +2657,7 @@ const firebaseConfig = {
           <div style="overflow-x:auto;border:2px solid ${cor};border-radius:0 0 8px 8px;">
             <table style="width:100%;border-collapse:collapse;background:white;">
               <thead><tr style="background:${cor}20;">
+                <th style="padding:12px;text-align:center;border-bottom:2px solid ${cor};font-weight:700;">Ciclo</th>
                 <th style="padding:12px;text-align:left;border-bottom:2px solid ${cor};font-weight:700;">Nível</th>
                 <th style="padding:12px;text-align:left;border-bottom:2px solid ${cor};font-weight:700;">Analista</th>
                 <th style="padding:12px;text-align:left;border-bottom:2px solid ${cor};font-weight:700;">Caixa</th>
@@ -2661,7 +2685,13 @@ const firebaseConfig = {
             const monitoriaTag = r.tag || '';
             html += `<tr style="border-bottom:1px solid #eee;">`;
             if (primeiraLinhaAnalista) {
-              html += `<td style="padding:10px;vertical-align:top;font-weight:600;font-size:11px;" rowspan="${totalLinhasAnalista}">${r.nivel || 'Veterano'}</td>`;
+              // Ciclo da monitoria
+            const dCiclo = new Date(r.data + 'T12:00:00');
+            const diaCiclo = dCiclo.getDate();
+            const cicloReg = diaCiclo <= 7 ? 1 : diaCiclo <= 14 ? 2 : diaCiclo <= 21 ? 3 : 4;
+            const mesCicloStr = String(dCiclo.getMonth()+1).padStart(2,'0');
+            html += `<td style="padding:8px;text-align:center;vertical-align:top;white-space:nowrap;"><span style="background:${cor}15;border:1px solid ${cor}60;color:${cor};padding:3px 8px;border-radius:10px;font-size:11px;font-weight:700;">${cicloReg}°C/${mesCicloStr}</span></td>`;
+            html += `<td style="padding:10px;vertical-align:top;font-weight:600;font-size:11px;" rowspan="${totalLinhasAnalista}">${r.nivel || 'Veterano'}</td>`;
               html += `<td style="padding:10px;font-weight:700;vertical-align:top;color:#00A4E0;font-size:11px;line-height:1.4;" rowspan="${totalLinhasAnalista}">${analista}</td>`;
             }
             html += `<td style="padding:10px;vertical-align:top;font-weight:600;">${caixa}</td>`;
