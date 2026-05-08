@@ -84,7 +84,7 @@
     .btn-descontar { padding: 12px 24px; border: 2px solid #3a4256; background: #242b3d; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 14px; transition: all 0.3s; white-space: nowrap; min-width: 120px; color: #a0aec0; }
     .btn-descontar:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
     .btn-descontar.active { border-color: #FF6B6B; background: #FF6B6B; color: white; box-shadow: 0 4px 12px rgba(255,107,107,0.3); }
-    .copyright-footer { position: sticky; bottom: 0; background: linear-gradient(135deg, #141824 0%, #1a2035 100%); color: #6a7489; padding: 15px 30px; text-align: center; box-shadow: 0 -5px 20px rgba(0,0,0,0.3); font-size: 13px; opacity: 0.9; }
+    .copyright-footer { position: relative; bottom: 0; background: linear-gradient(135deg, #141824 0%, #1a2035 100%); color: #6a7489; padding: 15px 30px; text-align: center; box-shadow: 0 -5px 20px rgba(0,0,0,0.3); font-size: 13px; opacity: 0.9; margin-top: 30px; }
     .alert-ncg { background: rgba(255,107,107,0.1); border: 2px solid #FF6B6B; border-radius: 10px; padding: 15px; margin: 20px 30px; display: none; align-items: center; gap: 15px; }
     .alert-ncg.show { display: flex; animation: slideDown 0.5s; }
     @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
@@ -311,7 +311,7 @@
     <div class="container">
       <div class="header">
         <div><h1>📊 Controle de Avaliações</h1><p style="opacity:0.9;margin-top:5px;">Acompanhamento e Gestão de Qualidade</p></div>
-        <div><button onclick="exportarTodoControle()" class="export-btn">📥 Exportar CSV</button></div>
+        <div><button onclick="exportarTodoControle()" class="export-btn">📥 Exportar XLSX</button></div>
       </div>
       <div style="margin-bottom:25px;padding:25px;background:#1e2536;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.06);">
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:15px;">
@@ -852,22 +852,22 @@ const firebaseConfig = {
       const caixa = document.getElementById('caixa').value || '';
       const subCaixa = document.getElementById('subCaixa').value || '';
       const tipoEvento = document.getElementById('subFormulario').value || '';
-      const assunto = document.getElementById('assunto').value || '';
-      const ticket = document.getElementById('ticket').value || '';
+      const assunto = document.getElementById('assunto').value.trim() || '';
+      const ticket = document.getElementById('ticket').value.trim() || '';
       const resumoDesvio = document.getElementById('resumoDesvio').value || '';
       const resumoInteracao = document.getElementById('resumoInteracao').value || '';
       const protocolo = document.getElementById('protocolo').value || '';
       const assuntoEmail = document.getElementById('assuntoEmail').value || '';
       const pontuacao = Math.round(window._state.score);
       const dataAvaliacao = document.getElementById('dataAvaliacao').value || '';
+      const dataInteracaoEl = document.getElementById('dataInteracao');
+      const horaInteracaoEl = document.getElementById('horaInteracao');
+      const dataInteracao = dataInteracaoEl ? dataInteracaoEl.value || '' : '';
+      const horaInteracao = horaInteracaoEl ? horaInteracaoEl.value || '' : '';
       const tratadoVia = document.getElementById('tratadoVia').value || '';
 
       if (!analista) { showToast('Preencha o nome do analista!', 'warning'); return; }
-      const subCaixaVal = document.getElementById('subCaixa').value || '';
-      if (tratadoVia !== 'CRM' && subCaixaVal !== '5125') {
-        if (!assunto) { showToast('Preencha o assunto!', 'warning'); return; }
-        if (!ticket) { showToast('Preencha o número do ticket!', 'warning'); return; }
-      }
+      if (!assunto) { showToast('Preencha o assunto!', 'warning'); return; }
 
       let categoria = '', caixaFinal = '';
       if (formulario === 'Agenda Financeira - Eventos') {
@@ -932,6 +932,8 @@ const firebaseConfig = {
         anoRef: anoData,
         tag: '',
         timestamp: new Date().toISOString(),
+        dataInteracao,
+        horaInteracao,
         criadoPor: currentUser ? currentUser.uid : 'desconhecido',
         descontosDetalhados
       };
@@ -1716,11 +1718,17 @@ const firebaseConfig = {
           <div style="color:#e2e8f0;font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:break-word;">${valor}</div>
         </div>` : '';
 
-      let dataHora = r.data || '';
-      if (r.timestamp) {
+      // Data de avaliação
+      const dataAval = r.data ? r.data.split('-').reverse().join('/') : '—';
+      // Data/hora da interação (preenchida no formulário)
+      let dataHoraInteracao = '';
+      if (r.dataInteracao) {
+        dataHoraInteracao = r.dataInteracao.split('-').reverse().join('/');
+        if (r.horaInteracao) dataHoraInteracao += ' às ' + r.horaInteracao;
+      } else if (r.timestamp) {
         try {
           const d = r.timestamp.toDate ? r.timestamp.toDate() : new Date(r.timestamp);
-          dataHora = d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+          dataHoraInteracao = d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
         } catch(e) {}
       }
 
@@ -1755,7 +1763,8 @@ const firebaseConfig = {
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
           ${campo('Analista', r.analista, '#00A4E0')}
-          ${campo('Data / Horário', dataHora, '#9B59B6')}
+          ${campo('Data da Avaliação', dataAval, '#6a7489')}
+          ${campo('Data / Horário da Interação', dataHoraInteracao, '#9B59B6')}
           ${campo('Caixa', r.caixa, '#00D664')}
           ${campo('Assunto', r.assunto, '#00D664')}
           ${campo('Ticket / Protocolo', r.protocoloOuEmail || r.ticket, '#FF9F1C')}
@@ -2059,23 +2068,44 @@ const firebaseConfig = {
     };
 
     // ===== EXPORTAR CSV =====
-    window.exportarTodoControle = function() {
+    window.exportarTodoControle = async function() {
       const dados = (window._registrosFiltrados && window._registrosFiltrados.length > 0)
         ? window._registrosFiltrados : registrosCache;
       if (!dados || dados.length === 0) { showToast('Nenhum registro para exportar!', 'warning'); return; }
-      let csv = 'Categoria,Nível,Analista,Caixa,Assunto,Protocolo/Email,Observação,Desvio,Nota,Data\n';
-      dados.forEach(r => {
-        const linha = [r.categoria,r.nivel,r.analista,r.caixa,r.assunto,r.protocoloOuEmail||'',r.observacao||'',r.desvio,r.nota,r.data]
-          .map(f => `"${String(f||'').replace(/"/g,'""')}"`).join(',');
-        csv += linha + '\n';
-      });
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `controle_${new Date().toISOString().split('T')[0]}.csv`;
-      a.click();
-      showToast(`${dados.length} registro(s) exportado(s)!`, 'success');
+
+      if (!window.XLSX) {
+        await new Promise((res, rej) => {
+          const s = document.createElement('script');
+          s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+          s.onload = res; s.onerror = rej;
+          document.head.appendChild(s);
+        });
+      }
+
+      const rows = dados.map(r => ({
+        'Categoria':       r.categoria || '',
+        'Nível':           r.nivel || '',
+        'Analista':        r.analista || '',
+        'Caixa':           r.caixa || '',
+        'Assunto':         r.assunto || '',
+        'Protocolo/Email': r.protocoloOuEmail || '',
+        'Observação':      r.observacao || '',
+        'Desvio':          r.desvio || '',
+        'Nota':            r.nota || '',
+        'Ciclo':           r.ciclo ? r.ciclo + '° Ciclo' : '',
+        'Mês':             r.mes || '',
+        'Data Avaliação':  r.data || '',
+        'Data Interação':  r.dataInteracao || '',
+        'Hora Interação':  r.horaInteracao || '',
+        'TAG':             r.tag || '',
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Controle');
+      ws['!cols'] = Object.keys(rows[0]).map(k => ({ wch: Math.max(k.length + 2, 16) }));
+      XLSX.writeFile(wb, `controle_${new Date().toISOString().split('T')[0]}.xlsx`);
+      showToast(`${dados.length} registro(s) exportado(s) em XLSX!`, 'success');
     };
 
     // ===== TROCAR ABA =====
@@ -2333,10 +2363,9 @@ const firebaseConfig = {
       if (subCaixa === '5125') {
         estCont.style.display = 'flex'; refCont.style.display = 'flex';
         tvCont.style.display = 'none'; pCont.style.display = 'none'; aeCont.style.display = 'none';
-        if (assuntoPar) assuntoPar.style.display = 'none';
-        if (ticketPar) ticketPar.style.display = 'none';
-        if (assuntoEl) assuntoEl.value = '';
-        if (ticketEl) ticketEl.value = '';
+        // Assunto e ticket sempre visíveis
+        if (assuntoPar) assuntoPar.style.display = 'flex';
+        if (ticketPar) ticketPar.style.display = 'flex';
       } else {
         estCont.style.display = 'none'; refCont.style.display = 'none';
         tvCont.style.display = 'flex';
@@ -2353,19 +2382,15 @@ const firebaseConfig = {
       const ticket = document.getElementById('ticket');
       const assuntoPar = assunto ? assunto.closest('.info-item') : null;
       const ticketPar = ticket ? ticket.closest('.info-item') : null;
+      // Assunto e ticket SEMPRE visíveis independente do canal
+      if (assuntoPar) assuntoPar.style.display = 'flex';
+      if (ticketPar) ticketPar.style.display = 'flex';
       if (tv === 'CRM') {
         pCont.style.display = 'flex'; aeCont.style.display = 'none';
-        if (assuntoPar) assuntoPar.style.display = 'none';
-        if (ticketPar) ticketPar.style.display = 'none';
-        assunto.value = ''; ticket.value = '';
       } else if (tv === 'E-mail') {
         pCont.style.display = 'none'; aeCont.style.display = 'flex';
-        if (assuntoPar) assuntoPar.style.display = 'flex';
-        if (ticketPar) ticketPar.style.display = 'flex';
       } else {
         pCont.style.display = 'none'; aeCont.style.display = 'none';
-        if (assuntoPar) assuntoPar.style.display = 'flex';
-        if (ticketPar) ticketPar.style.display = 'flex';
       }
     }
 
@@ -2411,24 +2436,36 @@ const firebaseConfig = {
       const resumoCont = document.getElementById('resumoContainer');
       const feedbackCont = document.getElementById('feedbackContainer');
 
+      // Assunto SEMPRE visível quando o formulário está selecionado
+      const assuntoEl = document.getElementById('assunto');
+      const assuntoPar = assuntoEl ? assuntoEl.closest('.info-item') : null;
+      const ticketEl = document.getElementById('ticket');
+      const ticketPar = ticketEl ? ticketEl.closest('.info-item') : null;
+
       if (formulario === 'Agenda Financeira - Eventos') {
         cc.style.display = 'grid'; dab.style.display = 'grid';
         sub.style.display = 'flex'; caixaCont.style.display = 'none';
         subCaixaCont.style.display = 'none'; estCont.style.display = 'flex';
         refCont.style.display = 'flex'; tvCont.style.display = 'none';
         resumoCont.style.display = 'grid'; feedbackCont.style.display = 'grid';
+        if (assuntoPar) assuntoPar.style.display = 'flex';
+        if (ticketPar) ticketPar.style.display = 'flex';
       } else if (formulario === 'Agenda Financeira') {
         cc.style.display = 'grid'; dab.style.display = 'grid';
         sub.style.display = 'none'; caixaCont.style.display = 'flex';
         estCont.style.display = 'none'; refCont.style.display = 'none';
         tvCont.style.display = 'flex';
         resumoCont.style.display = 'grid'; feedbackCont.style.display = 'grid';
+        if (assuntoPar) assuntoPar.style.display = 'flex';
+        if (ticketPar) ticketPar.style.display = 'flex';
       } else if (formulario !== '') {
         cc.style.display = 'grid'; dab.style.display = 'grid';
         sub.style.display = 'none'; caixaCont.style.display = 'none';
         subCaixaCont.style.display = 'none'; estCont.style.display = 'none';
         refCont.style.display = 'none'; tvCont.style.display = 'flex';
         resumoCont.style.display = 'grid'; feedbackCont.style.display = 'grid';
+        if (assuntoPar) assuntoPar.style.display = 'flex';
+        if (ticketPar) ticketPar.style.display = 'flex';
       } else {
         cc.style.display = 'none'; dab.style.display = 'none';
         resumoCont.style.display = 'none'; feedbackCont.style.display = 'none';
