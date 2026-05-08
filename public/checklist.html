@@ -2694,19 +2694,19 @@ const firebaseConfig = {
           <div style="overflow-x:auto;border:2px solid ${cor};border-radius:0 0 8px 8px;">
             <table style="width:100%;border-collapse:collapse;background:white;">
               <thead><tr style="background:${cor}20;">
-                <th style="padding:12px;text-align:center;border-bottom:2px solid ${cor};font-weight:700;">Ciclo</th>
-                <th style="padding:12px;text-align:left;border-bottom:2px solid ${cor};font-weight:700;">Nível</th>
-                <th style="padding:12px;text-align:left;border-bottom:2px solid ${cor};font-weight:700;">Analista</th>
-                <th style="padding:12px;text-align:left;border-bottom:2px solid ${cor};font-weight:700;">Caixa</th>
-                <th style="padding:12px;text-align:left;border-bottom:2px solid ${cor};font-weight:700;">Assunto</th>
-                ${hasProtocolo ? `<th style="padding:12px;text-align:left;border-bottom:2px solid ${cor};font-weight:700;">Protocolo/Email</th>` : ''}
-                ${hasObservacao ? `<th style="padding:12px;text-align:left;border-bottom:2px solid ${cor};font-weight:700;">Observação</th>` : ''}
-                ${hasDesvio ? `<th style="padding:12px;text-align:left;border-bottom:2px solid ${cor};font-weight:700;">Desvio</th>` : ''}
-                <th style="padding:12px;text-align:center;border-bottom:2px solid ${cor};font-weight:700;">Nota</th>
-                <th style="padding:12px;text-align:center;border-bottom:2px solid ${cor};font-weight:700;">Média</th>
-                <th style="padding:12px;text-align:center;border-bottom:2px solid ${cor};font-weight:700;">TAG</th>
-                <th style="padding:12px;text-align:center;border-bottom:2px solid ${cor};font-weight:700;">🔍</th>
-                ${isAdminUser ? `<th style="padding:12px;text-align:center;border-bottom:2px solid ${cor};font-weight:700;">Ações</th>` : ''}
+                <th style="padding:7px 5px;text-align:center;border-bottom:2px solid ${cor};font-weight:700;font-size:11px;">Ciclo</th>
+                <th style="padding:7px 5px;text-align:center;border-bottom:2px solid ${cor};font-weight:700;font-size:11px;">Nível</th>
+                <th style="padding:7px 5px;text-align:center;border-bottom:2px solid ${cor};font-weight:700;font-size:11px;">Analista</th>
+                <th style="padding:7px 5px;text-align:left;border-bottom:2px solid ${cor};font-weight:700;font-size:11px;">Caixa</th>
+                <th style="padding:7px 5px;text-align:left;border-bottom:2px solid ${cor};font-weight:700;font-size:11px;">Assunto</th>
+                ${hasProtocolo ? `<th style="padding:7px 5px;text-align:left;border-bottom:2px solid ${cor};font-weight:700;font-size:11px;">Protocolo/Email</th>` : ''}
+                ${hasObservacao ? `<th style="padding:7px 5px;text-align:left;border-bottom:2px solid ${cor};font-weight:700;font-size:11px;">Observação</th>` : ''}
+                ${hasDesvio ? `<th style="padding:7px 5px;text-align:left;border-bottom:2px solid ${cor};font-weight:700;font-size:11px;">Desvio</th>` : ''}
+                <th style="padding:7px 5px;text-align:center;border-bottom:2px solid ${cor};font-weight:700;font-size:11px;">Nota</th>
+                <th style="padding:7px 5px;text-align:center;border-bottom:2px solid ${cor};font-weight:700;font-size:11px;">Média</th>
+                <th style="padding:7px 5px;text-align:center;border-bottom:2px solid ${cor};font-weight:700;font-size:11px;">TAG</th>
+                <th style="padding:7px 5px;text-align:center;border-bottom:2px solid ${cor};font-weight:700;font-size:11px;">🔍</th>
+                ${isAdminUser ? `<th style="padding:7px 5px;text-align:center;border-bottom:2px solid ${cor};font-weight:700;font-size:11px;">Ações</th>` : ''}
               </tr></thead><tbody>`;
 
       Object.keys(porAnalista).sort().forEach(analista => {
@@ -2714,69 +2714,74 @@ const firebaseConfig = {
         let primeiraLinhaAnalista = true;
         let totalLinhasAnalista = 0;
         Object.values(caixas).forEach(regs => { totalLinhasAnalista += regs.length; });
-        const analistaEsc = analista.replace(/'/g, "\\'");
+        const analistaEsc = analista.replace(/'/g, "\'");
+
+        // Ciclo/mês do analista baseado no primeiro registro
+        const primeiroReg = Object.values(caixas).flat()[0];
+        let cicloLabel = '';
+        if (primeiroReg && primeiroReg.data) {
+          const dC = new Date(primeiroReg.data + 'T12:00:00');
+          const diaC = dC.getDate();
+          const cN = diaC <= 7 ? 1 : diaC <= 14 ? 2 : diaC <= 21 ? 3 : 4;
+          cicloLabel = `${cN}°C/${String(dC.getMonth()+1).padStart(2,'0')}`;
+        }
 
         Object.keys(caixas).sort().forEach(caixa => {
           const regs = caixas[caixa];
           regs.forEach((r, idx) => {
             const monitoriaTag = r.tag || '';
-            html += `<tr style="border-bottom:1px solid #eee;">`;
+            html += `<tr style="border-bottom:1px solid #eee;font-size:11px;">`;
             if (primeiraLinhaAnalista) {
-              // Ciclo da monitoria
-            const dCiclo = new Date(r.data + 'T12:00:00');
-            const diaCiclo = dCiclo.getDate();
-            const cicloReg = diaCiclo <= 7 ? 1 : diaCiclo <= 14 ? 2 : diaCiclo <= 21 ? 3 : 4;
-            const mesCicloStr = String(dCiclo.getMonth()+1).padStart(2,'0');
-            html += `<td style="padding:8px;text-align:center;vertical-align:top;white-space:nowrap;"><span style="background:${cor}15;border:1px solid ${cor}60;color:${cor};padding:3px 8px;border-radius:10px;font-size:11px;font-weight:700;">${cicloReg}°C/${mesCicloStr}</span></td>`;
-            html += `<td style="padding:10px;vertical-align:top;font-weight:600;font-size:11px;" rowspan="${totalLinhasAnalista}">${r.nivel || 'Veterano'}</td>`;
-              html += `<td style="padding:10px;font-weight:700;vertical-align:top;color:#00A4E0;font-size:11px;line-height:1.4;" rowspan="${totalLinhasAnalista}">${analista}</td>`;
+              html += `<td style="padding:5px;text-align:center;vertical-align:middle;" rowspan="${totalLinhasAnalista}"><span style="background:${cor}15;border:1px solid ${cor}60;color:${cor};padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700;white-space:nowrap;">${cicloLabel}</span></td>`;
+              html += `<td style="padding:5px;text-align:center;vertical-align:middle;font-weight:600;font-size:11px;color:#555;" rowspan="${totalLinhasAnalista}">${r.nivel || 'Veterano'}</td>`;
+              html += `<td style="padding:5px;text-align:center;vertical-align:middle;font-weight:700;color:#00A4E0;font-size:11px;line-height:1.4;" rowspan="${totalLinhasAnalista}">${analista}</td>`;
             }
-            html += `<td style="padding:10px;vertical-align:top;font-weight:600;">${caixa}</td>`;
-            html += `<td style="padding:10px;vertical-align:top;font-size:13px;">${r.assunto || '-'}</td>`;
-            if (hasProtocolo) html += `<td style="padding:10px;vertical-align:top;font-size:12px;max-width:200px;word-wrap:break-word;">${r.protocoloOuEmail || '-'}</td>`;
+            html += `<td style="padding:5px 6px;vertical-align:middle;font-weight:600;font-size:11px;white-space:nowrap;">${caixa}</td>`;
+            html += `<td style="padding:5px 6px;vertical-align:middle;font-size:11px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${(r.assunto||'').replace(/"/g,'&quot;')}">${r.assunto || '-'}</td>`;
+            if (hasProtocolo) html += `<td style="padding:5px 6px;vertical-align:middle;font-size:11px;white-space:nowrap;">${r.protocoloOuEmail || '-'}</td>`;
             if (hasObservacao) {
               const obsText = r.observacao || '-';
               const longa = obsText.length > 80;
-              const obsEsc = obsText.replace(/\\/g,'\\\\').replace(/`/g,'\\`').replace(/\${/g,'\\${');
-              html += `<td style="padding:10px;vertical-align:top;max-width:240px;min-width:120px;">`;
+              const obsEsc = obsText.replace(/\/g,'\\').replace(/`/g,'\`').replace(/\${/g,'\${');
+              html += `<td style="padding:5px 6px;vertical-align:middle;max-width:160px;">`;
               if (longa) {
-                html += `<div class="obs-truncado" onclick="abrirObsCompleta(\`${obsEsc}\`)">${obsText}</div>`;
+                html += `<div class="obs-truncado" onclick="abrirObsCompleta(\`${obsEsc}\`)" style="font-size:11px;">${obsText}</div>`;
                 html += `<span class="obs-ver-mais" onclick="abrirObsCompleta(\`${obsEsc}\`)">ver mais...</span>`;
               } else {
-                html += `<div style="font-size:13px;line-height:1.5;word-break:break-word;">${obsText}</div>`;
+                html += `<div style="font-size:11px;line-height:1.5;word-break:break-word;">${obsText}</div>`;
               }
               html += `</td>`;
             }
             if (hasDesvio) {
               const desvioText = r.desvio || '-';
               const desvioCurto = desvioText.length > 80;
-              const desvioEsc = desvioText.replace(/\\/g,'\\\\').replace(/`/g,'\\`').replace(/\${/g,'\\${');
-              html += `<td style="padding:10px;vertical-align:top;max-width:200px;min-width:100px;">`;
+              const desvioEsc = desvioText.replace(/\/g,'\\').replace(/`/g,'\`').replace(/\${/g,'\${');
+              html += `<td style="padding:5px 6px;vertical-align:middle;max-width:160px;">`;
               if (desvioCurto) {
-                html += `<div class="obs-truncado" onclick="abrirObsCompleta(\`${desvioEsc}\`)">${desvioText}</div>`;
+                html += `<div class="obs-truncado" onclick="abrirObsCompleta(\`${desvioEsc}\`)" style="font-size:11px;">${desvioText}</div>`;
                 html += `<span class="obs-ver-mais" onclick="abrirObsCompleta(\`${desvioEsc}\`)">ver mais...</span>`;
               } else {
-                html += `<div style="font-size:12px;line-height:1.5;word-break:break-word;">${desvioText}</div>`;
+                html += `<div style="font-size:11px;line-height:1.5;word-break:break-word;">${desvioText}</div>`;
               }
               html += `</td>`;
             }
-            html += `<td style="padding:10px;text-align:center;font-weight:700;color:${r.nota < 70 ? '#dc3545' : r.nota < 90 ? '#FF9F1C' : '#28a745'};">${r.nota}</td>`;
+            html += `<td style="padding:5px;text-align:center;vertical-align:middle;font-weight:700;font-size:12px;color:${r.nota < 70 ? '#dc3545' : r.nota < 90 ? '#FF9F1C' : '#28a745'};">${r.nota}</td>`;
             if (primeiraLinhaAnalista) {
-              html += `<td style="padding:10px;text-align:center;font-weight:700;background:${cor}10;font-size:16px;" rowspan="${totalLinhasAnalista}">${mediaGeralPorAnalista[analista]}</td>`;
+              html += `<td style="padding:5px;text-align:center;vertical-align:middle;font-weight:700;background:${cor}10;font-size:13px;" rowspan="${totalLinhasAnalista}">${mediaGeralPorAnalista[analista]}</td>`;
             }
-            html += `<td class="tag-cell" id="tagCell_${r.id}" style="padding:10px;text-align:center;">`;
+            html += `<td class="tag-cell" id="tagCell_${r.id}" style="padding:5px;text-align:center;vertical-align:middle;">`;
             if (!isAdminUser) {
-              html += `<span style="font-size:13px;font-weight:600;color:#333;">${monitoriaTag || '-'}</span>`;
+              html += `<span style="font-size:11px;font-weight:600;color:#333;">${monitoriaTag || '-'}</span>`;
             } else {
               html += `<div class="tag-display" onclick="ativarEditTag(${r.id})" title="Clique para editar TAG" style="cursor:pointer;">`;
-              html += `<span style="font-weight:600;color:#333;">${monitoriaTag || '<span style="color:#999;font-style:italic;font-size:11px;">adicionar</span>'}</span>`;
+              html += `<span style="font-weight:600;color:#333;font-size:11px;">${monitoriaTag || '<span style="color:#999;font-style:italic;font-size:10px;">add</span>'}</span>`;
               html += `</div>`;
-              html += `<div class="tag-edit"><input type="text" value="${monitoriaTag}" id="tagInput_${r.id}" style="padding:4px 6px;border-radius:4px;border:1px solid #ccc;font-size:12px;width:70px;"><button onclick="salvarTagMonitoria(${r.id})" style="background:#28a745;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:11px;">💾</button><button onclick="cancelarEditTag(${r.id})" style="background:#6a7489;color:white;border:none;padding:4px 6px;border-radius:4px;cursor:pointer;font-size:11px;">✕</button></div>`;
+              html += `<div class="tag-edit"><input type="text" value="${monitoriaTag}" id="tagInput_${r.id}" style="padding:3px 5px;border-radius:4px;border:1px solid #ccc;font-size:11px;width:60px;"><button onclick="salvarTagMonitoria(${r.id})" style="background:#28a745;color:white;border:none;padding:3px 6px;border-radius:4px;cursor:pointer;font-size:10px;">💾</button><button onclick="cancelarEditTag(${r.id})" style="background:#6a7489;color:white;border:none;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:10px;">✕</button></div>`;
             }
             html += `</td>`;
-            html += `<td style="padding:10px;text-align:center;"><button onclick="abrirDetalheMonitoria(${r.id})" style="background:#6c3fc5;color:white;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;font-size:13px;" title="Ver detalhes completos">🔍</button></td>`;
+            html += `<td style="padding:5px;text-align:center;vertical-align:middle;"><button onclick="abrirDetalheMonitoria(${r.id})" style="background:#6c3fc5;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px;" title="Ver detalhes">🔍</button></td>`;
             if (isAdminUser) {
-              html += `<td style="padding:6px;text-align:center;white-space:nowrap;"><button onclick="abrirEditarMonitoria(${r.id})" style="background:#0d7ab5;color:white;border:none;padding:4px 7px;border-radius:4px;cursor:pointer;font-size:12px;margin-right:2px;">✏️</button><button onclick="excluirRegistro(${r.id})" style="background:#dc3545;color:white;border:none;padding:4px 7px;border-radius:4px;cursor:pointer;font-size:12px;">🗑️</button></td>`;
+              html += `<td style="padding:5px;text-align:center;vertical-align:middle;white-space:nowrap;"><button onclick="abrirEditarMonitoria(${r.id})" style="background:#0d7ab5;color:white;border:none;padding:3px 6px;border-radius:4px;cursor:pointer;font-size:11px;margin-right:2px;">✏️</button><button onclick="excluirRegistro(${r.id})" style="background:#dc3545;color:white;border:none;padding:3px 6px;border-radius:4px;cursor:pointer;font-size:11px;">🗑️</button></td>`;
             }
             html += `</tr>`;
             if (primeiraLinhaAnalista) primeiraLinhaAnalista = false;
