@@ -1787,6 +1787,11 @@ const firebaseConfig = {
       document.getElementById('modalVerObservacaoTexto').textContent = texto;
       document.getElementById('modalVerObservacao').classList.add('show');
     };
+    window.abrirObsId = function(key) {
+      const texto = (window._textoModal && window._textoModal[key]) || '';
+      document.getElementById('modalVerObservacaoTexto').textContent = texto;
+      document.getElementById('modalVerObservacao').classList.add('show');
+    };
 
     // ===== EDITAR MONITORIA =====
     window.abrirEditarMonitoria = function(id) {
@@ -2741,29 +2746,31 @@ const firebaseConfig = {
             if (hasProtocolo) html += `<td style="padding:5px 6px;vertical-align:middle;font-size:11px;white-space:nowrap;">${r.protocoloOuEmail || '-'}</td>`;
             if (hasObservacao) {
               const obsText = r.observacao || '-';
-              const longa = obsText.length > 80;
-              const obsEsc = obsText.replace(/\/g,'\\').replace(/`/g,'\`').replace(/\${/g,'\${');
-              html += `<td style="padding:5px 6px;vertical-align:middle;max-width:160px;">`;
-              if (longa) {
-                html += `<div class="obs-truncado" onclick="abrirObsCompleta(\`${obsEsc}\`)" style="font-size:11px;">${obsText}</div>`;
-                html += `<span class="obs-ver-mais" onclick="abrirObsCompleta(\`${obsEsc}\`)">ver mais...</span>`;
+              window._textoModal = window._textoModal || {};
+              window._textoModal['obs_' + r.id] = obsText;
+              const obsLonga = obsText.length > 80;
+              html += '<td style="padding:5px 6px;vertical-align:middle;max-width:160px;">';
+              if (obsLonga) {
+                html += '<div class="obs-truncado" style="font-size:11px;" onclick="abrirObsId(&#39;obs_' + r.id + '&#39;)">' + obsText.substring(0,80) + '...</div>';
+                html += '<span class="obs-ver-mais" onclick="abrirObsId(&#39;obs_' + r.id + '&#39;)">ver mais...</span>';
               } else {
-                html += `<div style="font-size:11px;line-height:1.5;word-break:break-word;">${obsText}</div>`;
+                html += '<div style="font-size:11px;line-height:1.5;">' + obsText + '</div>';
               }
-              html += `</td>`;
+              html += '</td>';
             }
             if (hasDesvio) {
               const desvioText = r.desvio || '-';
-              const desvioCurto = desvioText.length > 80;
-              const desvioEsc = desvioText.replace(/\/g,'\\').replace(/`/g,'\`').replace(/\${/g,'\${');
-              html += `<td style="padding:5px 6px;vertical-align:middle;max-width:160px;">`;
-              if (desvioCurto) {
-                html += `<div class="obs-truncado" onclick="abrirObsCompleta(\`${desvioEsc}\`)" style="font-size:11px;">${desvioText}</div>`;
-                html += `<span class="obs-ver-mais" onclick="abrirObsCompleta(\`${desvioEsc}\`)">ver mais...</span>`;
+              window._textoModal = window._textoModal || {};
+              window._textoModal['dev_' + r.id] = desvioText;
+              const devLonga = desvioText.length > 80;
+              html += '<td style="padding:5px 6px;vertical-align:middle;max-width:160px;">';
+              if (devLonga) {
+                html += '<div class="obs-truncado" style="font-size:11px;" onclick="abrirObsId(&#39;dev_' + r.id + '&#39;)">' + desvioText.substring(0,80) + '...</div>';
+                html += '<span class="obs-ver-mais" onclick="abrirObsId(&#39;dev_' + r.id + '&#39;)">ver mais...</span>';
               } else {
-                html += `<div style="font-size:11px;line-height:1.5;word-break:break-word;">${desvioText}</div>`;
+                html += '<div style="font-size:11px;line-height:1.5;">' + desvioText + '</div>';
               }
-              html += `</td>`;
+              html += '</td>';
             }
             html += `<td style="padding:5px;text-align:center;vertical-align:middle;font-weight:700;font-size:12px;color:${r.nota < 70 ? '#dc3545' : r.nota < 90 ? '#FF9F1C' : '#28a745'};">${r.nota}</td>`;
             if (primeiraLinhaAnalista) {
