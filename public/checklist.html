@@ -2747,7 +2747,19 @@ const firebaseConfig = {
               }
               html += `</td>`;
             }
-            if (hasDesvio) html += `<td style="padding:10px;vertical-align:top;font-size:12px;max-width:150px;word-wrap:break-word;">${r.desvio || '-'}</td>`;
+            if (hasDesvio) {
+              const desvioText = r.desvio || '-';
+              const desvioCurto = desvioText.length > 80;
+              const desvioEsc = desvioText.replace(/\\/g,'\\\\').replace(/`/g,'\\`').replace(/\${/g,'\\${');
+              html += `<td style="padding:10px;vertical-align:top;max-width:200px;min-width:100px;">`;
+              if (desvioCurto) {
+                html += `<div class="obs-truncado" onclick="abrirObsCompleta(\`${desvioEsc}\`)">${desvioText}</div>`;
+                html += `<span class="obs-ver-mais" onclick="abrirObsCompleta(\`${desvioEsc}\`)">ver mais...</span>`;
+              } else {
+                html += `<div style="font-size:12px;line-height:1.5;word-break:break-word;">${desvioText}</div>`;
+              }
+              html += `</td>`;
+            }
             html += `<td style="padding:10px;text-align:center;font-weight:700;color:${r.nota < 70 ? '#dc3545' : r.nota < 90 ? '#FF9F1C' : '#28a745'};">${r.nota}</td>`;
             if (primeiraLinhaAnalista) {
               html += `<td style="padding:10px;text-align:center;font-weight:700;background:${cor}10;font-size:16px;" rowspan="${totalLinhasAnalista}">${mediaGeralPorAnalista[analista]}</td>`;
