@@ -311,7 +311,10 @@
     <div class="container">
       <div class="header">
         <div><h1>📊 Controle de Avaliações</h1><p style="opacity:0.9;margin-top:5px;">Acompanhamento e Gestão de Qualidade</p></div>
-        <div><button onclick="exportarTodoControle()" class="export-btn">📥 Exportar XLSX</button></div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <button id="btnRemarcarCiclo" onclick="abrirModalRemarcarCiclo()" style="display:none;padding:10px 18px;background:linear-gradient(135deg,#FF9F1C,#e08800);color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;">🔄 Remarcar Ciclo</button>
+          <button onclick="exportarTodoControle()" class="export-btn" style="position:relative;">📥 Exportar XLSX</button>
+        </div>
       </div>
       <div style="margin-bottom:25px;padding:25px;background:#1e2536;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.06);">
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:15px;">
@@ -615,6 +618,59 @@
       <div class="modal-footer">
         <button class="modal-btn modal-btn-cancel" onclick="fecharModalAusencia()">Cancelar</button>
         <button class="modal-btn modal-btn-save" onclick="salvarAusencia()">💾 Registrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Remarcar Ciclo em Lote -->
+  <div class="modal-overlay" id="modalRemarcarCiclo">
+    <div class="modal-content" style="max-width:560px;">
+      <div class="modal-header">
+        <h3>🔄 Remarcar Ciclo em Lote</h3>
+        <button class="modal-close" onclick="fecharModalRemarcarCiclo()">×</button>
+      </div>
+      <div class="modal-body">
+        <div style="background:#FF9F1C15;border:1px solid #FF9F1C;border-radius:8px;padding:12px 14px;margin-bottom:16px;color:#ffc15e;font-size:13px;line-height:1.6;">
+          ⚠️ Use esta função para corrigir monitorias lançadas com atraso. Selecione quais registros remarcar e informe o ciclo/mês correto.
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
+          <div>
+            <label style="display:block;color:#a0aec0;font-size:11px;font-weight:700;margin-bottom:6px;text-transform:uppercase;">Ciclo correto</label>
+            <select id="remarcarCicloNum" style="width:100%;padding:9px;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;color:#e2e8f0;font-size:13px;box-sizing:border-box;">
+              <option value="1">1° Ciclo (01–07)</option>
+              <option value="2">2° Ciclo (08–14)</option>
+              <option value="3">3° Ciclo (15–21)</option>
+              <option value="4">4° Ciclo (22–fim)</option>
+            </select>
+          </div>
+          <div>
+            <label style="display:block;color:#a0aec0;font-size:11px;font-weight:700;margin-bottom:6px;text-transform:uppercase;">Mês correto</label>
+            <select id="remarcarMesNum" style="width:100%;padding:9px;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;color:#e2e8f0;font-size:13px;box-sizing:border-box;">
+              <option value="0">Janeiro</option><option value="1">Fevereiro</option>
+              <option value="2">Março</option><option value="3">Abril</option>
+              <option value="4" selected>Maio</option><option value="5">Junho</option>
+              <option value="6">Julho</option><option value="7">Agosto</option>
+              <option value="8">Setembro</option><option value="9">Outubro</option>
+              <option value="10">Novembro</option><option value="11">Dezembro</option>
+            </select>
+          </div>
+          <div>
+            <label style="display:block;color:#a0aec0;font-size:11px;font-weight:700;margin-bottom:6px;text-transform:uppercase;">Ano</label>
+            <input id="remarcarAno" type="number" value="2026" style="width:100%;padding:9px;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;color:#e2e8f0;font-size:13px;box-sizing:border-box;">
+          </div>
+        </div>
+        <div style="margin-bottom:10px;">
+          <label style="display:block;color:#a0aec0;font-size:11px;font-weight:700;margin-bottom:6px;text-transform:uppercase;">Selecione os registros</label>
+          <div style="display:flex;gap:8px;margin-bottom:8px;">
+            <button onclick="selecionarTodosRemarcar(true)" style="padding:5px 12px;background:#00A4E020;border:1px solid #00A4E0;color:#4db8e8;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">✅ Todos</button>
+            <button onclick="selecionarTodosRemarcar(false)" style="padding:5px 12px;background:#6a748920;border:1px solid #6a7489;color:#a0aec0;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">❌ Nenhum</button>
+          </div>
+          <div id="listaRemarcarRegistros" style="max-height:280px;overflow-y:auto;background:#1a1f2e;border-radius:8px;border:1px solid #3a4256;"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn modal-btn-cancel" onclick="fecharModalRemarcarCiclo()">Cancelar</button>
+        <button class="modal-btn modal-btn-save" onclick="confirmarRemarcarCiclo()">🔄 Remarcar Selecionados</button>
       </div>
     </div>
   </div>
@@ -1222,10 +1278,14 @@ const firebaseConfig = {
         }
       } catch(e) { console.log('Feriados indisponíveis:', e); }
 
-      // Registros do ciclo atual (mesmo mês + mesmo ciclo)
+      // Registros do ciclo atual (usa cicloRef se disponível, senão calcula pela data)
       const regsCicloAtual = registros.filter(r => {
         if (!r.data) return false;
         try {
+          // Se tem cicloRef, usar ele para verificar se pertence ao ciclo atual
+          if (r.cicloRef !== undefined && r.mesRef !== undefined) {
+            return r.cicloRef === cicloAtual && r.mesRef === mesAtual && (r.anoRef || new Date(r.data+'T12:00:00').getFullYear()) === anoAtual;
+          }
           const info = getCicloInfo(r.data);
           return info.ciclo === cicloAtual && info.mes === mesAtual && info.ano === anoAtual;
         } catch(e) { return false; }
@@ -1707,6 +1767,71 @@ const firebaseConfig = {
       });
     };
 
+    // ===== REMARCAR CICLO EM LOTE =====
+    window.abrirModalRemarcarCiclo = function() {
+      const registros = window._registrosFiltrados && window._registrosFiltrados.length > 0
+        ? window._registrosFiltrados : registrosCache;
+      const lista = document.getElementById('listaRemarcarRegistros');
+      lista.innerHTML = '';
+      if (registros.length === 0) { showToast('Nenhum registro disponível.', 'warning'); return; }
+
+      // Pré-selecionar os do dia atual (provavelmente os atrasados)
+      const hoje = new Date().toISOString().split('T')[0];
+      registros.forEach(r => {
+        const isHoje = r.data === hoje;
+        const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+        const dObj = new Date(r.data + 'T12:00:00');
+        const cicloAtualR = (() => { const d = dObj.getDate(); return d<=7?1:d<=14?2:d<=21?3:4; })();
+        const mesLabel = meses[dObj.getMonth()];
+        const refLabel = r.cicloRef ? ` → <span style="color:#FF9F1C;font-weight:700;">${r.cicloRef}°C ref.</span>` : '';
+        lista.innerHTML += `<label style="display:flex;align-items:center;padding:9px 12px;border-bottom:1px solid #2d3548;cursor:pointer;gap:10px;" onmouseover="this.style.background='#242b3d'" onmouseout="this.style.background='transparent'">
+          <input type="checkbox" class="chkRemarcar" value="${r.id}" ${isHoje ? 'checked' : ''} style="accent-color:#FF9F1C;width:16px;height:16px;">
+          <span style="flex:1;font-size:12px;color:#e2e8f0;">
+            <strong style="color:#00A4E0;">${r.analista}</strong> — ${r.caixa} — <span style="color:#a0aec0;">${r.data ? r.data.split('-').reverse().join('/') : ''}</span>
+            <span style="color:#a0aec0;font-size:11px;"> · ${cicloAtualR}°C/${mesLabel}</span>${refLabel}
+            ${r.atrasado ? ' <span style="background:#FF9F1C20;border:1px solid #FF9F1C;color:#ffc15e;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700;">ATRASADO</span>' : ''}
+          </span>
+          <span style="color:${r.nota < 70 ? '#dc3545' : r.nota < 90 ? '#FF9F1C' : '#28a745'};font-weight:700;font-size:13px;">${r.nota}</span>
+        </label>`;
+      });
+
+      document.getElementById('remarcarAno').value = new Date().getFullYear();
+      document.getElementById('modalRemarcarCiclo').classList.add('show');
+    };
+
+    window.fecharModalRemarcarCiclo = function() {
+      document.getElementById('modalRemarcarCiclo').classList.remove('show');
+    };
+
+    window.selecionarTodosRemarcar = function(val) {
+      document.querySelectorAll('.chkRemarcar').forEach(c => c.checked = val);
+    };
+
+    window.confirmarRemarcarCiclo = async function() {
+      const cicloRef = parseInt(document.getElementById('remarcarCicloNum').value);
+      const mesRef = parseInt(document.getElementById('remarcarMesNum').value);
+      const anoRef = parseInt(document.getElementById('remarcarAno').value);
+      const selecionados = [...document.querySelectorAll('.chkRemarcar:checked')].map(c => parseInt(c.value));
+      if (selecionados.length === 0) { showToast('Selecione ao menos um registro!', 'warning'); return; }
+
+      let atualizados = 0;
+      for (const id of selecionados) {
+        const r = registrosCache.find(x => x.id === id);
+        if (!r || !r.firestoreId) continue;
+        await updateDoc(doc(db, 'controleAvaliacoes', r.firestoreId), {
+          cicloRef, mesRef, anoRef, atrasado: true
+        });
+        r.cicloRef = cicloRef;
+        r.mesRef = mesRef;
+        r.anoRef = anoRef;
+        r.atrasado = true;
+        atualizados++;
+      }
+      fecharModalRemarcarCiclo();
+      renderizarTabelas(registrosCache);
+      showToast(`${atualizados} registro(s) remarcado(s) para ${cicloRef}° Ciclo!`, 'success');
+    };
+
     // ===== DETALHE COMPLETO DA MONITORIA =====
     window.abrirDetalheMonitoria = function(id) {
       const r = registrosCache.find(x => x.id === id);
@@ -2146,6 +2271,8 @@ const firebaseConfig = {
         if (btnExportar) btnExportar.style.display = 'none';
         if (scoreNotification) scoreNotification.style.display = 'none';
         document.getElementById('badgeControle').style.display = 'none';
+        const btnRemarcar = document.getElementById('btnRemarcarCiclo');
+        if (btnRemarcar) btnRemarcar.style.display = (window._isAdmin !== false) ? 'flex' : 'none';
         await carregarRegistrosFirestore();
         renderizarTabelas(registrosCache);
       } else if (aba === 'analise') {
@@ -2721,15 +2848,16 @@ const firebaseConfig = {
         Object.values(caixas).forEach(regs => { totalLinhasAnalista += regs.length; });
         const analistaEsc = analista.replace(/'/g, "\'");
 
-        // Ciclo/mês do analista baseado no primeiro registro
+        // Ciclo/mês do analista baseado no primeiro registro (usa cicloRef se disponível)
         const primeiroReg = Object.values(caixas).flat()[0];
         let cicloLabel = '';
         if (primeiroReg && primeiroReg.data) {
-          const dC = new Date(primeiroReg.data + 'T12:00:00');
-          const diaC = dC.getDate();
-          const cN = diaC <= 7 ? 1 : diaC <= 14 ? 2 : diaC <= 21 ? 3 : 4;
-          cicloLabel = `${cN}°C/${String(dC.getMonth()+1).padStart(2,'0')}`;
+          const cN = getCicloFromRegistro(primeiroReg);
+          const mesN = primeiroReg.mesRef !== undefined ? primeiroReg.mesRef : new Date(primeiroReg.data + 'T12:00:00').getMonth();
+          const anoN = primeiroReg.anoRef || new Date(primeiroReg.data + 'T12:00:00').getFullYear();
+          cicloLabel = `${cN}°C/${String(mesN+1).padStart(2,'0')}`;
         }
+        const temAtrasado = Object.values(caixas).flat().some(r => r.atrasado);
 
         Object.keys(caixas).sort().forEach(caixa => {
           const regs = caixas[caixa];
@@ -2737,7 +2865,10 @@ const firebaseConfig = {
             const monitoriaTag = r.tag || '';
             html += `<tr style="border-bottom:1px solid #eee;font-size:11px;">`;
             if (primeiraLinhaAnalista) {
-              html += `<td style="padding:5px;text-align:center;vertical-align:middle;" rowspan="${totalLinhasAnalista}"><span style="background:${cor}15;border:1px solid ${cor}60;color:${cor};padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700;white-space:nowrap;">${cicloLabel}</span></td>`;
+              html += `<td style="padding:5px;text-align:center;vertical-align:middle;" rowspan="${totalLinhasAnalista}">
+                <span style="background:${cor}15;border:1px solid ${cor}60;color:${cor};padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700;white-space:nowrap;display:block;">${cicloLabel}</span>
+                ${temAtrasado ? '<span style="background:#FF9F1C20;border:1px solid #FF9F1C;color:#ffc15e;padding:1px 6px;border-radius:8px;font-size:9px;font-weight:700;margin-top:3px;display:block;">⏰ ATRASADO</span>' : ''}
+              </td>`;
               html += `<td style="padding:5px;text-align:center;vertical-align:middle;font-weight:600;font-size:11px;color:#555;" rowspan="${totalLinhasAnalista}">${r.nivel || 'Veterano'}</td>`;
               html += `<td style="padding:5px;text-align:center;vertical-align:middle;font-weight:700;color:#00A4E0;font-size:11px;line-height:1.4;" rowspan="${totalLinhasAnalista}">${analista}</td>`;
             }
@@ -2802,13 +2933,18 @@ const firebaseConfig = {
 
     // ===== DASHBOARD =====
     function getCicloFromRegistro(r) {
+      if (r.cicloRef) return r.cicloRef;
       if (r.ciclo) return r.ciclo;
       const d = new Date(r.data + 'T12:00:00');
       const diaDoMes = d.getDate();
-      return Math.min(4, Math.ceil(diaDoMes / 7));
+      return diaDoMes <= 7 ? 1 : diaDoMes <= 14 ? 2 : diaDoMes <= 21 ? 3 : 4;
     }
 
     function getMesFromRegistro(r) {
+      if (r.mesRef !== undefined) {
+        const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+        return meses[r.mesRef];
+      }
       if (r.mes) return r.mes;
       const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
       return meses[new Date(r.data+'T12:00:00').getMonth()];
