@@ -809,6 +809,45 @@
             <textarea id="editObservacao" rows="2" style="width:100%;padding:10px;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;color:#e2e8f0;font-size:14px;resize:vertical;box-sizing:border-box;font-family:'Inter',sans-serif;"></textarea>
           </div>
         </div>
+
+        <!-- Seção Contestação -->
+        <div id="editContestacaoSection" style="margin-top:16px;border-top:1px solid #3a4256;padding-top:16px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <span style="color:#9B59B6;font-size:13px;font-weight:700;">⚖️ Contestação</span>
+            <div style="display:flex;gap:8px;">
+              <button id="btnAdicionarContestacao" onclick="toggleEditContestacao(true)" style="padding:4px 12px;background:#9B59B620;border:1px solid #9B59B6;color:#c39bd3;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">+ Adicionar</button>
+              <button id="btnExcluirContestacao" onclick="excluirContestacaoEdit()" style="display:none;padding:4px 12px;background:#dc354520;border:1px solid #dc3545;color:#ff6b6b;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">🗑️ Excluir</button>
+            </div>
+          </div>
+          <div id="editContestacaoFields" style="display:none;display:flex;flex-direction:column;gap:12px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div>
+                <label style="display:block;color:#a0aec0;font-size:11px;font-weight:700;margin-bottom:5px;text-transform:uppercase;">Status</label>
+                <select id="editContestacaoStatus" style="width:100%;padding:9px;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;color:#e2e8f0;font-size:13px;box-sizing:border-box;">
+                  <option value="Procedente">✅ Procedente</option>
+                  <option value="Improcedente">❌ Improcedente</option>
+                </select>
+              </div>
+              <div>
+                <label style="display:block;color:#a0aec0;font-size:11px;font-weight:700;margin-bottom:5px;text-transform:uppercase;">Data</label>
+                <input id="editContestacaoData" type="date" style="width:100%;padding:9px;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;color:#e2e8f0;font-size:13px;box-sizing:border-box;">
+              </div>
+              <div>
+                <label style="display:block;color:#a0aec0;font-size:11px;font-weight:700;margin-bottom:5px;text-transform:uppercase;">Nota original</label>
+                <input id="editContestacaoNotaOriginal" type="number" style="width:100%;padding:9px;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;color:#e2e8f0;font-size:13px;box-sizing:border-box;">
+              </div>
+              <div>
+                <label style="display:block;color:#a0aec0;font-size:11px;font-weight:700;margin-bottom:5px;text-transform:uppercase;">Nota corrigida</label>
+                <input id="editContestacaoNotaCorrigida" type="number" min="0" max="100" style="width:100%;padding:9px;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;color:#e2e8f0;font-size:13px;box-sizing:border-box;">
+              </div>
+            </div>
+            <div>
+              <label style="display:block;color:#a0aec0;font-size:11px;font-weight:700;margin-bottom:5px;text-transform:uppercase;">Justificativa</label>
+              <textarea id="editContestacaoJustificativa" rows="2" style="width:100%;padding:9px;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;color:#e2e8f0;font-size:13px;resize:vertical;box-sizing:border-box;font-family:'Inter',sans-serif;"></textarea>
+            </div>
+          </div>
+        </div>
+
       </div>
       <div class="modal-footer">
         <button class="modal-btn modal-btn-cancel" onclick="fecharEditarMonitoria()">Cancelar</button>
@@ -1810,6 +1849,23 @@ const firebaseConfig = {
       });
     };
 
+    window.toggleEditContestacao = function(show) {
+      const fields = document.getElementById('editContestacaoFields');
+      const btnAdd = document.getElementById('btnAdicionarContestacao');
+      const btnDel = document.getElementById('btnExcluirContestacao');
+      fields.style.display = show ? 'flex' : 'none';
+      btnAdd.style.display = show ? 'none' : 'inline-block';
+      btnDel.style.display = show ? 'inline-block' : 'none';
+    };
+
+    window.excluirContestacaoEdit = function() {
+      document.getElementById('editContestacaoFields').style.display = 'none';
+      document.getElementById('btnAdicionarContestacao').style.display = 'inline-block';
+      document.getElementById('btnExcluirContestacao').style.display = 'none';
+      // Marca para remoção ao salvar
+      document.getElementById('editContestacaoJustificativa').dataset.excluir = 'true';
+    };
+
     // ===== CONTESTAÇÃO =====
     window.abrirModalContestacao = function(id) {
       const r = registrosCache.find(x => x.id === id);
@@ -2027,6 +2083,31 @@ const firebaseConfig = {
       document.getElementById('editTag').value = r.tag || '';
       document.getElementById('editDesvio').value = r.desvio || '';
       document.getElementById('editObservacao').value = r.observacao || '';
+
+      // Contestação
+      const c = r.contestacao;
+      const fields = document.getElementById('editContestacaoFields');
+      const btnAdd = document.getElementById('btnAdicionarContestacao');
+      const btnDel = document.getElementById('btnExcluirContestacao');
+      if (c) {
+        fields.style.display = 'flex';
+        btnAdd.style.display = 'none';
+        btnDel.style.display = 'inline-block';
+        document.getElementById('editContestacaoStatus').value = c.status || 'Procedente';
+        document.getElementById('editContestacaoData').value = c.data || '';
+        document.getElementById('editContestacaoNotaOriginal').value = c.notaOriginal ?? r.nota;
+        document.getElementById('editContestacaoNotaCorrigida').value = c.notaCorrigida || '';
+        document.getElementById('editContestacaoJustificativa').value = c.justificativa || '';
+      } else {
+        fields.style.display = 'none';
+        btnAdd.style.display = 'inline-block';
+        btnDel.style.display = 'none';
+        document.getElementById('editContestacaoStatus').value = 'Procedente';
+        document.getElementById('editContestacaoData').value = new Date().toISOString().split('T')[0];
+        document.getElementById('editContestacaoNotaOriginal').value = r.nota;
+        document.getElementById('editContestacaoNotaCorrigida').value = '';
+        document.getElementById('editContestacaoJustificativa').value = '';
+      }
       document.getElementById('modalEditarMonitoria').classList.add('show');
     };
     window.fecharEditarMonitoria = function() {
@@ -2049,6 +2130,27 @@ const firebaseConfig = {
         desvio:          document.getElementById('editDesvio').value.trim(),
         observacao:      document.getElementById('editObservacao').value.trim(),
       };
+
+      // Contestação
+      const fields = document.getElementById('editContestacaoFields');
+      const justEl = document.getElementById('editContestacaoJustificativa');
+      if (justEl.dataset.excluir === 'true') {
+        // Remover contestação
+        updates.contestacao = null;
+        delete justEl.dataset.excluir;
+      } else if (fields.style.display !== 'none') {
+        const status = document.getElementById('editContestacaoStatus').value;
+        const notaCorrigida = parseInt(document.getElementById('editContestacaoNotaCorrigida').value) || null;
+        updates.contestacao = {
+          status,
+          notaOriginal: parseInt(document.getElementById('editContestacaoNotaOriginal').value) || r.nota,
+          notaCorrigida: status === 'Procedente' ? notaCorrigida : null,
+          justificativa: justEl.value.trim(),
+          data: document.getElementById('editContestacaoData').value,
+          criadoEm: r.contestacao ? r.contestacao.criadoEm : new Date().toISOString(),
+        };
+        if (status === 'Procedente' && notaCorrigida) updates.nota = notaCorrigida;
+      }
       try {
         await updateDoc(doc(db, 'controleAvaliacoes', r.firestoreId), updates);
         Object.assign(r, updates);
