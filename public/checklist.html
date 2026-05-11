@@ -2967,7 +2967,17 @@ const firebaseConfig = {
               html += `<td style="padding:5px;text-align:center;vertical-align:middle;font-weight:700;color:#00A4E0;font-size:11px;line-height:1.4;" rowspan="${totalLinhasAnalista}">${analista}</td>`;
             }
             html += `<td style="padding:5px 6px;vertical-align:middle;font-weight:600;font-size:11px;white-space:nowrap;">${caixa}</td>`;
-            html += `<td style="padding:5px 6px;vertical-align:middle;font-size:11px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${(r.assunto||'').replace(/"/g,'&quot;')}">${r.assunto || '-'}</td>`;
+            const assuntoText = r.assunto || '-';
+            const assuntoLongo = assuntoText.length > 30;
+            window._textoModal = window._textoModal || {};
+            window._textoModal['ass_' + r.id] = assuntoText;
+            html += '<td style="padding:5px 6px;vertical-align:middle;max-width:130px;">';
+            if (assuntoLongo) {
+              html += '<div style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px;cursor:pointer;color:#4db8e8;" onclick="abrirObsId(\'ass_' + r.id + '\')" title="Clique para ver completo">' + assuntoText + '</div>';
+            } else {
+              html += '<div style="font-size:11px;">' + assuntoText + '</div>';
+            }
+            html += '</td>';
             if (hasProtocolo) html += `<td style="padding:5px 6px;vertical-align:middle;font-size:11px;white-space:nowrap;">${r.protocoloOuEmail || '-'}</td>`;
             if (hasObservacao) {
               const obsText = r.observacao || '-';
