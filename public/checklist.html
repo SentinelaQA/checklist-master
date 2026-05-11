@@ -3080,7 +3080,19 @@ const firebaseConfig = {
               html += '<div style="font-size:11px;">' + assuntoText + '</div>';
             }
             html += '</td>';
-            if (hasProtocolo) html += `<td style="padding:5px 6px;vertical-align:middle;font-size:11px;white-space:nowrap;">${r.protocoloOuEmail || '-'}</td>`;
+            if (hasProtocolo) {
+              const protText = r.protocoloOuEmail || '-';
+              const protLongo = protText.length > 20;
+              window._textoModal = window._textoModal || {};
+              window._textoModal['prot_' + r.id] = protText;
+              html += '<td style="padding:5px 6px;vertical-align:middle;max-width:120px;">';
+              if (protLongo) {
+                html += '<div style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:110px;cursor:pointer;color:#4db8e8;" onclick="abrirObsId(\'prot_' + r.id + '\')" title="Clique para ver completo">' + protText + '</div>';
+              } else {
+                html += '<div style="font-size:11px;">' + protText + '</div>';
+              }
+              html += '</td>';
+            }
             if (hasObservacao) {
               const obsText = r.observacao || '-';
               window._textoModal = window._textoModal || {};
