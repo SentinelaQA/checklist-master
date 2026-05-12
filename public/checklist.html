@@ -43,6 +43,9 @@
     .item-observation textarea { width: 100%; padding: 10px; border: 2px solid #3a4256; border-radius: 8px; font-size: 13px; font-family: 'Inter', sans-serif; resize: vertical; min-height: 60px; transition: border-color 0.3s; background: #1a1f2e; color: #e2e8f0; }
     .item-observation textarea:focus { outline: none; border-color: #00A4E0; }
     .obs-truncado { overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; max-height:3em; line-height:1.5em; word-break:break-word; cursor:pointer; }
+    .caixa-check-label { display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:6px;cursor:pointer;color:#e2e8f0;font-size:13px;transition:background 0.15s; }
+    .caixa-check-label:hover { background:#2a3145; }
+    .caixa-check-label input { accent-color:#00A4E0;width:15px;height:15px; }
     .obs-ver-mais { color:#4db8e8; font-size:11px; font-weight:600; margin-top:2px; display:block; cursor:pointer; }
     .observation-preview.show { display: block; animation: slideDown 0.3s; }
     .observation-preview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
@@ -530,6 +533,52 @@
       <div class="modal-footer">
         <button class="modal-btn modal-btn-cancel" onclick="fecharObservacao()">Cancelar</button>
         <button class="modal-btn modal-btn-save" onclick="salvarObservacaoModal()">💾 Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Editar Caixas do Analista -->
+  <div class="modal-overlay" id="modalEditarCaixas">
+    <div class="modal-content" style="max-width:520px;">
+      <div class="modal-header">
+        <h3>📦 Caixas de Atuação</h3>
+        <button class="modal-close" onclick="fecharModalCaixas()">×</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editCaixasAnalistaId">
+        <div id="editCaixasAnalistaNome" style="background:#1a1f2e;border-radius:8px;padding:10px 14px;margin-bottom:14px;border-left:4px solid #00A4E0;color:#4db8e8;font-weight:700;font-size:14px;"></div>
+        <p style="color:#a0aec0;font-size:12px;margin-bottom:12px;">Selecione todas as caixas em que este analista atua. O controle de monitorias faltantes usará estas caixas.</p>
+        <div style="display:flex;flex-direction:column;gap:4px;max-height:380px;overflow-y:auto;">
+
+          <div style="padding:6px 10px;font-size:11px;font-weight:700;color:#00A4E0;text-transform:uppercase;background:#1a1f2e;border-radius:6px;margin-top:6px;">Agenda Financeira</div>
+          <label class="caixa-check-label"><input type="checkbox" class="chkEditCaixa" value="Gestão Aluguel Estornos"> Gestão Aluguel Estornos</label>
+          <label class="caixa-check-label"><input type="checkbox" class="chkEditCaixa" value="Gestão Aluguel Incentivos"> Gestão Aluguel Incentivos</label>
+          <label class="caixa-check-label"><input type="checkbox" class="chkEditCaixa" value="Saldo de Auditoria"> Saldo de Auditoria</label>
+          <label class="caixa-check-label"><input type="checkbox" class="chkEditCaixa" value="Regularizações Financeiras"> Regularizações Financeiras</label>
+          <label class="caixa-check-label"><input type="checkbox" class="chkEditCaixa" value="Consultoria"> Consultoria</label>
+          <label class="caixa-check-label"><input type="checkbox" class="chkEditCaixa" value="Prévia MDR"> Prévia MDR</label>
+          <label class="caixa-check-label"><input type="checkbox" class="chkEditCaixa" value="7922"> 7922 (Evento)</label>
+          <label class="caixa-check-label"><input type="checkbox" class="chkEditCaixa" value="9066"> 9066 (Evento)</label>
+
+          <div style="padding:6px 10px;font-size:11px;font-weight:700;color:#FF9F1C;text-transform:uppercase;background:#1a1f2e;border-radius:6px;margin-top:6px;">Cancelamento</div>
+          <label class="caixa-check-label"><input type="checkbox" class="chkEditCaixa" value="Desfazimento"> Desfazimento</label>
+          <label class="caixa-check-label"><input type="checkbox" class="chkEditCaixa" value="Atendimento BackOffice"> Atendimento BackOffice</label>
+          <label class="caixa-check-label"><input type="checkbox" class="chkEditCaixa" value="5125"> 5125</label>
+          <label class="caixa-check-label"><input type="checkbox" class="chkEditCaixa" value="STD - Corporate"> STD - Corporate</label>
+          <label class="caixa-check-label"><input type="checkbox" class="chkEditCaixa" value="STD - Aéreo"> STD - Aéreo</label>
+          <label class="caixa-check-label"><input type="checkbox" class="chkEditCaixa" value="Cancelamento Cia Aérea"> Cancelamento Cia Aérea</label>
+          <label class="caixa-check-label"><input type="checkbox" class="chkEditCaixa" value="Cancelamento Corporate"> Cancelamento Corporate</label>
+
+          <div style="padding:6px 10px;font-size:11px;font-weight:700;color:#00D664;text-transform:uppercase;background:#1a1f2e;border-radius:6px;margin-top:6px;">Outros</div>
+          <label class="caixa-check-label"><input type="checkbox" class="chkEditCaixa" value="BackOffice Mídias Sociais"> BackOffice Mídias Sociais</label>
+          <label class="caixa-check-label"><input type="checkbox" class="chkEditCaixa" value="Processos Ouvidoria BO"> Processos Ouvidoria BO</label>
+          <label class="caixa-check-label"><input type="checkbox" class="chkEditCaixa" value="Gestão Aluguel Incentivo"> Gestão Aluguel Incentivo</label>
+
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn modal-btn-cancel" onclick="fecharModalCaixas()">Cancelar</button>
+        <button class="modal-btn modal-btn-save" onclick="salvarCaixasAnalista()">💾 Salvar Caixas</button>
       </div>
     </div>
   </div>
@@ -1518,6 +1567,49 @@ const firebaseConfig = {
       } catch(e) { showToast('Erro ao salvar justificativa.', 'error'); }
     }
 
+    // ===== EDITAR CAIXAS DO ANALISTA =====
+    window.abrirModalCaixas = function(id) {
+      const a = analistasCache.find(x => x.firestoreId === id);
+      if (!a) return;
+      document.getElementById('editCaixasAnalistaId').value = id;
+      document.getElementById('editCaixasAnalistaNome').textContent = a.nome;
+      // Caixas atuais: do Firestore se existir, senão do CAIXAS_POR_ANALISTA
+      const caixasAtuais = a.caixas || CAIXAS_POR_ANALISTA[a.nome] || [];
+      document.querySelectorAll('.chkEditCaixa').forEach(chk => {
+        chk.checked = caixasAtuais.includes(chk.value);
+      });
+      document.getElementById('modalEditarCaixas').classList.add('show');
+    };
+
+    window.fecharModalCaixas = function() {
+      document.getElementById('modalEditarCaixas').classList.remove('show');
+    };
+
+    window.salvarCaixasAnalista = async function() {
+      const id = document.getElementById('editCaixasAnalistaId').value;
+      const a = analistasCache.find(x => x.firestoreId === id);
+      if (!a) return;
+      const caixas = [...document.querySelectorAll('.chkEditCaixa:checked')].map(c => c.value);
+      if (caixas.length === 0) { showToast('Selecione ao menos uma caixa!', 'warning'); return; }
+      try {
+        await updateDoc(doc(db, 'analistas', id), { caixas });
+        a.caixas = caixas;
+        // Atualiza CAIXAS_POR_ANALISTA dinamicamente
+        CAIXAS_POR_ANALISTA[a.nome] = caixas;
+        fecharModalCaixas();
+        showToast(`Caixas de ${a.nome} atualizadas!`, 'success');
+      } catch(e) { console.error(e); showToast('Erro ao salvar caixas.', 'error'); }
+    };
+
+    // Ao carregar analistas, sincroniza CAIXAS_POR_ANALISTA com dados do Firestore
+    function sincronizarCaixasFirestore() {
+      analistasCache.forEach(a => {
+        if (a.caixas && a.caixas.length > 0) {
+          CAIXAS_POR_ANALISTA[a.nome] = a.caixas;
+        }
+      });
+    }
+
     // ===== GESTÃO DE ANALISTAS =====
     const STATUS_CORES = {
       'Ativo':      { bg:'#28a74520', border:'#28a745', color:'#5dd879', emoji:'✅' },
@@ -1585,8 +1677,10 @@ const firebaseConfig = {
         const snapAus = await getDocs(query(collection(db, 'ausencias'), orderBy('inicio', 'desc')));
         ausenciasCache = snapAus.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
 
-        // Verificar retorno automático: analistas com ausência cujo fim já passou
-        const hoje = new Date().toISOString().split('T')[0];
+        // Sincroniza caixas do Firestore no CAIXAS_POR_ANALISTA
+        sincronizarCaixasFirestore();
+
+        // Verificar retorno automático        const hoje = new Date().toISOString().split('T')[0];
         for (const a of analistasCache) {
           if (a.status === 'Ativo' || a.status === 'Desligado') continue;
           // Busca ausência mais recente deste analista com data de fim preenchida
@@ -1654,6 +1748,7 @@ const firebaseConfig = {
           </td>
           <td style="padding:14px 16px;text-align:center;color:#a0aec0;font-size:13px;">${totalAus > 0 ? `<span style="background:#00A4E020;border:1px solid #00A4E0;color:#4db8e8;padding:3px 10px;border-radius:12px;font-weight:700;">${totalAus} registro${totalAus > 1 ? 's' : ''}</span>` : '—'}</td>
           ${window._isAdmin !== false ? `<td style="padding:14px 16px;text-align:center;display:flex;gap:6px;justify-content:center;">
+            <button onclick="abrirModalCaixas('${a.firestoreId}')" style="padding:6px 12px;background:#00D66420;border:1px solid #00D664;color:#5dd879;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">📦 Caixas</button>
             <button onclick="abrirModalAusencia('${a.firestoreId}','${a.nome.replace(/'/g,"\\'")}','${a.status}')" style="padding:6px 12px;background:#FF9F1C20;border:1px solid #FF9F1C;color:#ffc15e;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">📅 Ausência</button>
             <button onclick="abrirModalEditarAnalista('${a.firestoreId}')" style="padding:6px 12px;background:#0d7ab520;border:1px solid #0d7ab5;color:#4db8e8;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">✏️ Editar</button>
             <button onclick="excluirAnalista('${a.firestoreId}')" style="padding:6px 12px;background:#dc354520;border:1px solid #dc3545;color:#ff6b6b;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">🗑️</button>
