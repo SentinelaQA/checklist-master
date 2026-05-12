@@ -43,6 +43,14 @@
     .item-observation textarea { width: 100%; padding: 10px; border: 2px solid #3a4256; border-radius: 8px; font-size: 13px; font-family: 'Inter', sans-serif; resize: vertical; min-height: 60px; transition: border-color 0.3s; background: #1a1f2e; color: #e2e8f0; }
     .item-observation textarea:focus { outline: none; border-color: #00A4E0; }
     .obs-truncado { overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; max-height:3em; line-height:1.5em; word-break:break-word; cursor:pointer; }
+    /* Scrollbar moderna */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #1a1f2e; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #00A4E0, #0d7ab5); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #4db8e8, #00A4E0); }
+    ::-webkit-scrollbar-corner { background: #1a1f2e; }
+    * { scrollbar-width: thin; scrollbar-color: #0d7ab5 #1a1f2e; }
+
     .caixa-check-label { display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:6px;cursor:pointer;color:#e2e8f0;font-size:13px;transition:background 0.15s; }
     .caixa-check-label:hover { background:#2a3145; }
     .caixa-check-label input { accent-color:#00A4E0;width:15px;height:15px; }
@@ -1490,16 +1498,22 @@ const firebaseConfig = {
         if (!caixasEsperadas.length) return;
 
         const statusAnalista = a.status || 'Ativo';
-        const ausente = statusAnalista !== 'Ativo';
+        const ausente = statusAnalista !== 'Ativo' && statusAnalista !== 'Desligado';
+        const desligado = statusAnalista === 'Desligado';
         const cor = STATUS_CORES[statusAnalista] || STATUS_CORES['Ativo'];
+
+        // Se desligado, pula completamente
+        if (desligado) return;
 
         caixasEsperadas.forEach((caixa, idx) => {
           const chave = `${nome}__${caixa}__C${cicloAtual}__${mesAtual}__${anoAtual}`;
           const feita = monitoradasPorAnalista[nome] && monitoradasPorAnalista[nome].has(caixa);
-          const justif = justificativas[chave] || '';
-          if (feita) totalFeito++; else totalFaltando++;
+          // Se ausente, justificativa automática pelo status
+          const justifAuto = ausente ? `${cor.emoji} ${statusAnalista}${a.motivoOutro ? ' — ' + a.motivoOutro : ''}` : '';
+          const justif = justificativas[chave] || justifAuto;
+          if (feita) totalFeito++; else if (ausente || justif) totalFeito++; else totalFaltando++;
 
-          html += `<tr style="border-bottom:1px solid #2d3548;${ausente ? 'opacity:0.6;' : ''}">`;
+          html += `<tr style="border-bottom:1px solid #2d3548;${ausente ? 'opacity:0.65;' : ''}">`;
           if (idx === 0) {
             html += `<td style="padding:12px 16px;color:#e2e8f0;font-weight:700;font-size:13px;vertical-align:top;" rowspan="${caixasEsperadas.length}">
               ${nome}
@@ -1511,9 +1525,10 @@ const firebaseConfig = {
             html += `<td style="padding:10px 16px;text-align:center;"><span style="background:#28a74520;border:1px solid #28a745;color:#5dd879;padding:4px 12px;border-radius:12px;font-size:12px;font-weight:700;">✅ Realizada</span></td>`;
             html += `<td style="padding:10px 16px;color:#6a7489;font-size:12px;font-style:italic;">—</td>`;
             if (isAdminUser) html += `<td></td>`;
-          } else if (ausente && !justif) {
+          } else if (ausente) {
+            // Ausente: justificado automaticamente pelo status
             html += `<td style="padding:10px 16px;text-align:center;"><span style="background:${cor.bg};border:1px solid ${cor.border};color:${cor.color};padding:4px 12px;border-radius:12px;font-size:12px;font-weight:700;">${cor.emoji} ${statusAnalista}</span></td>`;
-            html += `<td style="padding:10px 16px;color:#ffc15e;font-size:12px;">${statusAnalista} — sem monitoria prevista</td>`;
+            html += `<td style="padding:10px 16px;color:${cor.color};font-size:12px;font-weight:600;">${justif}</td>`;
             if (isAdminUser) html += `<td></td>`;
           } else {
             html += `<td style="padding:10px 16px;text-align:center;"><span style="background:#dc354520;border:1px solid #dc3545;color:#ff6b6b;padding:4px 12px;border-radius:12px;font-size:12px;font-weight:700;">⚠️ Faltando</span></td>`;
@@ -2563,6 +2578,9 @@ const firebaseConfig = {
         document.getElementById('badgeControle').style.display = 'none';
         const btnRemarcar = document.getElementById('btnRemarcarCiclo');
         if (btnRemarcar) btnRemarcar.style.display = (window._isAdmin !== false) ? 'flex' : 'none';
+        // Garante que analistas estejam carregados com status atualizado
+        if (!analistasCache.length) await carregarAnalistasFirestore();
+        atualizarDatalistAnalistas();
         await carregarRegistrosFirestore();
         renderizarTabelas(registrosCache);
       } else if (aba === 'analise') {
