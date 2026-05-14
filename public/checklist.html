@@ -209,6 +209,7 @@
           <option value="">Selecione</option>
           <option value="Agenda Financeira - Eventos">Agenda Financeira - Eventos</option>
           <option value="Agenda Financeira">Agenda Financeira</option>
+          <option value="Suporte Conciliação">Suporte Conciliação</option>
 
         </select>
       </div>
@@ -1083,6 +1084,8 @@ const firebaseConfig = {
       let categoria = '', caixaFinal = '';
       if (formulario === 'Agenda Financeira - Eventos') {
         categoria = 'Eventos'; caixaFinal = tipoEvento || 'Evento';
+      } else if (formulario === 'Suporte Conciliação') {
+        categoria = 'Suporte Conciliação'; caixaFinal = 'Suporte Conciliação';
       } else if (caixa && (caixa === 'Cancelamento' || subCaixa.includes('Cancelamento'))) {
         categoria = 'Cancelamento'; caixaFinal = subCaixa || caixa;
       } else if (caixa) {
@@ -2828,6 +2831,76 @@ const firebaseConfig = {
       {bloco:"Comunicação NCG - Autonomia",peso:100,tipo:"NCG",items:[{item:"Autonomia",subitem:"Ação tomada de forma autônoma em situação que exigia escalonamento?",descricao:"Escalonar quando necessário."}]}
     ];
 
+    // ===== CHECKLIST SUPORTE CONCILIAÇÃO =====
+    const checklistConciliacao = [
+      { bloco: "1.1 Entendimento", peso: 10, tipo: "NC", items: [
+        { item: "Entendimento", subitem: "Não realizou a interpretação correta da solicitação do demandante.", descricao: "Interpretar corretamente a solicitação do demandante." }
+      ]},
+      { bloco: "1.2 Tratativa", peso: 15, tipo: "NC", items: [
+        { item: "Tratativa", subitem: "Não realizou a análise correta de todos os Ecs/CNPJ/CPF mencionados no e-mail, respondendo tudo o que foi solicitado com as evidências da análise anexadas de forma legível.", descricao: "Analisar todos os dados do e-mail com evidências legíveis." },
+        { item: "Tratativa", subitem: "Não realizou tratativa dentro do SLA.", descricao: "Respeitar o SLA estabelecido." },
+        { item: "Tratativa", subitem: "Em necessidade de solicitação de Solesp, não colocou o ticket como 'pendente'.", descricao: "Sinalizar ticket como pendente quando aguardar Solesp." },
+        { item: "Tratativa", subitem: "Não informou a Solesp como mensagem oculta no ticket, assim como no campo respectivo.", descricao: "Registrar Solesp como mensagem oculta no campo correto." }
+      ]},
+      { bloco: "1.3 Atenção", peso: 15, tipo: "NC", items: [
+        { item: "Atenção", subitem: "Não anexou as evidências de forma correta de acordo com que foi solicitado.", descricao: "Anexar evidências conforme solicitado." },
+        { item: "Atenção", subitem: "Não realizou a leitura do e-mail antes do envio, encaminhando a resposta incompleta.", descricao: "Revisar o e-mail antes do envio." }
+      ]},
+      { bloco: "1.4 Falta de Ação", peso: 15, tipo: "NC", items: [
+        { item: "Falta de Ação", subitem: "Não abriu um chamado ou não encaminhou o e-mail a uma certa área / Deixou de realizar alguma etapa do processo para solucionar o problema.", descricao: "Executar todas as etapas necessárias para solucionar o problema." }
+      ]},
+      { bloco: "2.1 Modelo Padrão de Envio", peso: 10, tipo: "NC", items: [
+        { item: "Modelo Padrão", subitem: "Não colocou tabela dinâmica e/ou quadro executivo caso a resposta se aplique à mesma.", descricao: "Incluir tabela dinâmica/quadro executivo quando necessário." },
+        { item: "Modelo Padrão", subitem: "TRIAGEM — Faltaram dados para tratativa e o analista não devolveu solicitando as informações necessárias ao demandante.", descricao: "Solicitar informações faltantes ao demandante." },
+        { item: "Modelo Padrão", subitem: "Não avisou o demandante do motivo da demora na resposta.", descricao: "Comunicar o demandante sobre a demora." },
+        { item: "Modelo Padrão", subitem: "Não renomeou o resumo financeiro colado no corpo do e-mail.", descricao: "Renomear o resumo financeiro corretamente." },
+        { item: "Modelo Padrão", subitem: "Não padronizou a descrição para fácil identificação.", descricao: "Padronizar descrição conforme modelo." }
+      ]},
+      { bloco: "3.1 Erros de Português", peso: 10, tipo: "NC", items: [
+        { item: "Português", subitem: "Pronome de forma incorreta.", descricao: "Usar pronomes corretamente." },
+        { item: "Português", subitem: "Verbo de forma incorreta.", descricao: "Usar verbos corretamente." },
+        { item: "Português", subitem: "Gerundismo.", descricao: "Evitar gerundismo." },
+        { item: "Português", subitem: "Redundância.", descricao: "Evitar redundâncias." },
+        { item: "Português", subitem: "Concordância gramatical (harmonização).", descricao: "Garantir concordância gramatical." },
+        { item: "Português", subitem: "Uso incorreto de letra maiúscula e/ou minúscula.", descricao: "Usar maiúsculas/minúsculas corretamente." },
+        { item: "Português", subitem: "Pontuação de forma incorreta.", descricao: "Pontuar corretamente." },
+        { item: "Português", subitem: "Falta de pontuação.", descricao: "Não omitir pontuação necessária." },
+        { item: "Português", subitem: "Escrita de forma incorreta (grafia das palavras).", descricao: "Escrever as palavras corretamente." },
+        { item: "Português", subitem: "Utilização incorreta dos parágrafos.", descricao: "Usar parágrafos corretamente." },
+        { item: "Português", subitem: "Espaçamento incorreto.", descricao: "Manter espaçamento adequado." },
+        { item: "Português", subitem: "Acentuação incorreta.", descricao: "Acentuar corretamente." }
+      ]},
+      { bloco: "3.2 Clareza e Objetividade", peso: 15, tipo: "NC", items: [
+        { item: "Clareza", subitem: "O analista não foi claro e objetivo na resposta de encerramento.", descricao: "Ser claro e objetivo na resposta de encerramento." }
+      ]},
+      { bloco: "3.3 Proatividade", peso: 10, tipo: "NC", items: [
+        { item: "Proatividade", subitem: "Não buscou soluções assertivas para solucionar o problema.", descricao: "Buscar soluções assertivas proativamente." }
+      ]},
+      { bloco: "4.1 Registro da Ocorrência", peso: 0, tipo: "NCG", items: [
+        { item: "Registro", subitem: "Tabulação não condiz com a tratativa executada.", descricao: "Tabular conforme a tratativa executada." }
+      ]},
+      { bloco: "4.2 Atribuição do Ticket", peso: 0, tipo: "NCG", items: [
+        { item: "Atribuição", subitem: "Não atribuiu o ticket para área necessária.", descricao: "Atribuir o ticket à área correta." }
+      ]},
+      { bloco: "4.3 Respostas Totalmente Incorretas", peso: 0, tipo: "NCG", items: [
+        { item: "Resposta Incorreta", subitem: "Informou que não temos ferramenta para tratativa.", descricao: "Não informar incorretamente sobre ferramentas." },
+        { item: "Resposta Incorreta", subitem: "Classificou como spam casos em que o demandante nos fez alguma pergunta.", descricao: "Não classificar como spam demandas legítimas." },
+        { item: "Resposta Incorreta", subitem: "Faz a análise errada do caso (devido a períodos incorretos, etc.), devolvendo ao demandante uma resposta incoerente.", descricao: "Analisar o caso corretamente antes de responder." }
+      ]},
+      { bloco: "4.4 Insegurança", peso: 0, tipo: "NCG", items: [
+        { item: "Insegurança", subitem: "Utilizou palavras que transparecem insegurança na resposta.", descricao: "Transmitir segurança na comunicação." }
+      ]},
+      { bloco: "4.5 Omissão", peso: 0, tipo: "NCG", items: [
+        { item: "Omissão", subitem: "Omitiu atendimento, repassando uma demanda que poderia ter sido tratada.", descricao: "Não omitir atendimento que é de sua responsabilidade." }
+      ]},
+      { bloco: "4.6 Conduta", peso: 0, tipo: "NCG", items: [
+        { item: "Conduta", subitem: "Analista foi grosseiro na resposta de encerramento.", descricao: "Manter conduta respeitosa." },
+        { item: "Conduta", subitem: "Analista classificou a demanda e inseriu o SLA antes de encaminhar para tratativa.", descricao: "Não classificar demanda prematuramente." },
+        { item: "Conduta", subitem: "Não inseriu no ticket 'pendente/em espera', no campo de mensagem oculta/observação interna um resumo da análise do problema e do que o cliente está precisando.", descricao: "Registrar resumo na mensagem oculta ao colocar em espera." },
+        { item: "Conduta", subitem: "Não inseriu no ticket 'pendente/em espera' o motivo do mesmo.", descricao: "Informar motivo ao colocar ticket em espera." }
+      ]}
+    ];
+
     let checklistData = checklistPadrao;
     window._checklistData = checklistData;
     let state = { score: 100, nc: 0, ncg: 0, total: 0, items: {}, observations: {}, ncgDetected: false };
@@ -2936,6 +3009,7 @@ const firebaseConfig = {
         resumoCont.style.display = 'grid'; feedbackCont.style.display = 'grid';
         if (assuntoPar) assuntoPar.style.display = 'flex';
         if (ticketPar) ticketPar.style.display = 'flex';
+        checklistData = checklistPadrao; window._checklistData = checklistData;
       } else if (formulario === 'Agenda Financeira') {
         cc.style.display = 'grid'; dab.style.display = 'grid';
         sub.style.display = 'none'; caixaCont.style.display = 'flex';
@@ -2944,6 +3018,21 @@ const firebaseConfig = {
         resumoCont.style.display = 'grid'; feedbackCont.style.display = 'grid';
         if (assuntoPar) assuntoPar.style.display = 'flex';
         if (ticketPar) ticketPar.style.display = 'flex';
+        checklistData = checklistPadrao; window._checklistData = checklistData;
+      } else if (formulario === 'Suporte Conciliação') {
+        cc.style.display = 'grid'; dab.style.display = 'grid';
+        sub.style.display = 'none'; caixaCont.style.display = 'none';
+        subCaixaCont.style.display = 'none'; estCont.style.display = 'none';
+        refCont.style.display = 'none'; tvCont.style.display = 'none';
+        resumoCont.style.display = 'grid'; feedbackCont.style.display = 'grid';
+        if (assuntoPar) assuntoPar.style.display = 'flex';
+        if (ticketPar) ticketPar.style.display = 'flex';
+        // Mostra campo e-mail direto
+        const pCont = document.getElementById('protocoloContainer');
+        const aeCont = document.getElementById('assuntoEmailContainer');
+        if (pCont) pCont.style.display = 'none';
+        if (aeCont) aeCont.style.display = 'flex';
+        checklistData = checklistConciliacao; window._checklistData = checklistData;
       } else if (formulario !== '') {
         cc.style.display = 'grid'; dab.style.display = 'grid';
         sub.style.display = 'none'; caixaCont.style.display = 'none';
