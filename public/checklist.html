@@ -167,6 +167,19 @@
           <option value="FRANCINE VITORIA COSTA">
           <option value="LARISSA CAMARA">
           <option value="SINARA DA SILVA NUNES">
+          <option value="AMANDA FRANCA BATISTA">
+          <option value="ANA CAROLINA FAUSTINO">
+          <option value="CLAUDIO RODRIGUES RUBIO">
+          <option value="ENZO PICOLI DO NASCIMENTO">
+          <option value="ISABELA LOUISE VASCONCELOS DOS SANTOS">
+          <option value="JENNIFER RODRIGUES AQUINO">
+          <option value="LETICIA APARECIDA SOARES">
+          <option value="PATRICIA SANTOS DE OLIVEIRA">
+          <option value="PAULA NEVES DE SOUZA">
+          <option value="PEDRO HENRIQUE SIMOES DOS SANTOS">
+          <option value="RAMON VAZ MORAIS DA SILVA">
+          <option value="REBECA DA SILVA ARAÚJO">
+          <option value="SILVIA NADJ VIEIRA">
         </datalist>
       </div>
       <div class="info-item">
@@ -230,6 +243,7 @@
           <option value="Cancelamento">Cancelamento</option>
           <option value="BackOffice Mídias Sociais">BackOffice Mídias Sociais</option>
           <option value="Processos Ouvidoria BO">Processos Ouvidoria BO</option>
+          <option value="Suporte Conciliação">Suporte Conciliação</option>
         </select>
       </div>
       <div class="info-item" id="subCaixaContainer" style="display:none;">
@@ -380,6 +394,7 @@
               <div data-grupo="outros" style="padding:6px 12px;font-size:11px;font-weight:700;color:#00D664;text-transform:uppercase;border-bottom:1px solid #2d3548;">Outros</div>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="BackOffice Mídias Sociais" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> BackOffice Mídias Sociais</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="Processos Ouvidoria BO" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> Processos Ouvidoria BO</label>
+              <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="Suporte Conciliação" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> Suporte Conciliação</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;border-bottom:1px solid #2d3548;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="7922" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> 7922 (Evento)</label>
               <label style="display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:#e2e8f0;font-size:13px;" onmouseover="this.style.background='#2a3145'" onmouseout="this.style.background='transparent'"><input type="checkbox" value="9066" onchange="filtrarControle();atualizarBtnCaixa()" style="margin-right:8px;accent-color:#00A4E0;" class="chkCaixa"> 9066 (Evento)</label>
               </div>
@@ -581,6 +596,7 @@
           <label class="caixa-check-label"><input type="checkbox" class="chkEditCaixa" value="BackOffice Mídias Sociais"> BackOffice Mídias Sociais</label>
           <label class="caixa-check-label"><input type="checkbox" class="chkEditCaixa" value="Processos Ouvidoria BO"> Processos Ouvidoria BO</label>
           <label class="caixa-check-label"><input type="checkbox" class="chkEditCaixa" value="Gestão Aluguel Incentivo"> Gestão Aluguel Incentivo</label>
+          <label class="caixa-check-label"><input type="checkbox" class="chkEditCaixa" value="Suporte Conciliação"> Suporte Conciliação</label>
 
         </div>
       </div>
@@ -1364,6 +1380,19 @@ const firebaseConfig = {
       'FRANCINE VITORIA COSTA':         ['7922','Consultoria','Prévia MDR'],
       'LARISSA CAMARA':                 ['7922','Consultoria','Prévia MDR'],
       'SINARA DA SILVA NUNES':          ['7922','Consultoria','Prévia MDR'],
+      'AMANDA FRANCA BATISTA':          ['Suporte Conciliação'],
+      'ANA CAROLINA FAUSTINO':          ['Suporte Conciliação'],
+      'CLAUDIO RODRIGUES RUBIO':          ['Suporte Conciliação'],
+      'ENZO PICOLI DO NASCIMENTO':          ['Suporte Conciliação'],
+      'ISABELA LOUISE VASCONCELOS DOS SANTOS':          ['Suporte Conciliação'],
+      'JENNIFER RODRIGUES AQUINO':          ['Suporte Conciliação'],
+      'LETICIA APARECIDA SOARES':          ['Suporte Conciliação'],
+      'PATRICIA SANTOS DE OLIVEIRA':          ['Suporte Conciliação'],
+      'PAULA NEVES DE SOUZA':          ['Suporte Conciliação'],
+      'PEDRO HENRIQUE SIMOES DOS SANTOS':          ['Suporte Conciliação'],
+      'RAMON VAZ MORAIS DA SILVA':          ['Suporte Conciliação'],
+      'REBECA DA SILVA ARAÚJO':          ['Suporte Conciliação'],
+      'SILVIA NADJ VIEIRA':          ['Suporte Conciliação'],
     };
 
     async function renderizarControleFaltantes() {
@@ -1682,6 +1711,19 @@ const firebaseConfig = {
             'ROBERT GUSTAVO SANTOS SILVA',
             'SILVIA MEIRE DE SOUZA',
             'SINARA DA SILVA NUNES',
+            'AMANDA FRANCA BATISTA',
+            'ANA CAROLINA FAUSTINO',
+            'CLAUDIO RODRIGUES RUBIO',
+            'ENZO PICOLI DO NASCIMENTO',
+            'ISABELA LOUISE VASCONCELOS DOS SANTOS',
+            'JENNIFER RODRIGUES AQUINO',
+            'LETICIA APARECIDA SOARES',
+            'PATRICIA SANTOS DE OLIVEIRA',
+            'PAULA NEVES DE SOUZA',
+            'PEDRO HENRIQUE SIMOES DOS SANTOS',
+            'RAMON VAZ MORAIS DA SILVA',
+            'REBECA DA SILVA ARAÚJO',
+            'SILVIA NADJ VIEIRA',
           ];
           for (const nome of analistasIniciais) {
             const ref = await addDoc(collection(db, 'analistas'), { nome, status: 'Ativo', motivoOutro: '', criadoEm: new Date().toISOString() });
