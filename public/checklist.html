@@ -1695,47 +1695,51 @@ const firebaseConfig = {
         const snap = await getDocs(query(collection(db, 'analistas'), orderBy('nome')));
         analistasCache = snap.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
 
-        // Se não há analistas no Firestore, popula com os cadastrados originalmente
-        if (analistasCache.length === 0) {
-          const analistasIniciais = [
-            'ANA PAULA DOS SANTOS',
-            'DÉBORA MELÃO MACEDO',
-            'FRANCINE VITORIA COSTA',
-            'FRANK PEREIRA DA SILVA',
-            'GISELE APARECIDA DE ALMEIDA',
-            'JULIA OLIVEIRA ONORIO',
-            'KALLYANA KAMILA ALVES',
-            'LARISSA CAMARA',
-            'NATHALI CRISTINE DOS SANTOS',
-            'PEDRO ALVES CABRAL NETO',
-            'ROBERT GUSTAVO SANTOS SILVA',
-            'SILVIA MEIRE DE SOUZA',
-            'SINARA DA SILVA NUNES',
-            'AMANDA FRANCA BATISTA',
-            'ANA CAROLINA FAUSTINO',
-            'CLAUDIO RODRIGUES RUBIO',
-            'ENZO PICOLI DO NASCIMENTO',
-            'ISABELA LOUISE VASCONCELOS DOS SANTOS',
-            'JENNIFER RODRIGUES AQUINO',
-            'LETICIA APARECIDA SOARES',
-            'PATRICIA SANTOS DE OLIVEIRA',
-            'PAULA NEVES DE SOUZA',
-            'PEDRO HENRIQUE SIMOES DOS SANTOS',
-            'RAMON VAZ MORAIS DA SILVA',
-            'REBECA DA SILVA ARAÚJO',
-            'SILVIA NADJ VIEIRA',
-          ];
-          for (const nome of analistasIniciais) {
-            const ref = await addDoc(collection(db, 'analistas'), { nome, status: 'Ativo', motivoOutro: '', criadoEm: new Date().toISOString() });
-            analistasCache.push({ firestoreId: ref.id, nome, status: 'Ativo', motivoOutro: '' });
-          }
-        }
+
 
         const snapAus = await getDocs(query(collection(db, 'ausencias'), orderBy('inicio', 'desc')));
         ausenciasCache = snapAus.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
 
         // Sincroniza caixas do Firestore no CAIXAS_POR_ANALISTA
         sincronizarCaixasFirestore();
+
+        // Adiciona analistas que ainda não estão no Firestore (seed incremental)
+        const nomesExistentes = new Set(analistasCache.map(a => a.nome));
+        const analistasIniciais = [
+          'ANA PAULA DOS SANTOS',
+          'DÉBORA MELÃO MACEDO',
+          'FRANCINE VITORIA COSTA',
+          'FRANK PEREIRA DA SILVA',
+          'GISELE APARECIDA DE ALMEIDA',
+          'JULIA OLIVEIRA ONORIO',
+          'KALLYANA KAMILA ALVES',
+          'LARISSA CAMARA',
+          'NATHALI CRISTINE DOS SANTOS',
+          'PEDRO ALVES CABRAL NETO',
+          'ROBERT GUSTAVO SANTOS SILVA',
+          'SILVIA MEIRE DE SOUZA',
+          'SINARA DA SILVA NUNES',
+          'AMANDA FRANCA BATISTA',
+          'ANA CAROLINA FAUSTINO',
+          'CLAUDIO RODRIGUES RUBIO',
+          'ENZO PICOLI DO NASCIMENTO',
+          'ISABELA LOUISE VASCONCELOS DOS SANTOS',
+          'JENNIFER RODRIGUES AQUINO',
+          'LETICIA APARECIDA SOARES',
+          'PATRICIA SANTOS DE OLIVEIRA',
+          'PAULA NEVES DE SOUZA',
+          'PEDRO HENRIQUE SIMOES DOS SANTOS',
+          'RAMON VAZ MORAIS DA SILVA',
+          'REBECA DA SILVA ARAÚJO',
+          'SILVIA NADJ VIEIRA',
+        ];
+        for (const nome of analistasIniciais) {
+          if (!nomesExistentes.has(nome)) {
+            const ref = await addDoc(collection(db, 'analistas'), { nome, status: 'Ativo', motivoOutro: '', criadoEm: new Date().toISOString() });
+            analistasCache.push({ firestoreId: ref.id, nome, status: 'Ativo', motivoOutro: '' });
+          }
+        }
+        analistasCache.sort((a, b) => a.nome.localeCompare(b.nome));
 
         // Verificar retorno automático        const hoje = new Date().toISOString().split('T')[0];
         for (const a of analistasCache) {
