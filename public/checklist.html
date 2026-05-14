@@ -3010,6 +3010,8 @@ const firebaseConfig = {
         if (assuntoPar) assuntoPar.style.display = 'flex';
         if (ticketPar) ticketPar.style.display = 'flex';
         checklistData = checklistPadrao; window._checklistData = checklistData;
+        window._state = { score: 100, nc: 0, ncg: 0, total: 0, items: {}, observations: {}, ncgDetected: false };
+        renderChecklist();
       } else if (formulario === 'Agenda Financeira') {
         cc.style.display = 'grid'; dab.style.display = 'grid';
         sub.style.display = 'none'; caixaCont.style.display = 'flex';
@@ -3033,6 +3035,9 @@ const firebaseConfig = {
         if (pCont) pCont.style.display = 'none';
         if (aeCont) aeCont.style.display = 'flex';
         checklistData = checklistConciliacao; window._checklistData = checklistData;
+        // Reinicia state e renderiza o novo checklist
+        window._state = { score: 100, nc: 0, ncg: 0, total: 0, items: {}, observations: {}, ncgDetected: false };
+        renderChecklist();
       } else if (formulario !== '') {
         cc.style.display = 'grid'; dab.style.display = 'grid';
         sub.style.display = 'none'; caixaCont.style.display = 'none';
