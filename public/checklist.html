@@ -128,7 +128,7 @@
 
   <!-- Navegação por Abas -->
   <div style="max-width:1200px;margin:20px auto;background:#1e2536;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.06);overflow:hidden;">
-    <div id="tabsNavigation" style="display:flex;border-bottom:3px solid #0d7ab5;background:linear-gradient(135deg,#242b3d 0%,#2d3548 100%);align-items:stretch;">
+    <div id="tabsNavigation" style="display:flex;border-bottom:3px solid #0d7ab5;background:linear-gradient(135deg,#242b3d 0%,#2d3548 100%);align-items:stretch;position:sticky;top:0;z-index:900;box-shadow:0 4px 16px rgba(0,0,0,0.4)">
       <button id="tabFormularios" onclick="trocarAba('formularios')" class="tab-button tab-active">📋 Formulários de Avaliação</button>
       <button id="tabControle" onclick="trocarAba('controle')" class="tab-button">📊 Controle de Avaliações <span id="badgeControle" class="badge-count" style="display:none;">0</span></button>
       <button id="tabAnalise" onclick="trocarAba('analise')" class="tab-button">📈 Análise e Relatórios</button>
@@ -959,12 +959,12 @@
   <div id="toastContainer" style="position:fixed;top:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:10px;pointer-events:none;"></div>
 
   <button id="btnResetar" class="reset-btn" onclick="resetarChecklist()">🔄 Resetar</button>
-  <button id="btnExportarResultado" class="export-btn" onclick="exportarResultado()">📊 Exportar Resultado</button>
   <button id="btnExportarControle" onclick="exportarParaControle()" style="position:fixed;bottom:30px;right:30px;padding:16px 24px;background:linear-gradient(135deg,#9B59B6 0%,#8E44AD 100%);color:white;border:none;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(155,89,182,0.4);z-index:999;transition:all 0.3s;display:flex;align-items:center;gap:8px;">📋 Exportar para Controle</button>
   <div class="score-notification" id="scoreNotification">
     <div class="score-notification-title">Pontuação Atual</div>
     <div class="score-notification-value" id="scoreNotificationValue">100</div>
     <div class="score-notification-label">pontos</div>
+    <button id="btnExportarResultado" onclick="exportarResultado()" style="margin-top:8px;padding:5px 12px;background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.4);border-radius:6px;cursor:pointer;font-size:11px;font-weight:700;width:100%;">📥 Exportar XLSX</button>
   </div>
 
   <!-- Firebase SDK -->
@@ -3273,17 +3273,56 @@ const firebaseConfig = {
       mostrarSubFormulario();
     }
 
-    function exportarResultado() {
+    async function exportarResultado() {
       const analista = document.getElementById('analistaNome').value || 'Não informado';
       const dataAvaliacao = document.getElementById('dataAvaliacao').value || new Date().toISOString().split('T')[0];
-      const resultado = { analista, pontuacao: state.score, nc: state.nc, ncg: state.ncg, data: dataAvaliacao };
-      const blob = new Blob([JSON.stringify(resultado, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `checklist_${analista.replace(/\s+/g,'_')}_${dataAvaliacao}.json`;
-      a.click();
-      showToast('Resultado exportado com sucesso!', 'success');
+      const caixa = document.getElementById('caixa') ? document.getElementById('caixa').value : '';
+      const assunto = document.getElementById('assunto') ? document.getElementById('assunto').value : '';
+
+      if (!window.XLSX) {
+        await new Promise((res, rej) => {
+          const s = document.createElement('script');
+          s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+          s.onload = res; s.onerror = rej;
+          document.head.appendChild(s);
+        });
+      }
+
+      const resumo = [
+        { Campo: 'Analista', Valor: analista },
+        { Campo: 'Data', Valor: dataAvaliacao },
+        { Campo: 'Caixa', Valor: caixa },
+        { Campo: 'Assunto', Valor: assunto },
+        { Campo: 'Nota Final', Valor: Math.round(state.score) },
+        { Campo: 'NC', Valor: state.nc },
+        { Campo: 'NCG', Valor: state.ncg },
+      ];
+
+      const descontos = [];
+      Object.keys(state.items).forEach(itemId => {
+        const [blockIdx, itemIdx] = itemId.split('-').map(Number);
+        const bloco = checklistData[blockIdx];
+        if (!bloco) return;
+        const item = bloco.items[itemIdx];
+        if (!item) return;
+        descontos.push({
+          Bloco: bloco.bloco, Tipo: bloco.tipo, Peso: bloco.peso,
+          Item: item.item, 'Sub-item': item.subitem,
+          Observacao: (state.observations && state.observations[itemId]) || '',
+        });
+      });
+
+      const wb = XLSX.utils.book_new();
+      const wsR = XLSX.utils.json_to_sheet(resumo);
+      wsR['!cols'] = [{ wch: 25 }, { wch: 50 }];
+      XLSX.utils.book_append_sheet(wb, wsR, 'Resumo');
+      if (descontos.length > 0) {
+        const wsD = XLSX.utils.json_to_sheet(descontos);
+        wsD['!cols'] = [{ wch: 35 }, { wch: 8 }, { wch: 8 }, { wch: 20 }, { wch: 60 }, { wch: 40 }];
+        XLSX.utils.book_append_sheet(wb, wsD, 'Descontos');
+      }
+      XLSX.writeFile(wb, 'checklist_' + analista.replace(/\s+/g,'_') + '_' + dataAvaliacao + '.xlsx');
+      showToast('Formulário exportado em XLSX!', 'success');
     }
 
     function getWeekNumber(date) {
