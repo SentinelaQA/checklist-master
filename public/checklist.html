@@ -454,6 +454,18 @@
       </div>
       <div style="padding:20px;">
 
+        <!-- Filtros -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+          <select id="filtroMesAnalistas" onchange="filtrarAnalistasComMes()" style="padding:9px 14px;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;color:#e2e8f0;font-size:13px;font-weight:600;">
+            <option value="">Todos os Meses</option>
+            <option value="0">Janeiro</option><option value="1">Fevereiro</option>
+            <option value="2">Março</option><option value="3">Abril</option>
+            <option value="4">Maio</option><option value="5">Junho</option>
+            <option value="6">Julho</option><option value="7">Agosto</option>
+            <option value="8">Setembro</option><option value="9">Outubro</option>
+            <option value="10">Novembro</option><option value="11">Dezembro</option>
+          </select>
+        </div>
         <!-- Filtro de status -->
         <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
           <button onclick="filtrarAnalistas('todos')" id="btnFiltroTodos" style="padding:8px 18px;border-radius:20px;border:2px solid #00A4E0;background:#00A4E020;color:#4db8e8;font-weight:700;cursor:pointer;font-size:13px;">Todos</button>
@@ -1795,6 +1807,7 @@ const firebaseConfig = {
 
     function renderizarTabelaAnalistas(lista) {
       const el = document.getElementById('tabelaAnalistas');
+      const isAdminNow = window._isAdmin === true;
       if (!lista || lista.length === 0) {
         el.innerHTML = '<p style="padding:30px;text-align:center;color:#6a7489;">Nenhum analista encontrado.</p>';
         renderizarRelatorioAusencias([]);
@@ -1816,12 +1829,14 @@ const firebaseConfig = {
             <span style="padding:5px 14px;border-radius:20px;background:${cor.bg};border:1px solid ${cor.border};color:${cor.color};font-size:12px;font-weight:700;">${cor.emoji} ${a.status}${a.motivoOutro ? ' — ' + a.motivoOutro : ''}</span>
           </td>
           <td style="padding:14px 16px;text-align:center;color:#a0aec0;font-size:13px;">${totalAus > 0 ? `<span style="background:#00A4E020;border:1px solid #00A4E0;color:#4db8e8;padding:3px 10px;border-radius:12px;font-weight:700;">${totalAus} registro${totalAus > 1 ? 's' : ''}</span>` : '—'}</td>
-          ${window._isAdmin !== false ? `<td style="padding:14px 16px;text-align:center;display:flex;gap:6px;justify-content:center;">
-            <button onclick="abrirModalCaixas('${a.firestoreId}')" style="padding:6px 12px;background:#00D66420;border:1px solid #00D664;color:#5dd879;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">📦 Caixas</button>
-            <button onclick="abrirModalAusencia('${a.firestoreId}','${a.nome.replace(/'/g,"\\'")}','${a.status}')" style="padding:6px 12px;background:#FF9F1C20;border:1px solid #FF9F1C;color:#ffc15e;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">📅 Ausência</button>
-            <button onclick="abrirModalEditarAnalista('${a.firestoreId}')" style="padding:6px 12px;background:#0d7ab520;border:1px solid #0d7ab5;color:#4db8e8;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">✏️ Editar</button>
-            <button onclick="excluirAnalista('${a.firestoreId}')" style="padding:6px 12px;background:#dc354520;border:1px solid #dc3545;color:#ff6b6b;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">🗑️</button>
-          </td>` : ''}
+          <td style="padding:14px 16px;text-align:center;">
+            ${isAdminNow ? `<div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
+              <button onclick="abrirModalCaixas('${a.firestoreId}')" style="padding:6px 12px;background:#00D66420;border:1px solid #00D664;color:#5dd879;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">📦 Caixas</button>
+              <button onclick="abrirModalAusencia('${a.firestoreId}','${a.nome.replace(/'/g,"\\'")}','${a.status}')" style="padding:6px 12px;background:#FF9F1C20;border:1px solid #FF9F1C;color:#ffc15e;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">📅 Ausência</button>
+              <button onclick="abrirModalEditarAnalista('${a.firestoreId}')" style="padding:6px 12px;background:#0d7ab520;border:1px solid #0d7ab5;color:#4db8e8;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">✏️ Editar</button>
+              <button onclick="excluirAnalista('${a.firestoreId}')" style="padding:6px 12px;background:#dc354520;border:1px solid #dc3545;color:#ff6b6b;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">🗑️</button>
+            </div>` : '<span style="color:#6a7489;font-size:12px;">—</span>'}
+          </td>
         </tr>`;
       });
       html += '</tbody></table>';
@@ -1868,6 +1883,26 @@ const firebaseConfig = {
       html += '</tbody></table></div>';
       el.innerHTML = html;
     }
+
+    window.filtrarAnalistasComMes = function() {
+      const mes = document.getElementById('filtroMesAnalistas').value;
+      // Filter ausencias by selected month for the report
+      if (mes !== '') {
+        const mesNum = parseInt(mes);
+        const ausenciasFiltradas = ausenciasCache.filter(a => {
+          if (!a.inicio) return false;
+          const d = new Date(a.inicio + 'T12:00:00');
+          return d.getMonth() === mesNum;
+        });
+        // Temporarily override ausenciasCache for rendering
+        const tempCache = ausenciasCache;
+        ausenciasCache = ausenciasFiltradas;
+        filtrarAnalistas(filtroStatusAtual);
+        ausenciasCache = tempCache;
+      } else {
+        filtrarAnalistas(filtroStatusAtual);
+      }
+    };
 
     window.filtrarAnalistas = function(status) {
       filtroStatusAtual = status;
@@ -2089,23 +2124,24 @@ const firebaseConfig = {
       const [y,m,d] = (c.data||'').split('-');
       const dataFmt = c.data ? `${d}/${m}/${y}` : '—';
       document.getElementById('modalVerObservacaoTexto').innerHTML = `
-        <div style="display:flex;flex-direction:column;gap:12px;">
-          <div style="display:flex;align-items:center;gap:10px;">
-            <span style="padding:5px 14px;border-radius:20px;background:${cor}20;border:1px solid ${cor};color:${cor};font-size:13px;font-weight:700;">${emoji} ${c.status}</span>
-            <span style="color:#a0aec0;font-size:12px;">Data: ${dataFmt}</span>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <span style="padding:4px 12px;border-radius:20px;background:${cor}20;border:1px solid ${cor};color:${cor};font-size:12px;font-weight:700;">${emoji} ${c.status}</span>
+            <span style="color:#a0aec0;font-size:12px;">📅 ${dataFmt}</span>
           </div>
-          <div style="background:#242b3d;border-radius:8px;padding:12px;">
-            <div style="color:#a0aec0;font-size:11px;font-weight:700;margin-bottom:4px;text-transform:uppercase;">Nota original</div>
-            <div style="color:#FF9F1C;font-size:20px;font-weight:800;">${c.notaOriginal}</div>
+          <div style="display:grid;grid-template-columns:${c.status === 'Procedente' && c.notaCorrigida ? '1fr 1fr' : '1fr'};gap:8px;">
+            <div style="background:#1a1f2e;border-radius:8px;padding:10px 14px;border-left:3px solid #FF9F1C;">
+              <div style="color:#a0aec0;font-size:10px;font-weight:700;margin-bottom:3px;text-transform:uppercase;">Nota original</div>
+              <div style="color:#FF9F1C;font-size:22px;font-weight:800;">${c.notaOriginal}</div>
+            </div>
+            ${c.status === 'Procedente' && c.notaCorrigida ? `<div style="background:#1a1f2e;border-radius:8px;padding:10px 14px;border-left:3px solid #28a745;">
+              <div style="color:#a0aec0;font-size:10px;font-weight:700;margin-bottom:3px;text-transform:uppercase;">Nota corrigida</div>
+              <div style="color:#28a745;font-size:22px;font-weight:800;">${c.notaCorrigida}</div>
+            </div>` : ''}
           </div>
-          ${c.status === 'Procedente' && c.notaCorrigida ? `
-          <div style="background:#242b3d;border-radius:8px;padding:12px;">
-            <div style="color:#a0aec0;font-size:11px;font-weight:700;margin-bottom:4px;text-transform:uppercase;">Nota corrigida</div>
-            <div style="color:#28a745;font-size:20px;font-weight:800;">${c.notaCorrigida}</div>
-          </div>` : ''}
-          <div style="background:#242b3d;border-radius:8px;padding:12px;">
-            <div style="color:#a0aec0;font-size:11px;font-weight:700;margin-bottom:6px;text-transform:uppercase;">Justificativa</div>
-            <div style="color:#e2e8f0;font-size:13px;line-height:1.6;">${c.justificativa || '—'}</div>
+          <div style="background:#1a1f2e;border-radius:8px;padding:10px 14px;border-left:3px solid #9B59B6;">
+            <div style="color:#a0aec0;font-size:10px;font-weight:700;margin-bottom:4px;text-transform:uppercase;">Justificativa</div>
+            <div style="color:#e2e8f0;font-size:13px;line-height:1.5;">${c.justificativa || '—'}</div>
           </div>
         </div>`;
       document.getElementById('modalVerObservacao').querySelector('h3').textContent = '⚖️ Detalhes da Contestação';
@@ -3439,7 +3475,7 @@ const firebaseConfig = {
                 html += `<button onclick="abrirModalContestacao(${r.id})" style="background:#9B59B6;color:white;border:none;padding:3px 7px;border-radius:4px;cursor:pointer;font-size:11px;" title="Ver/editar contestação">⚖️</button>`;
               } else {
                 // Não-admin: badge clicável que abre modal de visualização
-                html += `<span onclick="verDetalhesContestacao(${r.id})" style="padding:3px 8px;border-radius:8px;font-size:10px;font-weight:700;background:${cor}20;border:1px solid ${cor};color:${cor};cursor:pointer;" title="Ver detalhes da contestação">${emoji} ${r.contestacao.status}</span>`;
+                html += `<span onclick="verDetalhesContestacao(${r.id})" style="padding:2px 7px;border-radius:8px;font-size:9px;font-weight:700;background:${cor}20;border:1px solid ${cor};color:${cor};cursor:pointer;white-space:nowrap;" title="Ver detalhes da contestação">${emoji}</span>`;
               }
             } else if (isAdminUser) {
               html += `<button onclick="abrirModalContestacao(${r.id})" style="background:#9B59B620;color:#c39bd3;border:1px solid #9B59B6;padding:3px 7px;border-radius:4px;cursor:pointer;font-size:11px;" title="Registrar contestação">⚖️</button>`;
