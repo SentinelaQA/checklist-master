@@ -2080,6 +2080,38 @@ const firebaseConfig = {
       } catch(e) { console.error(e); showToast('Erro ao salvar.', 'error'); }
     };
 
+    window.verDetalhesContestacao = function(id) {
+      const r = registrosCache.find(x => x.id === id);
+      if (!r || !r.contestacao) return;
+      const c = r.contestacao;
+      const cor = c.status === 'Procedente' ? '#28a745' : '#dc3545';
+      const emoji = c.status === 'Procedente' ? '✅' : '❌';
+      const [y,m,d] = (c.data||'').split('-');
+      const dataFmt = c.data ? `${d}/${m}/${y}` : '—';
+      document.getElementById('modalVerObservacaoTexto').innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="padding:5px 14px;border-radius:20px;background:${cor}20;border:1px solid ${cor};color:${cor};font-size:13px;font-weight:700;">${emoji} ${c.status}</span>
+            <span style="color:#a0aec0;font-size:12px;">Data: ${dataFmt}</span>
+          </div>
+          <div style="background:#242b3d;border-radius:8px;padding:12px;">
+            <div style="color:#a0aec0;font-size:11px;font-weight:700;margin-bottom:4px;text-transform:uppercase;">Nota original</div>
+            <div style="color:#FF9F1C;font-size:20px;font-weight:800;">${c.notaOriginal}</div>
+          </div>
+          ${c.status === 'Procedente' && c.notaCorrigida ? `
+          <div style="background:#242b3d;border-radius:8px;padding:12px;">
+            <div style="color:#a0aec0;font-size:11px;font-weight:700;margin-bottom:4px;text-transform:uppercase;">Nota corrigida</div>
+            <div style="color:#28a745;font-size:20px;font-weight:800;">${c.notaCorrigida}</div>
+          </div>` : ''}
+          <div style="background:#242b3d;border-radius:8px;padding:12px;">
+            <div style="color:#a0aec0;font-size:11px;font-weight:700;margin-bottom:6px;text-transform:uppercase;">Justificativa</div>
+            <div style="color:#e2e8f0;font-size:13px;line-height:1.6;">${c.justificativa || '—'}</div>
+          </div>
+        </div>`;
+      document.getElementById('modalVerObservacao').querySelector('h3').textContent = '⚖️ Detalhes da Contestação';
+      document.getElementById('modalVerObservacao').classList.add('show');
+    };
+
     // ===== REMARCAR CICLO EM LOTE =====
     window.abrirModalRemarcarCiclo = function() {
       const registros = window._registrosFiltrados && window._registrosFiltrados.length > 0
@@ -3396,11 +3428,28 @@ const firebaseConfig = {
               html += `<div class="tag-edit"><input type="text" value="${monitoriaTag}" id="tagInput_${r.id}" style="padding:3px 5px;border-radius:4px;border:1px solid #ccc;font-size:11px;width:60px;"><button onclick="salvarTagMonitoria(${r.id})" style="background:#28a745;color:white;border:none;padding:3px 6px;border-radius:4px;cursor:pointer;font-size:10px;">💾</button><button onclick="cancelarEditTag(${r.id})" style="background:#6a7489;color:white;border:none;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:10px;">✕</button></div>`;
             }
             html += `</td>`;
-            html += `<td style="padding:5px;text-align:center;vertical-align:middle;">
-              ${r.contestacao ? `<span style="padding:2px 6px;border-radius:8px;font-size:9px;font-weight:700;display:block;margin-bottom:3px;background:${r.contestacao.status==='Procedente'?'#28a74520':'#dc354520'};border:1px solid ${r.contestacao.status==='Procedente'?'#28a745':'#dc3545'};color:${r.contestacao.status==='Procedente'?'#5dd879':'#ff6b6b'};">${r.contestacao.status==='Procedente'?'✅':'❌'} ${r.contestacao.status}</span>` : ''}
-              <button onclick="abrirModalContestacao(${r.id})" style="background:#9B59B6;color:white;border:none;padding:3px 7px;border-radius:4px;cursor:pointer;font-size:11px;" title="${r.contestacao ? 'Ver/editar contestação' : 'Registrar contestação'}">⚖️</button>
-            </td>`;
+
+            // Contestação — admin pode registrar/editar, não-admin vê badge e detalhes clicáveis
+            html += `<td style="padding:5px;text-align:center;vertical-align:middle;">`;
+            if (r.contestacao) {
+              const cor = r.contestacao.status === 'Procedente' ? '#28a745' : '#dc3545';
+              const emoji = r.contestacao.status === 'Procedente' ? '✅' : '❌';
+              if (isAdminUser) {
+                html += `<span style="padding:2px 6px;border-radius:8px;font-size:9px;font-weight:700;display:block;margin-bottom:3px;background:${cor}20;border:1px solid ${cor};color:${cor};">${emoji} ${r.contestacao.status}</span>`;
+                html += `<button onclick="abrirModalContestacao(${r.id})" style="background:#9B59B6;color:white;border:none;padding:3px 7px;border-radius:4px;cursor:pointer;font-size:11px;" title="Ver/editar contestação">⚖️</button>`;
+              } else {
+                // Não-admin: badge clicável que abre modal de visualização
+                html += `<span onclick="verDetalhesContestacao(${r.id})" style="padding:3px 8px;border-radius:8px;font-size:10px;font-weight:700;background:${cor}20;border:1px solid ${cor};color:${cor};cursor:pointer;" title="Ver detalhes da contestação">${emoji} ${r.contestacao.status}</span>`;
+              }
+            } else if (isAdminUser) {
+              html += `<button onclick="abrirModalContestacao(${r.id})" style="background:#9B59B620;color:#c39bd3;border:1px solid #9B59B6;padding:3px 7px;border-radius:4px;cursor:pointer;font-size:11px;" title="Registrar contestação">⚖️</button>`;
+            } else {
+              html += `<span style="color:#3a4256;font-size:11px;">—</span>`;
+            }
+            html += `</td>`;
+
             html += `<td style="padding:5px;text-align:center;vertical-align:middle;"><button onclick="abrirDetalheMonitoria(${r.id})" style="background:#0d7ab5;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px;" title="Ver detalhes">🔍</button></td>`;
+
             if (isAdminUser) {
               html += `<td style="padding:5px;text-align:center;vertical-align:middle;white-space:nowrap;"><button onclick="abrirEditarMonitoria(${r.id})" style="background:#0d7ab5;color:white;border:none;padding:3px 6px;border-radius:4px;cursor:pointer;font-size:11px;margin-right:2px;">✏️</button><button onclick="excluirRegistro(${r.id})" style="background:#dc3545;color:white;border:none;padding:3px 6px;border-radius:4px;cursor:pointer;font-size:11px;">🗑️</button></td>`;
             }
