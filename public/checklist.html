@@ -820,13 +820,13 @@
 
   <!-- Modal Ver Observação Completa -->
   <div class="modal-overlay" id="modalVerObservacao">
-    <div class="modal-content" style="max-width:600px;">
+    <div class="modal-content" style="max-width:480px;">
       <div class="modal-header">
-        <h3>📋 Observação Completa</h3>
+        <h3 id="modalVerObservacaoTitulo">📋 Observação Completa</h3>
         <button class="modal-close" onclick="document.getElementById('modalVerObservacao').classList.remove('show')">×</button>
       </div>
-      <div class="modal-body">
-        <div id="modalVerObservacaoTexto" style="background:#1a1f2e;border-radius:8px;padding:16px;color:#e2e8f0;font-size:14px;line-height:1.7;white-space:pre-wrap;word-break:break-word;max-height:60vh;overflow-y:auto;border:1px solid #3a4256;"></div>
+      <div class="modal-body" style="padding:12px 16px;">
+        <div id="modalVerObservacaoTexto" style="background:#1a1f2e;border-radius:8px;padding:14px;color:#e2e8f0;font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:break-word;max-height:50vh;overflow-y:auto;border:1px solid #3a4256;"></div>
       </div>
       <div class="modal-footer">
         <button class="modal-btn modal-btn-cancel" onclick="document.getElementById('modalVerObservacao').classList.remove('show')">Fechar</button>
@@ -1846,6 +1846,7 @@ const firebaseConfig = {
 
     function renderizarRelatorioAusencias(analistas) {
       const el = document.getElementById('relatorioAusencias');
+      const isAdminNow = window._isAdmin === true;
       const ids = analistas.map(a => a.firestoreId);
       const ausencias = ausenciasCache.filter(x => ids.includes(x.analistaId));
       if (ausencias.length === 0) { el.innerHTML = ''; return; }
@@ -1861,7 +1862,7 @@ const firebaseConfig = {
             <th style="padding:12px 16px;text-align:center;color:#a0aec0;font-size:12px;font-weight:700;">Fim</th>
             <th style="padding:12px 16px;text-align:center;color:#a0aec0;font-size:12px;font-weight:700;">Ciclos ausente</th>
             <th style="padding:12px 16px;text-align:left;color:#a0aec0;font-size:12px;font-weight:700;">Observação</th>
-            <th style="padding:12px 16px;text-align:center;color:#a0aec0;font-size:12px;font-weight:700;">Ações</th>
+            ${isAdminNow ? `<th style="padding:12px 16px;text-align:center;color:#a0aec0;font-size:12px;font-weight:700;">Ações</th>` : ''}
           </tr></thead><tbody>`;
       ausencias.forEach(aus => {
         const analista = analistasCache.find(a => a.firestoreId === aus.analistaId);
@@ -1875,9 +1876,9 @@ const firebaseConfig = {
           <td style="padding:12px 16px;text-align:center;color:#e2e8f0;font-size:13px;">${aus.fim ? formatarData(aus.fim) : (aus.motivo === 'Desligado' ? '<span style="color:#6a7489;">—</span>' : '<span style="color:#FF9F1C;font-size:11px;">Em andamento</span>')}</td>
           <td style="padding:12px 16px;text-align:center;"><span style="background:#9B59B620;border:1px solid #9B59B6;color:#c39bd3;padding:4px 12px;border-radius:12px;font-weight:700;font-size:13px;">${ciclos} ciclo${ciclos > 1 ? 's' : ''}</span></td>
           <td style="padding:12px 16px;color:#a0aec0;font-size:12px;max-width:180px;word-wrap:break-word;">${aus.observacao || '—'}</td>
-          <td style="padding:12px 16px;text-align:center;">
+          ${isAdminNow ? `<td style="padding:12px 16px;text-align:center;">
             <button onclick="excluirAusencia('${aus.firestoreId}')" style="padding:4px 10px;background:#dc354520;border:1px solid #dc3545;color:#ff6b6b;border-radius:6px;cursor:pointer;font-size:11px;">🗑️</button>
-          </td>
+          </td>` : ''}
         </tr>`;
       });
       html += '</tbody></table></div>';
@@ -2123,6 +2124,7 @@ const firebaseConfig = {
       const emoji = c.status === 'Procedente' ? '✅' : '❌';
       const [y,m,d] = (c.data||'').split('-');
       const dataFmt = c.data ? `${d}/${m}/${y}` : '—';
+      document.getElementById('modalVerObservacaoTexto').style.whiteSpace = 'normal';
       document.getElementById('modalVerObservacaoTexto').innerHTML = `
         <div style="display:flex;flex-direction:column;gap:8px;">
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
@@ -2144,7 +2146,7 @@ const firebaseConfig = {
             <div style="color:#e2e8f0;font-size:13px;line-height:1.5;">${c.justificativa || '—'}</div>
           </div>
         </div>`;
-      document.getElementById('modalVerObservacao').querySelector('h3').textContent = '⚖️ Detalhes da Contestação';
+      document.getElementById('modalVerObservacaoTitulo').textContent = '⚖️ Detalhes da Contestação';
       document.getElementById('modalVerObservacao').classList.add('show');
     };
 
@@ -2290,12 +2292,18 @@ const firebaseConfig = {
 
     // ===== VER OBSERVAÇÃO COMPLETA =====
     window.abrirObsCompleta = function(texto) {
-      document.getElementById('modalVerObservacaoTexto').textContent = texto;
+      const el = document.getElementById('modalVerObservacaoTexto');
+      el.style.whiteSpace = 'pre-wrap';
+      el.textContent = texto;
+      document.getElementById('modalVerObservacaoTitulo').textContent = '📋 Observação Completa';
       document.getElementById('modalVerObservacao').classList.add('show');
     };
     window.abrirObsId = function(key) {
       const texto = (window._textoModal && window._textoModal[key]) || '';
-      document.getElementById('modalVerObservacaoTexto').textContent = texto;
+      const el = document.getElementById('modalVerObservacaoTexto');
+      el.style.whiteSpace = 'pre-wrap';
+      el.textContent = texto;
+      document.getElementById('modalVerObservacaoTitulo').textContent = '📋 Observação Completa';
       document.getElementById('modalVerObservacao').classList.add('show');
     };
 
