@@ -957,7 +957,7 @@
 
   <!-- Firebase SDK -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
     import { getFirestore, collection, addDoc, getDocs, doc, getDoc, setDoc, deleteDoc, updateDoc, query, orderBy, where } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
@@ -977,7 +977,12 @@ const firebaseConfig = {
     const db = getFirestore(app);
 
     // App secundário para criar usuários SEM deslogar o admin
-    const secondaryApp = initializeApp(firebaseConfig, 'Secondary');
+    let secondaryApp;
+    try {
+      secondaryApp = initializeApp(firebaseConfig, 'Secondary');
+    } catch(e) {
+      secondaryApp = getApp('Secondary');
+    }
     const secondaryAuth = getAuth(secondaryApp);
 
     // ===== ESTADO GLOBAL =====
@@ -2483,7 +2488,10 @@ const firebaseConfig = {
         console.error(e);
         let msg = '❌ Erro ao cadastrar usuário.';
         if (e.code === 'auth/email-already-in-use') msg = '⚠️ Já existe um usuário com este e-mail!';
-        if (e.code === 'auth/invalid-email') msg = '⚠️ E-mail inválido!';
+        else if (e.code === 'auth/invalid-email') msg = '⚠️ E-mail inválido!';
+        else if (e.code === 'auth/weak-password') msg = '⚠️ Senha fraca! Use pelo menos 6 caracteres.';
+        else if (e.code === 'auth/operation-not-allowed') msg = '⚠️ Cadastro desabilitado no Firebase. Ative em Authentication → Sign-in method → Email/Senha.';
+        else if (e.message) msg = '❌ ' + e.message;
         showAlertCadastro(msg, 'error');
       }
     };
