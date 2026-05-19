@@ -2228,17 +2228,31 @@ const firebaseConfig = {
 
       // Data de avaliação
       const dataAval = r.data ? r.data.split('-').reverse().join('/') : '—';
-      // Data/hora da interação (preenchida no formulário)
+      // Ciclo de referência
+      const cicloNum = getCicloFromRegistro(r);
+      const mesesNomesModal = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+      const mesModal = r.mesRef !== undefined ? mesesNomesModal[r.mesRef] : (r.mes || (r.data ? mesesNomesModal[new Date(r.data+'T12:00:00').getMonth()] : ''));
+      const cicloLabel = cicloNum + '° Ciclo · ' + mesModal + (r.atrasado ? ' ⏰ Atrasado' : '');
+      // Data/hora da interação — sempre busca do campo preenchido ou do timestamp
       let dataHoraInteracao = '';
       if (r.dataInteracao) {
         dataHoraInteracao = r.dataInteracao.split('-').reverse().join('/');
-        if (r.horaInteracao) dataHoraInteracao += ' às ' + r.horaInteracao;
+        if (r.horaInteracao) {
+          dataHoraInteracao += ' às ' + r.horaInteracao;
+        } else {
+          // tenta pegar horário do timestamp
+          try {
+            const d = r.timestamp ? (r.timestamp.toDate ? r.timestamp.toDate() : new Date(r.timestamp)) : null;
+            if (d) dataHoraInteracao += ' às ' + d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+          } catch(e) {}
+        }
       } else if (r.timestamp) {
         try {
           const d = r.timestamp.toDate ? r.timestamp.toDate() : new Date(r.timestamp);
           dataHoraInteracao = d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
         } catch(e) {}
       }
+      if (!dataHoraInteracao) dataHoraInteracao = dataAval;
 
       // Bloco de descontos detalhados
       let descontosHtml = '';
@@ -2266,6 +2280,7 @@ const firebaseConfig = {
         <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
           <span style="padding:6px 14px;border-radius:20px;background:#00A4E020;border:1px solid #00A4E0;color:#4db8e8;font-size:12px;font-weight:700;">${r.nivel||'Veterano'}</span>
           <span style="padding:6px 14px;border-radius:20px;background:#6c3fc520;border:1px solid #6c3fc5;color:#c39bd3;font-size:12px;font-weight:700;">${r.categoria||''}</span>
+          <span style="padding:6px 14px;border-radius:20px;background:#00D66415;border:1px solid #00D664;color:#5dd879;font-size:12px;font-weight:700;">📅 ${cicloLabel}</span>
           <span style="padding:6px 14px;border-radius:20px;background:${corNota}20;border:1px solid ${corNota};color:${corNota};font-size:14px;font-weight:800;">Nota: ${r.nota}</span>
           ${r.tag ? `<span style="padding:6px 14px;border-radius:20px;background:#FF9F1C20;border:1px solid #FF9F1C;color:#ffc15e;font-size:12px;font-weight:700;">TAG: ${r.tag}</span>` : ''}
         </div>
@@ -2708,7 +2723,7 @@ const firebaseConfig = {
         document.getElementById('tabControle').classList.add('tab-active');
         if (btnExportar) btnExportar.style.display = 'none';
         if (scoreNotification) scoreNotification.style.display = 'none';
-        document.getElementById('badgeControle').style.display = 'none';
+        marcarControleComoVisto();
         const btnRemarcar = document.getElementById('btnRemarcarCiclo');
         if (btnRemarcar) btnRemarcar.style.display = (window._isAdmin !== false) ? 'flex' : 'none';
         // Garante que analistas estejam carregados com status atualizado
@@ -2716,6 +2731,7 @@ const firebaseConfig = {
         atualizarDatalistAnalistas();
         await carregarRegistrosFirestore();
         renderizarTabelas(registrosCache);
+        marcarControleComoVisto();
       } else if (aba === 'analise') {
         document.getElementById('viewAnalise').style.display = 'block';
         document.getElementById('tabAnalise').classList.add('tab-active');
@@ -2748,10 +2764,18 @@ const firebaseConfig = {
 
     window.atualizarContadorControle = function() {
       const badge = document.getElementById('badgeControle');
-      const lastSeen = parseInt(localStorage.getItem('lastSeenControleCount') || '0');
-      const novos = registrosCache.length - lastSeen;
+      const seenIdsRaw = localStorage.getItem('seenControleIds');
+      const seenIds = seenIdsRaw ? new Set(JSON.parse(seenIdsRaw)) : new Set();
+      const novos = registrosCache.filter(r => !seenIds.has(r.firestoreId || String(r.id))).length;
       if (novos > 0) { badge.textContent = novos; badge.style.display = 'inline-block'; }
       else badge.style.display = 'none';
+    };
+
+    function marcarControleComoVisto() {
+      const ids = registrosCache.map(r => r.firestoreId || String(r.id));
+      localStorage.setItem('seenControleIds', JSON.stringify(ids));
+      const badge = document.getElementById('badgeControle');
+      if (badge) badge.style.display = 'none';
     };
 
     // Old limparFiltros replaced by new one defined above
@@ -3426,7 +3450,6 @@ const firebaseConfig = {
         if (primeiroReg && primeiroReg.data) {
           const cN = getCicloFromRegistro(primeiroReg);
           const mesN = primeiroReg.mesRef !== undefined ? primeiroReg.mesRef : new Date(primeiroReg.data + 'T12:00:00').getMonth();
-          const anoN = primeiroReg.anoRef || new Date(primeiroReg.data + 'T12:00:00').getFullYear();
           cicloLabel = `${cN}°C/${String(mesN+1).padStart(2,'0')}`;
         }
         const temAtrasado = Object.values(caixas).flat().some(r => r.atrasado);
@@ -3439,7 +3462,7 @@ const firebaseConfig = {
             if (primeiraLinhaAnalista) {
               html += `<td style="padding:5px;text-align:center;vertical-align:middle;" rowspan="${totalLinhasAnalista}">
                 <span style="background:${cor}15;border:1px solid ${cor}60;color:${cor};padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700;white-space:nowrap;display:block;">${cicloLabel}</span>
-                ${temAtrasado ? '<span style="background:#FF9F1C20;border:1px solid #FF9F1C;color:#ffc15e;padding:1px 6px;border-radius:8px;font-size:9px;font-weight:700;margin-top:3px;display:block;">⏰ ATRASADO</span>' : ''}
+                ${temAtrasado ? '<span style="background:#FF9F1C20;border:1px solid #FF9F1C;color:#ffc15e;padding:1px 6px;border-radius:8px;font-size:9px;font-weight:700;margin-top:3px;display:block;">⏰ REF.</span>' : ''}
               </td>`;
               html += `<td style="padding:5px;text-align:center;vertical-align:middle;font-weight:600;font-size:11px;color:#555;" rowspan="${totalLinhasAnalista}">${r.nivel || 'Veterano'}</td>`;
               html += `<td style="padding:5px;text-align:center;vertical-align:middle;font-weight:700;color:#00A4E0;font-size:11px;line-height:1.4;" rowspan="${totalLinhasAnalista}">${analista}</td>`;
