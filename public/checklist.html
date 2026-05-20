@@ -276,12 +276,10 @@
         <input type="text" id="assuntoEmail" placeholder="Cole o assunto do e-mail">
       </div>
       <div class="info-item">
-        <label>Data da Interação</label>
-        <input type="date" id="dataInteracao">
-      </div>
-      <div class="info-item">
-        <label>Horário da Interação</label>
-        <input type="time" id="horarioInteracao">
+        <label>Data e Horário da Interação</label>
+        <input type="text" id="dataInteracaoTexto" placeholder="Cole ou digite: dd/mm/aaaa hh:mm" oninput="parseDateTimeInteracao(this.value)" style="font-size:13px;">
+        <input type="hidden" id="dataInteracao">
+        <input type="hidden" id="horaInteracao">
       </div>
     </div>
 
@@ -1181,7 +1179,7 @@ const firebaseConfig = {
         // Limpar formulário
         ['analistaNome','supervisor','tipo','formulario','subFormulario','caixa','subCaixa',
          'tratadoVia','estabelecimento','referenciaEvento','protocolo','assuntoEmail',
-         'dataInteracao','horarioInteracao','assunto','ticket','resumoDesvio','resumoInteracao','feedback'
+         'dataInteracao','horaInteracao','dataInteracaoTexto','assunto','ticket','resumoDesvio','resumoInteracao','feedback'
         ].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
 
         document.getElementById('camposCondicionais').style.display = 'none';
@@ -2213,6 +2211,26 @@ const firebaseConfig = {
       fecharModalRemarcarCiclo();
       renderizarTabelas(registrosCache);
       showToast(`${atualizados} registro(s) remarcado(s) para ${cicloRef}° Ciclo!`, 'success');
+    };
+
+    // ===== PARSE DATA/HORA DA INTERAÇÃO =====
+    window.parseDateTimeInteracao = function(val) {
+      if (!val) return;
+      // Aceita: dd/mm/aaaa hh:mm, dd/mm/aaaa, dd/mm/aa hh:mm, etc.
+      const match = val.match(/(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})(?:\s+(\d{1,2})[:\-](\d{2}))?/);
+      if (match) {
+        const d = match[1].padStart(2,'0');
+        const m = match[2].padStart(2,'0');
+        let y = match[3];
+        if (y.length === 2) y = '20' + y;
+        const dateVal = `${y}-${m}-${d}`;
+        document.getElementById('dataInteracao').value = dateVal;
+        if (match[4] && match[5]) {
+          document.getElementById('horaInteracao').value = match[4].padStart(2,'0') + ':' + match[5];
+        } else {
+          document.getElementById('horaInteracao').value = '';
+        }
+      }
     };
 
     // ===== DETALHE COMPLETO DA MONITORIA =====
