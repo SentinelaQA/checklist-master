@@ -3461,12 +3461,20 @@ const firebaseConfig = {
         container.innerHTML = '<p style="text-align:center;color:#6a7489;padding:40px;font-size:18px;">📭 Nenhuma avaliação registrada ainda.</p>';
         return;
       }
-      const porCategoria = { 'Agenda Financeira': [], 'Cancelamento': [], 'Eventos': [] };
-      registros.forEach(r => { if (porCategoria[r.categoria]) porCategoria[r.categoria].push(r); });
+      const porCategoria = { 'Agenda Financeira': [], 'Cancelamento': [], 'Eventos': [], 'Suporte Conciliação': [] };
+      registros.forEach(r => {
+        if (porCategoria[r.categoria] !== undefined) {
+          porCategoria[r.categoria].push(r);
+        } else {
+          // fallback para categorias desconhecidas
+          porCategoria['Eventos'].push(r);
+        }
+      });
       let html = '';
       if (porCategoria['Agenda Financeira'].length > 0) html += gerarTabelaCategoria('Agenda Financeira', porCategoria['Agenda Financeira'], '#00A4E0');
       if (porCategoria['Cancelamento'].length > 0) html += gerarTabelaCategoria('Agenda Financeira - Cancelamento', porCategoria['Cancelamento'], '#FF9F1C');
       if (porCategoria['Eventos'].length > 0) html += gerarTabelaCategoria('Agenda Financeira - Outras Caixas e Eventos', porCategoria['Eventos'], '#00D664');
+      if (porCategoria['Suporte Conciliação'].length > 0) html += gerarTabelaCategoria('Suporte Conciliação', porCategoria['Suporte Conciliação'], '#9B59B6');
       container.innerHTML = html;
     }
 
