@@ -277,7 +277,11 @@
       </div>
       <div class="info-item">
         <label>Data e Horário da Interação</label>
-        <input type="text" id="dataInteracaoTexto" placeholder="Cole ou digite: dd/mm/aaaa hh:mm" oninput="parseDateTimeInteracao(this.value)" style="font-size:13px;">
+        <input type="text" id="dataInteracaoTexto" placeholder="Cole ou digite: dd/mm/aaaa hh:mm" 
+          oninput="parseDateTimeInteracao(this.value)"
+          onpaste="setTimeout(()=>parseDateTimeInteracao(document.getElementById('dataInteracaoTexto').value),50)"
+          onchange="parseDateTimeInteracao(this.value)"
+          style="font-size:13px;">
         <input type="hidden" id="dataInteracao">
         <input type="hidden" id="horaInteracao">
       </div>
@@ -1089,6 +1093,11 @@ const firebaseConfig = {
       const dataAvaliacao = document.getElementById('dataAvaliacao').value || '';
       const dataInteracaoEl = document.getElementById('dataInteracao');
       const horaInteracaoEl = document.getElementById('horaInteracao');
+      // Force parse if text field has content but hidden fields are empty
+      const textoEl = document.getElementById('dataInteracaoTexto');
+      if (textoEl && textoEl.value && !dataInteracaoEl.value) {
+        parseDateTimeInteracao(textoEl.value);
+      }
       const dataInteracao = dataInteracaoEl ? dataInteracaoEl.value || '' : '';
       const horaInteracao = horaInteracaoEl ? horaInteracaoEl.value || '' : '';
       const tratadoVia = document.getElementById('tratadoVia').value || '';
@@ -2215,20 +2224,42 @@ const firebaseConfig = {
 
     // ===== PARSE DATA/HORA DA INTERAÇÃO =====
     window.parseDateTimeInteracao = function(val) {
-      if (!val) return;
-      // Aceita: dd/mm/aaaa hh:mm, dd/mm/aaaa, dd/mm/aa hh:mm, etc.
-      const match = val.match(/(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})(?:\s+(\d{1,2})[:\-](\d{2}))?/);
+      if (!val || !val.trim()) return;
+      const v = val.trim();
+      // Aceita: dd/mm/aaaa hh:mm | dd/mm/aaaa | dd-mm-aaaa hh:mm | dd.mm.aaaa hh:mm
+      // Também: aaaa-mm-dd hh:mm (ISO)
+      let d, m, y, h = '', min = '';
+      
+      // Tenta ISO: aaaa-mm-dd
+      let match = v.match(/^(\d{4})-(\d{2})-(\d{2})(?:[\sT](\d{2}):(\d{2}))?/);
       if (match) {
-        const d = match[1].padStart(2,'0');
-        const m = match[2].padStart(2,'0');
-        let y = match[3];
-        if (y.length === 2) y = '20' + y;
+        y = match[1]; m = match[2]; d = match[3];
+        if (match[4]) { h = match[4]; min = match[5]; }
+      } else {
+        // Tenta dd/mm/aaaa ou dd-mm-aaaa ou dd.mm.aaaa
+        match = v.match(/(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})(?:[\s,]+(\d{1,2})[:\-h](\d{2}))?/);
+        if (match) {
+          d = match[1].padStart(2,'0');
+          m = match[2].padStart(2,'0');
+          y = match[3].length === 2 ? '20' + match[3] : match[3];
+          if (match[4]) { h = match[4].padStart(2,'0'); min = match[5]; }
+        }
+      }
+
+      if (d && m && y) {
         const dateVal = `${y}-${m}-${d}`;
         document.getElementById('dataInteracao').value = dateVal;
-        if (match[4] && match[5]) {
-          document.getElementById('horaInteracao').value = match[4].padStart(2,'0') + ':' + match[5];
-        } else {
-          document.getElementById('horaInteracao').value = '';
+        const timeVal = h && min ? `${h}:${min}` : '';
+        document.getElementById('horaInteracao').value = timeVal;
+        // Visual feedback
+        const input = document.getElementById('dataInteracaoTexto');
+        input.style.borderColor = '#28a745';
+        input.title = `✅ Data: ${d}/${m}/${y}${timeVal ? ' · Hora: ' + timeVal : ' (sem horário)'}`;
+      } else {
+        const input = document.getElementById('dataInteracaoTexto');
+        if (v.length > 4) {
+          input.style.borderColor = '#FF9F1C';
+          input.title = '⚠️ Formato não reconhecido. Use: dd/mm/aaaa hh:mm';
         }
       }
     };
