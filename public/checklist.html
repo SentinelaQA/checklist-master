@@ -271,6 +271,14 @@
         <label>Protocolo</label>
         <input type="text" id="protocolo" placeholder="Digite o protocolo">
       </div>
+      <div class="info-item" id="chamadoPaiContainer" style="display:none;">
+        <label>Chamado Pai (CRM)</label>
+        <input type="text" id="chamadoPai" placeholder="Número do chamado pai">
+      </div>
+      <div class="info-item" id="chamadoFilhoContainer" style="display:none;">
+        <label>Chamado Filho (CRM)</label>
+        <input type="text" id="chamadoFilho" placeholder="Número do chamado filho">
+      </div>
       <div class="info-item" id="assuntoEmailContainer" style="display:none;">
         <label>Assunto do E-mail</label>
         <input type="text" id="assuntoEmail" placeholder="Cole o assunto do e-mail">
@@ -1102,8 +1110,15 @@ const firebaseConfig = {
       const horaInteracao = horaInteracaoEl ? horaInteracaoEl.value || '' : '';
       const tratadoVia = document.getElementById('tratadoVia').value || '';
 
+      const chamadoPai = document.getElementById('chamadoPai') ? document.getElementById('chamadoPai').value.trim() : '';
+      const chamadoFilho = document.getElementById('chamadoFilho') ? document.getElementById('chamadoFilho').value.trim() : '';
+      // Para Suporte Conciliação, o protocolo é o chamado pai
+      const protocoloFinal = protocolo || assuntoEmail || chamadoPai || '';
+
       if (!analista) { showToast('Preencha o nome do analista!', 'warning'); return; }
-      if (!assunto) { showToast('Preencha o assunto!', 'warning'); return; }
+      // Assunto obrigatório exceto para Suporte Conciliação que usa chamado pai
+      if (!assunto && formulario !== 'Suporte Conciliação') { showToast('Preencha o assunto!', 'warning'); return; }
+      if (formulario === 'Suporte Conciliação' && !chamadoPai) { showToast('Preencha o Chamado Pai!', 'warning'); return; }
 
       let categoria = '', caixaFinal = '';
       if (formulario === 'Agenda Financeira - Eventos') {
@@ -1158,9 +1173,11 @@ const firebaseConfig = {
         analista,
         categoria,
         caixa: caixaFinal,
-        assunto,
+        assunto:          formulario === 'Suporte Conciliação' ? chamadoPai : assunto,
         ticket,
-        protocoloOuEmail: protocolo || assuntoEmail || '',
+        protocoloOuEmail: protocoloFinal,
+        chamadoPai:       chamadoPai || null,
+        chamadoFilho:     chamadoFilho || null,
         observacao: resumoInteracao,
         desvio: resumoDesvio,
         nota: pontuacao,
@@ -1188,7 +1205,7 @@ const firebaseConfig = {
         // Limpar formulário
         ['analistaNome','supervisor','tipo','formulario','subFormulario','caixa','subCaixa',
          'tratadoVia','estabelecimento','referenciaEvento','protocolo','assuntoEmail',
-         'dataInteracao','horaInteracao','dataInteracaoTexto','assunto','ticket','resumoDesvio','resumoInteracao','feedback'
+         'dataInteracao','horaInteracao','dataInteracaoTexto','chamadoPai','chamadoFilho','assunto','ticket','resumoDesvio','resumoInteracao','feedback'
         ].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
 
         document.getElementById('camposCondicionais').style.display = 'none';
@@ -2339,6 +2356,8 @@ const firebaseConfig = {
           ${campo('Data / Horário da Interação', dataHoraInteracao, '#9B59B6')}
           ${campo('Caixa', r.caixa, '#00D664')}
           ${campo('Assunto', r.assunto, '#00D664')}
+          ${r.chamadoPai ? campo('Chamado Pai (CRM)', r.chamadoPai, '#00A4E0') : ''}
+          ${r.chamadoFilho ? campo('Chamado Filho (CRM)', r.chamadoFilho, '#4db8e8') : ''}
           ${campo('Ticket / Protocolo', r.protocoloOuEmail || r.ticket, '#FF9F1C')}
           ${campo('Supervisor', r.supervisor, '#6a7489')}
         </div>
@@ -3186,11 +3205,15 @@ const firebaseConfig = {
         resumoCont.style.display = 'grid'; feedbackCont.style.display = 'grid';
         if (assuntoPar) assuntoPar.style.display = 'flex';
         if (ticketPar) ticketPar.style.display = 'flex';
-        // Mostra campo e-mail direto
+        // Suporte Conciliação usa CRM com chamado pai e filho
         const pCont = document.getElementById('protocoloContainer');
         const aeCont = document.getElementById('assuntoEmailContainer');
+        const paiCont = document.getElementById('chamadoPaiContainer');
+        const filhoCont = document.getElementById('chamadoFilhoContainer');
         if (pCont) pCont.style.display = 'none';
-        if (aeCont) aeCont.style.display = 'flex';
+        if (aeCont) aeCont.style.display = 'none';
+        if (paiCont) paiCont.style.display = 'flex';
+        if (filhoCont) filhoCont.style.display = 'flex';
         checklistData = checklistConciliacao; window._checklistData = checklistData;
         // Reinicia state e renderiza o novo checklist
         window._state = { score: 100, nc: 0, ncg: 0, total: 0, items: {}, observations: {}, ncgDetected: false };
@@ -3203,6 +3226,10 @@ const firebaseConfig = {
         resumoCont.style.display = 'grid'; feedbackCont.style.display = 'grid';
         if (assuntoPar) assuntoPar.style.display = 'flex';
         if (ticketPar) ticketPar.style.display = 'flex';
+        const _paiC = document.getElementById('chamadoPaiContainer');
+        const _filhoC = document.getElementById('chamadoFilhoContainer');
+        if (_paiC) _paiC.style.display = 'none';
+        if (_filhoC) _filhoC.style.display = 'none';
       } else {
         cc.style.display = 'none'; dab.style.display = 'none';
         resumoCont.style.display = 'none'; feedbackCont.style.display = 'none';
