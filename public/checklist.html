@@ -1204,7 +1204,7 @@ const firebaseConfig = {
         document.getElementById('camposCondicionais').style.display = 'none';
         document.getElementById('dataAvaliacaoBar').style.display = 'none';
         document.getElementById('resumoContainer').style.display = 'none';
-        document.getElementById('feedbackContainer').style.display = 'none';
+        if(document.getElementById('feedbackContainer'))document.getElementById('feedbackContainer').style.display = 'none';
 
         window._state.score = 100; window._state.nc = 0; window._state.ncg = 0;
         window._state.total = 0; window._state.items = {}; window._state.observations = {};
@@ -3174,6 +3174,7 @@ const firebaseConfig = {
       const tvCont = document.getElementById('tratadoViaContainer');
       const resumoCont = document.getElementById('resumoContainer');
       const feedbackCont = document.getElementById('feedbackContainer');
+      // feedbackContainer may not exist
 
       // Assunto SEMPRE visível quando o formulário está selecionado
       const assuntoEl = document.getElementById('assunto');
@@ -3186,7 +3187,7 @@ const firebaseConfig = {
         sub.style.display = 'flex'; caixaCont.style.display = 'none';
         subCaixaCont.style.display = 'none'; estCont.style.display = 'flex';
         refCont.style.display = 'flex'; tvCont.style.display = 'none';
-        resumoCont.style.display = 'grid'; feedbackCont.style.display = 'grid';
+        resumoCont.style.display = 'grid'; if(feedbackCont)feedbackCont.style.display = 'grid';
         if (assuntoPar) assuntoPar.style.display = 'flex';
         if (ticketPar) ticketPar.style.display = 'flex';
         checklistData = checklistPadrao; window._checklistData = checklistData;
@@ -3197,7 +3198,7 @@ const firebaseConfig = {
         sub.style.display = 'none'; caixaCont.style.display = 'flex';
         estCont.style.display = 'none'; refCont.style.display = 'none';
         tvCont.style.display = 'flex';
-        resumoCont.style.display = 'grid'; feedbackCont.style.display = 'grid';
+        resumoCont.style.display = 'grid'; if(feedbackCont)feedbackCont.style.display = 'grid';
         if (assuntoPar) assuntoPar.style.display = 'flex';
         if (ticketPar) ticketPar.style.display = 'flex';
         checklistData = checklistPadrao; window._checklistData = checklistData;
@@ -3206,7 +3207,7 @@ const firebaseConfig = {
         sub.style.display = 'none'; caixaCont.style.display = 'none';
         subCaixaCont.style.display = 'none'; estCont.style.display = 'none';
         refCont.style.display = 'none'; tvCont.style.display = 'none';
-        resumoCont.style.display = 'grid'; feedbackCont.style.display = 'grid';
+        resumoCont.style.display = 'grid'; if(feedbackCont)feedbackCont.style.display = 'grid';
         if (assuntoPar) assuntoPar.style.display = 'flex';
         if (ticketPar) ticketPar.style.display = 'flex';
         // Suporte Conciliação usa CRM com chamado pai e filho
@@ -3227,7 +3228,7 @@ const firebaseConfig = {
         sub.style.display = 'none'; caixaCont.style.display = 'none';
         subCaixaCont.style.display = 'none'; estCont.style.display = 'none';
         refCont.style.display = 'none'; tvCont.style.display = 'flex';
-        resumoCont.style.display = 'grid'; feedbackCont.style.display = 'grid';
+        resumoCont.style.display = 'grid'; if(feedbackCont)feedbackCont.style.display = 'grid';
         if (assuntoPar) assuntoPar.style.display = 'flex';
         if (ticketPar) ticketPar.style.display = 'flex';
         const _paiC = document.getElementById('chamadoPaiContainer');
@@ -3236,7 +3237,7 @@ const firebaseConfig = {
         if (_filhoC) _filhoC.style.display = 'none';
       } else {
         cc.style.display = 'none'; dab.style.display = 'none';
-        resumoCont.style.display = 'none'; feedbackCont.style.display = 'none';
+        resumoCont.style.display = 'none'; if(feedbackCont)feedbackCont.style.display = 'none';
       }
     }
 
