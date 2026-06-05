@@ -307,10 +307,6 @@
     </div>
 
     <div class="info-bar" id="resumoContainer" style="display:none;border-top:2px solid #0d7ab5;">
-      <div class="info-item">
-        <label>Ticket</label>
-        <input type="text" id="ticket" placeholder="Digite o número do ticket">
-      </div>
       <div class="info-item" style="grid-column:1 / -1;">
         <label>Resumo do Desvio</label>
         <textarea id="resumoDesvio" placeholder="Resuma brevemente o desvio identificado..." style="min-height:60px;resize:vertical;padding:12px;border:2px solid #3a4256;border-radius:8px;font-size:14px;background:#1a1f2e;color:#e2e8f0;font-family:'Inter',sans-serif;"></textarea>
@@ -327,16 +323,6 @@
     </div>
 
     <div class="content" id="checklistContent"></div>
-
-    <div class="info-bar" id="feedbackContainer" style="display:none;border-top:3px solid #FF9F1C;margin-top:30px;">
-      <div class="info-item" style="grid-column:1 / -1;">
-        <label style="font-size:16px;font-weight:700;color:#FF9F1C;">💬 Feedback / Observação</label>
-        <textarea id="feedback" placeholder="Digite aqui observações, feedbacks..." style="min-height:120px;resize:vertical;padding:12px;border:2px solid #FF9F1C;border-radius:8px;background:#1a1f2e;color:#e2e8f0;font-size:14px;font-family:'Inter',sans-serif;"></textarea>
-      </div>
-      <div style="grid-column:1 / -1;text-align:right;padding-top:10px;">
-        <button type="button" onclick="salvarFeedback()" style="padding:12px 30px;background:linear-gradient(135deg,#FF9F1C 0%,#e6890a 100%);color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:14px;">💾 Salvar Feedback</button>
-      </div>
-    </div>
 
     <div class="copyright-footer"><p>© 2025 Yasmin de Melo Campos - Analista de Qualidade Jr</p></div>
   </div>
@@ -1174,6 +1160,8 @@ const firebaseConfig = {
         categoria,
         caixa: caixaFinal,
         assunto:          formulario === 'Suporte Conciliação' ? chamadoPai : assunto,
+        tratadoVia,
+        supervisor:       document.getElementById('supervisor') ? document.getElementById('supervisor').value || '' : '',
         ticket,
         protocoloOuEmail: protocoloFinal,
         chamadoPai:       chamadoPai || null,
@@ -1205,7 +1193,7 @@ const firebaseConfig = {
         // Limpar formulário
         ['analistaNome','supervisor','tipo','formulario','subFormulario','caixa','subCaixa',
          'tratadoVia','estabelecimento','referenciaEvento','protocolo','assuntoEmail',
-         'dataInteracao','horaInteracao','dataInteracaoTexto','chamadoPai','chamadoFilho','assunto','ticket','resumoDesvio','resumoInteracao','feedback'
+         'dataInteracao','horaInteracao','dataInteracaoTexto','chamadoPai','chamadoFilho','assunto','ticket','resumoDesvio','resumoInteracao'
         ].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
 
         document.getElementById('camposCondicionais').style.display = 'none';
@@ -3105,6 +3093,20 @@ const firebaseConfig = {
       }
     }
 
+    function atualizarOpcoesTratadoVia() {
+      const caixa = document.getElementById('caixa') ? document.getElementById('caixa').value : '';
+      const tvSelect = document.getElementById('tratadoVia');
+      if (!tvSelect) return;
+      const caixasSemCRM = ['Gestão Aluguel Estornos','Gestão Aluguel Incentivos','Prévia MDR'];
+      const crmOption = tvSelect.querySelector('option[value="CRM"]');
+      if (caixasSemCRM.includes(caixa)) {
+        if (crmOption) crmOption.style.display = 'none';
+        if (tvSelect.value === 'CRM') { tvSelect.value = 'E-mail'; mostrarCampoProtocoloOuEmail(); }
+      } else {
+        if (crmOption) crmOption.style.display = '';
+      }
+    }
+
     function mostrarCampoProtocoloOuEmail() {
       const tv = document.getElementById('tratadoVia').value;
       const pCont = document.getElementById('protocoloContainer');
@@ -3126,6 +3128,7 @@ const firebaseConfig = {
     }
 
     function mostrarSubCaixa() {
+      atualizarOpcoesTratadoVia();
       const caixa = document.getElementById('caixa').value;
       const subCaixaContainer = document.getElementById('subCaixaContainer');
       const subCaixaSelect = document.getElementById('subCaixa');
