@@ -1099,13 +1099,13 @@ const firebaseConfig = {
       const assuntoEmail = document.getElementById('assuntoEmail').value || '';
       const pontuacao = Math.round(window._state.score);
       const dataAvaliacao = document.getElementById('dataAvaliacao').value || '';
+      // Sempre re-parseia o campo de texto antes de ler os valores
+      const textoEl = document.getElementById('dataInteracaoTexto');
+      if (textoEl && textoEl.value && textoEl.value.trim()) {
+        parseDateTimeInteracao(textoEl.value.trim());
+      }
       const dataInteracaoEl = document.getElementById('dataInteracao');
       const horaInteracaoEl = document.getElementById('horaInteracao');
-      // Force parse if text field has content but hidden fields are empty
-      const textoEl = document.getElementById('dataInteracaoTexto');
-      if (textoEl && textoEl.value && !dataInteracaoEl.value) {
-        parseDateTimeInteracao(textoEl.value);
-      }
       const dataInteracao = dataInteracaoEl ? dataInteracaoEl.value || '' : '';
       const horaInteracao = horaInteracaoEl ? horaInteracaoEl.value || '' : '';
       const tratadoVia = document.getElementById('tratadoVia').value || '';
@@ -1306,9 +1306,10 @@ const firebaseConfig = {
       if (cicloFiltro || (mesFiltroNum !== '' && mesFiltroNum !== undefined)) {
         registros = registros.filter(r => {
           if (!r.data) return false;
-          // Usa cicloRef/mesRef se disponível (lançamentos retroativos)
-          const cicloR = r.cicloRef || (() => { const dia = new Date(r.data+'T12:00:00').getDate(); return dia<=7?1:dia<=14?2:dia<=21?3:4; })();
-          const mesR = r.mesRef !== undefined ? r.mesRef : new Date(r.data+'T12:00:00').getMonth();
+          const dObj = new Date(r.data + 'T12:00:00');
+          const dia = dObj.getDate();
+          const mesR = dObj.getMonth();
+          const cicloR = dia <= 7 ? 1 : dia <= 14 ? 2 : dia <= 21 ? 3 : 4;
           if (cicloFiltro && cicloR !== parseInt(cicloFiltro)) return false;
           if (mesFiltroNum !== '' && mesFiltroNum !== undefined && mesR !== parseInt(mesFiltroNum)) return false;
           return true;
@@ -2298,20 +2299,16 @@ const firebaseConfig = {
       const mesesNomesModal = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
       const mesModal = r.mesRef !== undefined ? mesesNomesModal[r.mesRef] : (r.mes || (r.data ? mesesNomesModal[new Date(r.data+'T12:00:00').getMonth()] : ''));
       const cicloLabel = cicloNum + '° Ciclo · ' + mesModal + (r.atrasado ? ' ⏰ Atrasado' : '');
-      // Data/hora da interação — sempre busca do campo preenchido ou do timestamp
+      // Data/hora da interação — usa APENAS o que foi preenchido no formulário
       let dataHoraInteracao = '';
       if (r.dataInteracao) {
         dataHoraInteracao = r.dataInteracao.split('-').reverse().join('/');
         if (r.horaInteracao) {
           dataHoraInteracao += ' às ' + r.horaInteracao;
-        } else {
-          // tenta pegar horário do timestamp
-          try {
-            const d = r.timestamp ? (r.timestamp.toDate ? r.timestamp.toDate() : new Date(r.timestamp)) : null;
-            if (d) dataHoraInteracao += ' às ' + d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-          } catch(e) {}
         }
+        // Se não tem horaInteracao, mostra só a data sem inventar horário
       } else if (r.timestamp) {
+        // Sem dataInteracao: usa o timestamp do lançamento como fallback
         try {
           const d = r.timestamp.toDate ? r.timestamp.toDate() : new Date(r.timestamp);
           dataHoraInteracao = d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
@@ -2793,11 +2790,11 @@ const firebaseConfig = {
         marcarControleComoVisto();
         const btnRemarcar = document.getElementById('btnRemarcarCiclo');
         if (btnRemarcar) btnRemarcar.style.display = (window._isAdmin !== false) ? 'flex' : 'none';
+        // Garante que analistas estejam carregados com status atualizado
         if (!analistasCache.length) await carregarAnalistasFirestore();
         atualizarDatalistAnalistas();
         await carregarRegistrosFirestore();
-        // Aplica filtros existentes em vez de resetar a visualização
-        filtrarControle();
+        renderizarTabelas(registrosCache);
         marcarControleComoVisto();
       } else if (aba === 'analise') {
         document.getElementById('viewAnalise').style.display = 'block';
