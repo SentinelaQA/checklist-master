@@ -3194,7 +3194,7 @@ const firebaseConfig = {
         sub.style.display = 'flex'; caixaCont.style.display = 'none';
         subCaixaCont.style.display = 'none'; estCont.style.display = 'flex';
         refCont.style.display = 'flex'; tvCont.style.display = 'none';
-        resumoCont.style.display = 'grid'; feedbackCont.style.display = 'grid';
+        resumoCont.style.display = 'grid'; if(feedbackCont)feedbackCont.style.display = 'grid';
         if (assuntoPar) assuntoPar.style.display = 'flex';
         if (ticketPar) ticketPar.style.display = 'flex';
         checklistData = checklistPadrao; window._checklistData = checklistData;
@@ -3205,16 +3205,19 @@ const firebaseConfig = {
         sub.style.display = 'none'; caixaCont.style.display = 'flex';
         estCont.style.display = 'none'; refCont.style.display = 'none';
         tvCont.style.display = 'flex';
-        resumoCont.style.display = 'grid'; feedbackCont.style.display = 'grid';
+        resumoCont.style.display = 'grid'; if(feedbackCont)feedbackCont.style.display = 'grid';
         if (assuntoPar) assuntoPar.style.display = 'flex';
         if (ticketPar) ticketPar.style.display = 'flex';
         checklistData = checklistPadrao; window._checklistData = checklistData;
+        window._state = { score: 100, nc: 0, ncg: 0, total: 0, items: {}, observations: {}, ncgDetected: false };
+        renderChecklist();
+        atualizarOpcoesTratadoVia();
       } else if (formulario === 'Suporte Conciliação') {
         cc.style.display = 'grid'; dab.style.display = 'grid';
         sub.style.display = 'none'; caixaCont.style.display = 'none';
         subCaixaCont.style.display = 'none'; estCont.style.display = 'none';
         refCont.style.display = 'none'; tvCont.style.display = 'none';
-        resumoCont.style.display = 'grid'; feedbackCont.style.display = 'grid';
+        resumoCont.style.display = 'grid'; if(feedbackCont)feedbackCont.style.display = 'grid';
         if (assuntoPar) assuntoPar.style.display = 'flex';
         if (ticketPar) ticketPar.style.display = 'flex';
         // Suporte Conciliação usa CRM com chamado pai e filho
@@ -3235,7 +3238,7 @@ const firebaseConfig = {
         sub.style.display = 'none'; caixaCont.style.display = 'none';
         subCaixaCont.style.display = 'none'; estCont.style.display = 'none';
         refCont.style.display = 'none'; tvCont.style.display = 'flex';
-        resumoCont.style.display = 'grid'; feedbackCont.style.display = 'grid';
+        resumoCont.style.display = 'grid'; if(feedbackCont)feedbackCont.style.display = 'grid';
         if (assuntoPar) assuntoPar.style.display = 'flex';
         if (ticketPar) ticketPar.style.display = 'flex';
         const _paiC = document.getElementById('chamadoPaiContainer');
@@ -3244,7 +3247,7 @@ const firebaseConfig = {
         if (_filhoC) _filhoC.style.display = 'none';
       } else {
         cc.style.display = 'none'; dab.style.display = 'none';
-        resumoCont.style.display = 'none'; feedbackCont.style.display = 'none';
+        resumoCont.style.display = 'none'; if(feedbackCont)feedbackCont.style.display = 'none';
       }
     }
 
