@@ -143,7 +143,13 @@
   <div class="container">
     <div class="header">
       <div><h1>📋 Checklist de Qualidade</h1><p style="opacity:0.9;margin-top:5px;">Análise de Conformidade</p></div>
-      <div class="score-panel"><div class="score" id="totalScore">100</div><div class="label">Pontuação Final</div></div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <button onclick="exportarResultado()" style="padding:8px 16px;background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.3);border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap;">📥 Exportar XLSX</button>
+          <button onclick="exportarChecklistPDF()" style="padding:8px 16px;background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.3);border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap;">📄 Exportar PDF</button>
+        </div>
+        <div class="score-panel"><div class="score" id="totalScore">100</div><div class="label">Pontuação Final</div></div>
+      </div>
     </div>
     <div class="info-bar">
       <div class="info-item">
@@ -233,7 +239,7 @@
       </div>
       <div class="info-item" id="caixaContainer" style="display:none;">
         <label>Caixa</label>
-        <select id="caixa" onchange="mostrarSubCaixa()">
+        <select id="caixa" onchange="mostrarSubCaixa();atualizarOpcoesTratadoVia()">
           <option value="">Selecione</option>
           <option value="Gestão Aluguel Estornos">Gestão Aluguel Estornos</option>
           <option value="Gestão Aluguel Incentivos">Gestão Aluguel Incentivos</option>
@@ -285,11 +291,15 @@
       </div>
       <div class="info-item">
         <label>Data e Horário da Interação</label>
-        <input type="text" id="dataInteracaoTexto" placeholder="Cole ou digite: dd/mm/aaaa hh:mm" 
-          oninput="parseDateTimeInteracao(this.value)"
-          onpaste="setTimeout(()=>parseDateTimeInteracao(document.getElementById('dataInteracaoTexto').value),50)"
-          onchange="parseDateTimeInteracao(this.value)"
-          style="font-size:13px;">
+        <input type="datetime-local" id="dataInteracaoTexto" 
+          onchange="
+            const v = this.value;
+            if(v){ 
+              document.getElementById('dataInteracao').value = v.split('T')[0]; 
+              document.getElementById('horaInteracao').value = v.split('T')[1]||'';
+            }
+          "
+          style="font-size:13px;color:#e2e8f0;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;padding:10px;">
         <input type="hidden" id="dataInteracao">
         <input type="hidden" id="horaInteracao">
       </div>
@@ -307,10 +317,7 @@
     </div>
 
     <div class="info-bar" id="resumoContainer" style="display:none;border-top:2px solid #0d7ab5;">
-      <div class="info-item">
-        <label>Ticket</label>
-        <input type="text" id="ticket" placeholder="Digite o número do ticket">
-      </div>
+
       <div class="info-item" style="grid-column:1 / -1;">
         <label>Resumo do Desvio</label>
         <textarea id="resumoDesvio" placeholder="Resuma brevemente o desvio identificado..." style="min-height:60px;resize:vertical;padding:12px;border:2px solid #3a4256;border-radius:8px;font-size:14px;background:#1a1f2e;color:#e2e8f0;font-family:'Inter',sans-serif;"></textarea>
@@ -328,15 +335,7 @@
 
     <div class="content" id="checklistContent"></div>
 
-    <div class="info-bar" id="feedbackContainer" style="display:none;border-top:3px solid #FF9F1C;margin-top:30px;">
-      <div class="info-item" style="grid-column:1 / -1;">
-        <label style="font-size:16px;font-weight:700;color:#FF9F1C;">💬 Feedback / Observação</label>
-        <textarea id="feedback" placeholder="Digite aqui observações, feedbacks..." style="min-height:120px;resize:vertical;padding:12px;border:2px solid #FF9F1C;border-radius:8px;background:#1a1f2e;color:#e2e8f0;font-size:14px;font-family:'Inter',sans-serif;"></textarea>
-      </div>
-      <div style="grid-column:1 / -1;text-align:right;padding-top:10px;">
-        <button type="button" onclick="salvarFeedback()" style="padding:12px 30px;background:linear-gradient(135deg,#FF9F1C 0%,#e6890a 100%);color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:14px;">💾 Salvar Feedback</button>
-      </div>
-    </div>
+    
 
     <div class="copyright-footer"><p>© 2025 Yasmin de Melo Campos - Analista de Qualidade Jr</p></div>
   </div>
@@ -974,7 +973,6 @@
     <div class="score-notification-title">Pontuação Atual</div>
     <div class="score-notification-value" id="scoreNotificationValue">100</div>
     <div class="score-notification-label">pontos</div>
-    <button id="btnExportarResultado" onclick="exportarResultado()" style="margin-top:8px;padding:5px 12px;background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.4);border-radius:6px;cursor:pointer;font-size:11px;font-weight:700;width:100%;">📥 Exportar XLSX</button>
   </div>
 
   <!-- Firebase SDK -->
@@ -1099,10 +1097,12 @@ const firebaseConfig = {
       const assuntoEmail = document.getElementById('assuntoEmail').value || '';
       const pontuacao = Math.round(window._state.score);
       const dataAvaliacao = document.getElementById('dataAvaliacao').value || '';
-      // Sempre re-parseia o campo de texto antes de ler os valores
+      // Sempre re-lê o campo datetime-local antes de exportar
       const textoEl = document.getElementById('dataInteracaoTexto');
-      if (textoEl && textoEl.value && textoEl.value.trim()) {
-        parseDateTimeInteracao(textoEl.value.trim());
+      if (textoEl && textoEl.value) {
+        const v = textoEl.value;
+        document.getElementById('dataInteracao').value = v.split('T')[0] || '';
+        document.getElementById('horaInteracao').value = v.split('T')[1] || '';
       }
       const dataInteracaoEl = document.getElementById('dataInteracao');
       const horaInteracaoEl = document.getElementById('horaInteracao');
@@ -1174,6 +1174,8 @@ const firebaseConfig = {
         categoria,
         caixa: caixaFinal,
         assunto:          formulario === 'Suporte Conciliação' ? chamadoPai : assunto,
+        supervisor:       document.getElementById('supervisor') ? document.getElementById('supervisor').value || '' : '',
+        tratadoVia:       document.getElementById('tratadoVia') ? document.getElementById('tratadoVia').value || '' : '',
         ticket,
         protocoloOuEmail: protocoloFinal,
         chamadoPai:       chamadoPai || null,
@@ -3105,6 +3107,20 @@ const firebaseConfig = {
       }
     }
 
+    function atualizarOpcoesTratadoVia() {
+      const caixaEl = document.getElementById('caixa');
+      const tvSelect = document.getElementById('tratadoVia');
+      if (!tvSelect || !caixaEl) return;
+      const semCRM = ['Gestão Aluguel Estornos','Gestão Aluguel Incentivos','Prévia MDR'];
+      const crmOpt = tvSelect.querySelector('option[value="CRM"]');
+      if (semCRM.includes(caixaEl.value)) {
+        if (crmOpt) crmOpt.style.display = 'none';
+        if (tvSelect.value === 'CRM') { tvSelect.value = 'E-mail'; mostrarCampoProtocoloOuEmail(); }
+      } else {
+        if (crmOpt) crmOpt.style.display = '';
+      }
+    }
+
     function mostrarCampoProtocoloOuEmail() {
       const tv = document.getElementById('tratadoVia').value;
       const pCont = document.getElementById('protocoloContainer');
@@ -3374,7 +3390,8 @@ const firebaseConfig = {
       const dataAvaliacao = document.getElementById('dataAvaliacao').value || new Date().toISOString().split('T')[0];
       const caixa = document.getElementById('caixa') ? document.getElementById('caixa').value : '';
       const assunto = document.getElementById('assunto') ? document.getElementById('assunto').value : '';
-
+      const formulario = document.getElementById('formulario') ? document.getElementById('formulario').value : '';
+      const nota = Math.round(window._state.score);
       if (!window.XLSX) {
         await new Promise((res, rej) => {
           const s = document.createElement('script');
@@ -3383,43 +3400,73 @@ const firebaseConfig = {
           document.head.appendChild(s);
         });
       }
-
-      const resumo = [
-        { Campo: 'Analista', Valor: analista },
-        { Campo: 'Data', Valor: dataAvaliacao },
-        { Campo: 'Caixa', Valor: caixa },
-        { Campo: 'Assunto', Valor: assunto },
-        { Campo: 'Nota Final', Valor: Math.round(state.score) },
-        { Campo: 'NC', Valor: state.nc },
-        { Campo: 'NCG', Valor: state.ncg },
-      ];
-
-      const descontos = [];
-      Object.keys(state.items).forEach(itemId => {
-        const [blockIdx, itemIdx] = itemId.split('-').map(Number);
-        const bloco = checklistData[blockIdx];
-        if (!bloco) return;
-        const item = bloco.items[itemIdx];
-        if (!item) return;
-        descontos.push({
-          Bloco: bloco.bloco, Tipo: bloco.tipo, Peso: bloco.peso,
-          Item: item.item, 'Sub-item': item.subitem,
-          Observacao: (state.observations && state.observations[itemId]) || '',
+      const wb = XLSX.utils.book_new();
+      const wsR = XLSX.utils.aoa_to_sheet([
+        ['Campo','Valor'],['Analista',analista],
+        ['Data',dataAvaliacao.split('-').reverse().join('/')],
+        ['Formulário',formulario],['Caixa',caixa],['Assunto',assunto],
+        ['Nota Final',nota],['NC',window._state.nc||0],['NCG',window._state.ncg||0],
+      ]);
+      wsR['!cols'] = [{wch:30},{wch:50}];
+      XLSX.utils.book_append_sheet(wb, wsR, 'Resumo');
+      const linhas = [['Bloco','Item','Descrição','Tipo','Peso','Status','Observação']];
+      checklistData.forEach((bloco, bi) => {
+        bloco.items.forEach((item, ii) => {
+          const key = bi+'-'+ii;
+          const obs = (window._state.observations&&window._state.observations[key])||'';
+          linhas.push([bloco.bloco,item.item,item.subitem,bloco.tipo,
+            bloco.tipo==='NCG'?'ZERA NOTA':'-'+bloco.peso,
+            window._state.items[key]?'Desconformidade':'Conforme',obs]);
         });
       });
-
-      const wb = XLSX.utils.book_new();
-      const wsR = XLSX.utils.json_to_sheet(resumo);
-      wsR['!cols'] = [{ wch: 25 }, { wch: 50 }];
-      XLSX.utils.book_append_sheet(wb, wsR, 'Resumo');
-      if (descontos.length > 0) {
-        const wsD = XLSX.utils.json_to_sheet(descontos);
-        wsD['!cols'] = [{ wch: 35 }, { wch: 8 }, { wch: 8 }, { wch: 20 }, { wch: 60 }, { wch: 40 }];
+      const wsC = XLSX.utils.aoa_to_sheet(linhas);
+      wsC['!cols'] = [{wch:40},{wch:20},{wch:70},{wch:8},{wch:12},{wch:18},{wch:40}];
+      XLSX.utils.book_append_sheet(wb, wsC, 'Checklist Completo');
+      const desc = [['Bloco','Item','Descrição','Tipo','Impacto','Observação']];
+      checklistData.forEach((bloco, bi) => {
+        bloco.items.forEach((item, ii) => {
+          const key = bi+'-'+ii;
+          if (window._state.items[key]) {
+            const obs = (window._state.observations&&window._state.observations[key])||'';
+            desc.push([bloco.bloco,item.item,item.subitem,bloco.tipo,
+              bloco.tipo==='NCG'?'ZERA NOTA':'-'+bloco.peso+' pts',obs]);
+          }
+        });
+      });
+      if (desc.length > 1) {
+        const wsD = XLSX.utils.aoa_to_sheet(desc);
+        wsD['!cols'] = [{wch:40},{wch:20},{wch:70},{wch:8},{wch:15},{wch:40}];
         XLSX.utils.book_append_sheet(wb, wsD, 'Descontos');
       }
-      XLSX.writeFile(wb, 'checklist_' + analista.replace(/\s+/g,'_') + '_' + dataAvaliacao + '.xlsx');
-      showToast('Formulário exportado em XLSX!', 'success');
+      XLSX.writeFile(wb, 'checklist_'+analista.replace(/\s+/g,'_')+'_'+dataAvaliacao+'.xlsx');
+      showToast('Checklist exportado!', 'success');
     }
+
+    window.exportarChecklistPDF = function() {
+      const analista = document.getElementById('analistaNome').value || 'Não informado';
+      const dataAvaliacao = document.getElementById('dataAvaliacao').value || '';
+      const nota = Math.round(window._state.score);
+      const cor = nota < 70 ? '#dc3545' : nota < 90 ? '#FF9F1C' : '#28a745';
+      let html = '';
+      checklistData.forEach((bloco, bi) => {
+        html += '<div style="margin-bottom:10px;border:1px solid #ddd;border-radius:6px;overflow:hidden;">';
+        html += '<div style="background:'+(bloco.tipo==='NCG'?'#fee2e2':'#fef9c3')+';padding:7px 12px;font-weight:700;font-size:12px;">'+bloco.bloco+'<span style="float:right;color:'+(bloco.tipo==='NCG'?'#dc2626':'#d97706')+';">'+bloco.tipo+(bloco.peso>0?' -'+bloco.peso+'pts':' ZERA')+'</span></div>';
+        bloco.items.forEach((item, ii) => {
+          const key = bi+'-'+ii;
+          const marcado = !!window._state.items[key];
+          const obs = (window._state.observations&&window._state.observations[key])||'';
+          html += '<div style="padding:7px 12px;border-top:1px solid #eee;background:'+(marcado?'#fef2f2':'white')+';font-size:12px;">'+(marcado?'❌':'✅')+' '+item.subitem+(obs?'<div style="font-size:11px;color:#555;margin-top:3px;padding:3px 8px;background:#fef9c3;border-radius:4px;">💬 '+obs+'</div>':'')+'</div>';
+        });
+        html += '</div>';
+      });
+      const w = window.open('','_blank');
+      w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Checklist '+analista+'</title><style>body{font-family:Arial,sans-serif;padding:20px;color:#222;}@media print{button{display:none!important;}}</style></head><body>');
+      w.document.write('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid #0d7ab5;"><div><h2 style="margin:0;color:#0d7ab5;">📋 Checklist de Qualidade</h2><p style="margin:4px 0 0;color:#666;">Analista: <strong>'+analista+'</strong> · Data: '+dataAvaliacao.split('-').reverse().join('/')+'</p></div><div style="text-align:center;padding:10px 18px;border-radius:8px;background:'+cor+'20;border:2px solid '+cor+';"><div style="font-size:28px;font-weight:900;color:'+cor+';">'+nota+'</div><div style="font-size:11px;font-weight:700;color:'+cor+';">PONTUAÇÃO</div></div></div>');
+      w.document.write('<button onclick="window.print()" style="margin-bottom:14px;padding:7px 18px;background:#0d7ab5;color:white;border:none;border-radius:6px;cursor:pointer;">🖨️ Imprimir / Salvar PDF</button>');
+      w.document.write(html+'</body></html>');
+      w.document.close();
+    };
+
 
     function getWeekNumber(date) {
       const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
