@@ -1078,6 +1078,8 @@ const firebaseConfig = {
     // ===== LOGOUT =====
     window.fazerLogout = async function() {
       await signOut(auth);
+      localStorage.removeItem('filtroControle');
+      localStorage.removeItem('seenControleIds');
       window.location.href = '/login.html';
     };
 
@@ -1301,6 +1303,14 @@ const firebaseConfig = {
       const cicloFiltro = (document.getElementById('filtroCicloNum') || {}).value || '';
       const mesFiltroNum = (document.getElementById('filtroMesNum') || {}).value;
 
+      // Salva filtros no localStorage para persistir entre abas
+      localStorage.setItem('filtroControle', JSON.stringify({
+        ciclo: cicloFiltro,
+        mes: mesFiltroNum,
+        analistas: analistasSelecionados,
+        caixas: caixasSelecionadas
+      }));
+
       let registros = [...registrosCache];
       if (analistasSelecionados.length > 0) registros = registros.filter(r => analistasSelecionados.includes(r.analista.toUpperCase()));
       if (caixasSelecionadas.length > 0) registros = registros.filter(r => caixasSelecionadas.includes(r.caixa));
@@ -1326,6 +1336,7 @@ const firebaseConfig = {
       document.querySelectorAll('.chkAnalista,.chkCaixa').forEach(c => c.checked = false);
       if(document.getElementById('filtroCicloNum')) document.getElementById('filtroCicloNum').value = '';
       if(document.getElementById('filtroMesNum')) document.getElementById('filtroMesNum').value = '';
+      localStorage.removeItem('filtroControle');
       document.getElementById('visSemanaControle').style.display = 'none';
       document.getElementById('btnFiltroAnalista').textContent = 'Todos os Analistas ▾';
       document.getElementById('btnFiltroCaixa').textContent = 'Todas as Caixas ▾';
@@ -2796,7 +2807,19 @@ const firebaseConfig = {
         if (!analistasCache.length) await carregarAnalistasFirestore();
         atualizarDatalistAnalistas();
         await carregarRegistrosFirestore();
-        renderizarTabelas(registrosCache);
+        // Restaura filtros salvos no localStorage
+        try {
+          const saved = JSON.parse(localStorage.getItem('filtroControle') || '{}');
+          if (saved.ciclo && document.getElementById('filtroCicloNum'))
+            document.getElementById('filtroCicloNum').value = saved.ciclo;
+          if (saved.mes !== undefined && saved.mes !== '' && document.getElementById('filtroMesNum'))
+            document.getElementById('filtroMesNum').value = saved.mes;
+          if (saved.analistas && saved.analistas.length > 0)
+            document.querySelectorAll('.chkAnalista').forEach(c => { c.checked = saved.analistas.includes(c.value.toUpperCase()); });
+          if (saved.caixas && saved.caixas.length > 0)
+            document.querySelectorAll('.chkCaixa').forEach(c => { c.checked = saved.caixas.includes(c.value); });
+        } catch(e) {}
+        filtrarControle();
         marcarControleComoVisto();
       } else if (aba === 'analise') {
         document.getElementById('viewAnalise').style.display = 'block';
