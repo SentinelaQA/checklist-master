@@ -1230,7 +1230,7 @@ const firebaseConfig = {
         document.getElementById('camposCondicionais').style.display = 'none';
         document.getElementById('dataAvaliacaoBar').style.display = 'none';
         document.getElementById('resumoContainer').style.display = 'none';
-        if(document.getElementById('feedbackContainer')) document.getElementById('feedbackContainer')?.style.display = 'none';
+        const _fbEl = document.getElementById('feedbackContainer'); if(_fbEl) _fbEl.style.display = 'none';
 
         window._evidencias = [];
         const prevEl = document.getElementById('evidenciasPreview');
