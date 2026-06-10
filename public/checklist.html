@@ -433,9 +433,9 @@
           </div>
           <div id="visSemanaControle" style="display:none;"></div>
         </div>
-        <div style="display:flex;align-items:flex-end;gap:10px;">
-          <button onclick="limparFiltros()" style="flex:1;padding:12px;background:#3a4256;color:#a0aec0;border:none;border-radius:8px;font-weight:700;cursor:pointer;">🔄 Limpar Filtros</button>
-          <button id="btnLimparTudo" onclick="limparControle()" style="flex:1;padding:12px;background:linear-gradient(135deg,#dc3545 0%,#c82333 100%);color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;">🗑️ Limpar Tudo</button>
+        <div style="display:flex;align-items:flex-end;gap:10px;margin:0;">
+          <button onclick="limparFiltros()" style="flex:1;padding:12px;background:#3a4256;color:#a0aec0;border:none;border-radius:8px;font-weight:700;cursor:pointer;margin:0;">🔄 Limpar Filtros</button>
+          <button id="btnLimparTudo" onclick="limparControle()" style="flex:1;padding:12px;background:linear-gradient(135deg,#dc3545 0%,#c82333 100%);color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;margin:0;">🗑️ Limpar Tudo</button>
         </div>
         </div>
       </div>
@@ -1215,7 +1215,7 @@ const firebaseConfig = {
         document.getElementById('camposCondicionais').style.display = 'none';
         document.getElementById('dataAvaliacaoBar').style.display = 'none';
         document.getElementById('resumoContainer').style.display = 'none';
-        document.getElementById('feedbackContainer').style.display = 'none';
+        if(document.getElementById('feedbackContainer')) document.getElementById('feedbackContainer')?.style.display = 'none';
 
         window._state.score = 100; window._state.nc = 0; window._state.ncg = 0;
         window._state.total = 0; window._state.items = {}; window._state.observations = {};
