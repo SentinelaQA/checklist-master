@@ -326,6 +326,20 @@
         <label>Resumo da Interação</label>
         <textarea id="resumoInteracao" placeholder="Digite aqui um resumo da interação..." style="min-height:80px;resize:vertical;padding:12px;border:2px solid #3a4256;border-radius:8px;font-size:14px;background:#1a1f2e;color:#e2e8f0;font-family:'Inter',sans-serif;"></textarea>
       </div>
+      <div class="info-item" style="grid-column:1 / -1;">
+        <label>📎 Evidências (imagens, prints)</label>
+        <div style="border:2px dashed #3a4256;border-radius:8px;padding:12px;background:#1a1f2e;">
+          <input type="file" id="evidenciaInput" multiple accept="image/*,.pdf" 
+            onchange="processarEvidencias(this.files)"
+            style="display:none;">
+          <button type="button" onclick="document.getElementById('evidenciaInput').click()" 
+            style="padding:8px 16px;background:#0d7ab520;border:1px solid #0d7ab5;color:#4db8e8;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">
+            📎 Selecionar arquivos
+          </button>
+          <span style="color:#6a7489;font-size:12px;margin-left:10px;">Máx. 3 imagens ou PDFs</span>
+          <div id="evidenciasPreview" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;"></div>
+        </div>
+      </div>
     </div>
 
     <div class="alert-ncg" id="alertNCG">
@@ -1194,7 +1208,8 @@ const firebaseConfig = {
         dataInteracao,
         horaInteracao,
         criadoPor: currentUser ? currentUser.uid : 'desconhecido',
-        descontosDetalhados
+        descontosDetalhados,
+        evidencias: window._evidencias || [],
       };
 
       try {
@@ -1216,6 +1231,12 @@ const firebaseConfig = {
         document.getElementById('dataAvaliacaoBar').style.display = 'none';
         document.getElementById('resumoContainer').style.display = 'none';
         if(document.getElementById('feedbackContainer')) document.getElementById('feedbackContainer')?.style.display = 'none';
+
+        window._evidencias = [];
+        const prevEl = document.getElementById('evidenciasPreview');
+        if (prevEl) prevEl.innerHTML = '';
+        const evInput = document.getElementById('evidenciaInput');
+        if (evInput) evInput.value = '';
 
         window._state.score = 100; window._state.nc = 0; window._state.ncg = 0;
         window._state.total = 0; window._state.items = {}; window._state.observations = {};
@@ -2294,6 +2315,35 @@ const firebaseConfig = {
       }
     };
 
+    // ===== EVIDÊNCIAS =====
+    window._evidencias = [];
+    window.processarEvidencias = async function(files) {
+      window._evidencias = [];
+      const preview = document.getElementById('evidenciasPreview');
+      preview.innerHTML = '';
+      const maxFiles = Math.min(files.length, 3);
+      for (let i = 0; i < maxFiles; i++) {
+        const file = files[i];
+        const base64 = await new Promise(res => {
+          const reader = new FileReader();
+          reader.onload = e => res(e.target.result);
+          reader.readAsDataURL(file);
+        });
+        window._evidencias.push({ nome: file.name, tipo: file.type, dados: base64 });
+        // Preview
+        if (file.type.startsWith('image/')) {
+          preview.innerHTML += `<div style="position:relative;"><img src="${base64}" style="width:80px;height:60px;object-fit:cover;border-radius:6px;border:1px solid #3a4256;"><span style="position:absolute;top:-6px;right:-6px;background:#dc3545;color:white;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer;" onclick="removerEvidencia(${i})">×</span></div>`;
+        } else {
+          preview.innerHTML += `<div style="padding:8px 12px;background:#242b3d;border-radius:6px;border:1px solid #3a4256;font-size:12px;color:#e2e8f0;">📄 ${file.name}</div>`;
+        }
+      }
+    };
+    window.removerEvidencia = function(idx) {
+      window._evidencias.splice(idx, 1);
+      document.getElementById('evidenciaInput').value = '';
+      document.getElementById('evidenciasPreview').innerHTML = '';
+    };
+
     // ===== DETALHE COMPLETO DA MONITORIA =====
     window.abrirDetalheMonitoria = function(id) {
       const r = registrosCache.find(x => x.id === id);
@@ -2377,6 +2427,16 @@ const firebaseConfig = {
         ${descontosHtml}
         ${(!r.desvio && !r.observacao && (!r.descontosDetalhados || r.descontosDetalhados.length === 0)) ?
           `<div style="background:#28a74510;border:1px solid #28a745;border-radius:8px;padding:14px;text-align:center;color:#5dd879;font-weight:700;">✅ Sem desvios ou observações registrados</div>` : ''}
+        ${r.evidencias && r.evidencias.length > 0 ? `
+          <div style="margin-top:14px;">
+            <div style="color:#a0aec0;font-size:11px;font-weight:700;text-transform:uppercase;margin-bottom:8px;">📎 Evidências (${r.evidencias.length})</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              ${r.evidencias.map((ev,i) => ev.tipo && ev.tipo.startsWith('image/') 
+                ? `<a href="${ev.dados}" target="_blank"><img src="${ev.dados}" style="width:100px;height:75px;object-fit:cover;border-radius:6px;border:1px solid #3a4256;cursor:pointer;"></a>`
+                : `<a href="${ev.dados}" download="${ev.nome}" style="padding:8px 12px;background:#242b3d;border-radius:6px;border:1px solid #3a4256;font-size:12px;color:#4db8e8;text-decoration:none;">📄 ${ev.nome}</a>`
+              ).join('')}
+            </div>
+          </div>` : ''}
       `;
       document.getElementById('modalDetalheCorpo').innerHTML = corpo;
       document.getElementById('modalDetalheMonitoria').classList.add('show');
@@ -2786,11 +2846,9 @@ const firebaseConfig = {
       const btnExportar = document.getElementById('btnExportarControle');
       const scoreNotification = document.getElementById('scoreNotification');
       const btnResetar = document.getElementById('btnResetar');
-      const btnExpRes = document.getElementById('btnExportarResultado');
 
       // Oculta botões flutuantes em todas as abas por padrão
       if (btnResetar) btnResetar.style.display = 'none';
-      if (btnExpRes) btnExpRes.style.display = 'none';
 
       if (aba === 'formularios') {
         document.getElementById('viewFormularios').style.display = 'block';
@@ -2798,7 +2856,7 @@ const firebaseConfig = {
         if (btnExportar) btnExportar.style.display = 'flex';
         if (scoreNotification) scoreNotification.style.display = 'flex';
         if (btnResetar) btnResetar.style.display = 'block';
-        if (btnExpRes) btnExpRes.style.display = 'block';
+
       } else if (aba === 'controle') {
         document.getElementById('viewControle').style.display = 'block';
         document.getElementById('tabControle').classList.add('tab-active');
@@ -3225,7 +3283,8 @@ const firebaseConfig = {
         if (assuntoPar) assuntoPar.style.display = 'flex';
         if (ticketPar) ticketPar.style.display = 'flex';
         checklistData = checklistPadrao; window._checklistData = checklistData;
-        window._state = { score: 100, nc: 0, ncg: 0, total: 0, items: {}, observations: {}, ncgDetected: false };
+        state = { score: 100, nc: 0, ncg: 0, total: 0, items: {}, observations: {}, ncgDetected: false };
+        window._state = state;
         renderChecklist();
       } else if (formulario === 'Agenda Financeira') {
         cc.style.display = 'grid'; dab.style.display = 'grid';
@@ -3236,7 +3295,8 @@ const firebaseConfig = {
         if (assuntoPar) assuntoPar.style.display = 'flex';
         if (ticketPar) ticketPar.style.display = 'flex';
         checklistData = checklistPadrao; window._checklistData = checklistData;
-        window._state = { score: 100, nc: 0, ncg: 0, total: 0, items: {}, observations: {}, ncgDetected: false };
+        state = { score: 100, nc: 0, ncg: 0, total: 0, items: {}, observations: {}, ncgDetected: false };
+        window._state = state;
         renderChecklist();
         atualizarOpcoesTratadoVia();
       } else if (formulario === 'Suporte Conciliação') {
@@ -3258,7 +3318,8 @@ const firebaseConfig = {
         if (filhoCont) filhoCont.style.display = 'flex';
         checklistData = checklistConciliacao; window._checklistData = checklistData;
         // Reinicia state e renderiza o novo checklist
-        window._state = { score: 100, nc: 0, ncg: 0, total: 0, items: {}, observations: {}, ncgDetected: false };
+        state = { score: 100, nc: 0, ncg: 0, total: 0, items: {}, observations: {}, ncgDetected: false };
+        window._state = state;
         renderChecklist();
       } else if (formulario !== '') {
         cc.style.display = 'grid'; dab.style.display = 'grid';
