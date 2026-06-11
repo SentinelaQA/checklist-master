@@ -1194,6 +1194,8 @@ const firebaseConfig = {
         tratadoVia:       document.getElementById('tratadoVia') ? document.getElementById('tratadoVia').value || '' : '',
         ticket,
         protocoloOuEmail: protocoloFinal,
+        estabelecimento:  document.getElementById('estabelecimento') ? document.getElementById('estabelecimento').value.trim() || '' : '',
+        referenciaEvento: document.getElementById('referenciaEvento') ? document.getElementById('referenciaEvento').value.trim() || '' : '',
         chamadoPai:       chamadoPai || null,
         chamadoFilho:     chamadoFilho || null,
         observacao: resumoInteracao,
