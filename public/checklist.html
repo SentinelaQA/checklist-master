@@ -2418,6 +2418,8 @@ const firebaseConfig = {
           ${r.chamadoPai ? campo('Chamado Pai (CRM)', r.chamadoPai, '#00A4E0') : ''}
           ${r.chamadoFilho ? campo('Chamado Filho (CRM)', r.chamadoFilho, '#4db8e8') : ''}
           ${campo('Ticket / Protocolo', r.protocoloOuEmail || r.ticket, '#FF9F1C')}
+          ${r.estabelecimento ? campo('Estabelecimento', r.estabelecimento, '#FF9F1C') : ''}
+          ${r.referenciaEvento ? campo('Referência do Evento', r.referenciaEvento, '#FF9F1C') : ''}
           ${campo('Supervisor', r.supervisor, '#6a7489')}
         </div>
         <div style="display:flex;flex-direction:column;gap:10px;">
@@ -3692,7 +3694,7 @@ const firebaseConfig = {
             window._textoModal['ass_' + r.id] = assuntoText;
             html += '<td style="padding:5px 6px;vertical-align:middle;max-width:130px;">';
             if (assuntoLongo) {
-              html += '<div style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px;cursor:pointer;color:#4db8e8;" onclick="abrirObsId(\'ass_' + r.id + '\')" title="Clique para ver completo">' + assuntoText + '</div>';
+              html += '<div style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px;cursor:pointer;color:#4db8e8;word-break:break-all;" onclick="abrirObsId(\'ass_' + r.id + '\')" title="Clique para ver completo">' + assuntoText + '</div>';
             } else {
               html += '<div style="font-size:11px;">' + assuntoText + '</div>';
             }
@@ -3704,7 +3706,7 @@ const firebaseConfig = {
               window._textoModal['prot_' + r.id] = protText;
               html += '<td style="padding:5px 6px;vertical-align:middle;max-width:120px;">';
               if (protLongo) {
-                html += '<div style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:110px;cursor:pointer;color:#4db8e8;" onclick="abrirObsId(\'prot_' + r.id + '\')" title="Clique para ver completo">' + protText + '</div>';
+                html += '<div style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px;cursor:pointer;color:#4db8e8;word-break:break-all;" onclick="abrirObsId(\'prot_' + r.id + '\')" title="Clique para ver completo">' + protText + '</div>';
               } else {
                 html += '<div style="font-size:11px;">' + protText + '</div>';
               }
