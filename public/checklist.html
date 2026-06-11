@@ -906,6 +906,14 @@
             <input id="editProtocolo" type="text" style="width:100%;padding:10px;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;color:#e2e8f0;font-size:14px;box-sizing:border-box;">
           </div>
           <div>
+            <label style="display:block;color:#a0aec0;font-size:12px;font-weight:700;margin-bottom:6px;text-transform:uppercase;">Estabelecimento</label>
+            <input id="editEstabelecimento" type="text" style="width:100%;padding:10px;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;color:#e2e8f0;font-size:14px;box-sizing:border-box;">
+          </div>
+          <div>
+            <label style="display:block;color:#a0aec0;font-size:12px;font-weight:700;margin-bottom:6px;text-transform:uppercase;">Referência do Evento</label>
+            <input id="editReferenciaEvento" type="text" style="width:100%;padding:10px;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;color:#e2e8f0;font-size:14px;box-sizing:border-box;">
+          </div>
+          <div>
             <label style="display:block;color:#a0aec0;font-size:12px;font-weight:700;margin-bottom:6px;text-transform:uppercase;">TAG</label>
             <input id="editTag" type="text" style="width:100%;padding:10px;background:#1a1f2e;border:2px solid #3a4256;border-radius:8px;color:#e2e8f0;font-size:14px;box-sizing:border-box;">
           </div>
@@ -2476,6 +2484,8 @@ const firebaseConfig = {
       document.getElementById('editAssunto').value = r.assunto || '';
       document.getElementById('editTicket').value = r.ticket || '';
       document.getElementById('editProtocolo').value = r.protocoloOuEmail || '';
+      document.getElementById('editEstabelecimento').value = r.estabelecimento || '';
+      document.getElementById('editReferenciaEvento').value = r.referenciaEvento || '';
       document.getElementById('editTag').value = r.tag || '';
       document.getElementById('editDesvio').value = r.desvio || '';
       document.getElementById('editObservacao').value = r.observacao || '';
@@ -2522,6 +2532,8 @@ const firebaseConfig = {
         assunto:         document.getElementById('editAssunto').value.trim(),
         ticket:          document.getElementById('editTicket').value.trim(),
         protocoloOuEmail:document.getElementById('editProtocolo').value.trim(),
+        estabelecimento: document.getElementById('editEstabelecimento').value.trim(),
+        referenciaEvento:document.getElementById('editReferenciaEvento').value.trim(),
         tag:             document.getElementById('editTag').value.trim(),
         desvio:          document.getElementById('editDesvio').value.trim(),
         observacao:      document.getElementById('editObservacao').value.trim(),
@@ -3694,11 +3706,11 @@ const firebaseConfig = {
             const assuntoLongo = assuntoText.length > 30;
             window._textoModal = window._textoModal || {};
             window._textoModal['ass_' + r.id] = assuntoText;
-            html += '<td style="padding:5px 6px;vertical-align:middle;max-width:130px;">';
+            html += '<td style="padding:5px 6px;vertical-align:middle;max-width:130px;overflow:hidden;">';
             if (assuntoLongo) {
-              html += '<div style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px;cursor:pointer;color:#4db8e8;word-break:break-all;" onclick="abrirObsId(\'ass_' + r.id + '\')" title="Clique para ver completo">' + assuntoText + '</div>';
+              html += '<div style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;color:#4db8e8;" onclick="abrirObsId(\'ass_' + r.id + '\')" title="' + assuntoText.replace(/"/g, '&quot;') + '">' + assuntoText + '</div>';
             } else {
-              html += '<div style="font-size:11px;">' + assuntoText + '</div>';
+              html += '<div style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + assuntoText + '</div>';
             }
             html += '</td>';
             if (hasProtocolo) {
